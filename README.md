@@ -1,12 +1,10 @@
-# play-scala-forms-example
+# Epic Jake Pauler CS 2340 Scala project
 
-[![Build Status](https://travis-ci.org/playframework/play-scala-forms-example.svg?branch=2.6.x)](https://travis-ci.org/playframework/play-scala-forms-example)
-
-This example shows form processing and form helper handling under Play 2.6.x.
+[![Build Status](https://www.youtube.com/watch?v=dQw4w9WgXcQ)](https://www.youtube.com/watch?v=hSlb1ezRqfA)
 
 ## How to run
 
-Start the Play app:
+Start the Risk game:
 
 ```bash
 sbt run
@@ -16,4 +14,4 @@ And open [http://localhost:9000/](http://localhost:9000/)
 
 ## Credits
 
-Originally written by Chris Birchall and the Guardian Team: <https://github.com/cb372/play-forms-tutorial>.  Much thanks, especially for the [article](https://www.theguardian.com/info/developer-blog/2015/dec/30/how-to-add-a-form-to-a-play-application).
+This README has been produced for thy viewing eyes by Andrew Chafos
