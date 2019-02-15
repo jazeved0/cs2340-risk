@@ -1,4 +1,8 @@
-# Epic Jake Pauler CS 2340 Scala project
+# CS 2340 Scala Project: Risk
+
+## Build Status
+
+England is my city
 
 [![Build Status](https://api.travis-ci.org/playframework/play-scala-forms-example.svg?branch=2.6.x)](https://www.youtube.com/watch?v=hSlb1ezRqfA)
 
@@ -14,4 +18,6 @@ And open [http://localhost:9000/](http://localhost:9000/)
 
 ## Credits
 
-This README has been produced for thy viewing eyes by Andrew Chafos
+- Jake Paul
+- Team 10
+- This README has been produced for thy viewing eyes by Andrew Chafos
