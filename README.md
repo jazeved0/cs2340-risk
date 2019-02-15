@@ -1,6 +1,6 @@
 # Epic Jake Pauler CS 2340 Scala project
 
-[![Build Status](https://www.youtube.com/watch?v=dQw4w9WgXcQ)](https://www.youtube.com/watch?v=hSlb1ezRqfA)
+[![Build Status](https://api.travis-ci.org/playframework/play-scala-forms-example.svg?branch=2.6.x)](https://www.youtube.com/watch?v=hSlb1ezRqfA)
 
 ## How to run
 
