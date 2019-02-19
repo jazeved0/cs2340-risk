@@ -1,6 +1,5 @@
-name := """play-scala-forms-example"""
-
-version := "2.7.x"
+name := """cs2340-team10-risk"""
+version := "1.0"
 
 scalaVersion := "2.12.8"
 

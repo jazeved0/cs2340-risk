@@ -16,6 +16,12 @@ sbt run
 
 And open [http://localhost:9000/](http://localhost:9000/)
 
+Alternatively, for development mode, you can enable the file watcher and start the risk game simultaneously:
+
+```bash
+sbt ~run
+```
+
 ## Credits
 
 - Jake Paul
