@@ -1,10 +1,14 @@
 package controllers
 
 import javax.inject.Inject
-import models.{Color, Resources}
+import models.{Lobby, Player, Resources}
+import play.api.Logger
 import play.api.mvc.{Action, AnyContent, MessagesAbstractController, MessagesControllerComponents}
+import scala.collection.mutable
 
 class MainController @Inject()(cc: MessagesControllerComponents) extends MessagesAbstractController(cc) {
+  val logger: Logger = Logger(this.getClass)
+  val lobbies: mutable.HashMap[String, Lobby] = mutable.HashMap()
 
   // Host HTTP calls
 
@@ -12,20 +16,24 @@ class MainController @Inject()(cc: MessagesControllerComponents) extends Message
     * at which a new game is made
     */
   // GET /
-  def index : Action[AnyContent] = Action {
+  def index : Action[AnyContent] = Action { implicit request =>
     // send landing page to the client (host)
-    // colors from https://flatuicolors.com/palette/defo
-    Ok(views.html.index(Resources.COLORS))
+    Ok(views.html.index(Resources.Colors))
   }
 
   // POST /lobby/make
-  def make(name: String, colorIndex: Int): Action[AnyContent] = Action { implicit request =>
-    // makes the lobby with the following fields in the request:
-    // name (String, hostname) and color (unsigned int, host color)
-    // sends redirect to /lobby/host and generates main ID
-    // TODO implement
-    var color = Resources.COLORS(colorIndex)
-    Ok("not implemented")
+  def make(name: String, colorIndex: Int): Action[AnyContent] = Action {
+    // handle errors in provided query params
+    if (name.length > Player.MaxNameLength)
+      BadRequest(s"Length of name ${name.length} too long (max: ${Player.MaxNameLength})")
+    if (colorIndex >= Resources.Colors.size || colorIndex < 0)
+      BadRequest(s"Color index $colorIndex out of bounds (max: ${Resources.Colors.size})")
+
+    val newLobby = Lobby.make(name, Resources.Colors(colorIndex))
+    lobbies.put(newLobby.id, newLobby)
+    logger.debug(s"Lobby id=${newLobby.id} created")
+
+    Redirect(s"/lobby/host/${newLobby.id}")
   }
 
   // Obtains the corresponding main page after a host has created

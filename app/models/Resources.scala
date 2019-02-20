@@ -1,7 +1,8 @@
 package models
 
 object Resources {
-  val COLORS = List(
+  // colors from https://flatuicolors.com/palette/defo
+  val Colors = List(
     Color("16a085"),
     Color("27ae60"),
     Color("8e44ad"),
