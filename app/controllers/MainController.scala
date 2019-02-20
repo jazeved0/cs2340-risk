@@ -1,14 +1,17 @@
 package controllers
 
 import javax.inject.Inject
-import models.{Lobby, Player, Resources}
+import models._
 import play.api.Logger
-import play.api.mvc.{Action, AnyContent, MessagesAbstractController, MessagesControllerComponents}
+import play.api.data.Form
+import play.api.mvc._
+
 import scala.collection.mutable
 
 class MainController @Inject()(cc: MessagesControllerComponents) extends MessagesAbstractController(cc) {
   val logger: Logger = Logger(this.getClass)
   val lobbies: mutable.HashMap[String, Lobby] = mutable.HashMap()
+  private val makeURL = routes.MainController.make()
 
   // Host HTTP calls
 
@@ -18,22 +21,31 @@ class MainController @Inject()(cc: MessagesControllerComponents) extends Message
   // GET /
   def index : Action[AnyContent] = Action { implicit request =>
     // send landing page to the client (host)
-    Ok(views.html.index(Resources.Colors))
+    Ok(views.html.index(Resources.UserForm, Resources.Colors, makeURL))
   }
 
   // POST /lobby/make
-  def make(name: String, colorIndex: Int): Action[AnyContent] = Action {
-    // handle errors in provided query params
-    if (name.length > Player.MaxNameLength)
-      BadRequest(s"Length of name ${name.length} too long (max: ${Player.MaxNameLength})")
-    if (colorIndex >= Resources.Colors.size || colorIndex < 0)
-      BadRequest(s"Color index $colorIndex out of bounds (max: ${Resources.Colors.size})")
+  def make(): Action[AnyContent] = Action { implicit request: MessagesRequest[AnyContent] =>
+    val formValidationResult: Form[UserData] = Resources.UserForm.bindFromRequest
+    formValidationResult.fold(
+      userData => {
+        logger.debug(s"Form submission for $userData failed")
+        // this is the bad case, where the form had validation errors.
+        // show the user the form again, with the errors highlighted.
+        BadRequest("Form submission failed")
+      },
+      userData => {
+        if (userData.name.length > Player.MaxNameLength)
+          BadRequest(s"Length of name ${userData.name.length} too long (max: ${Player.MaxNameLength})")
+        if (userData.colorIndex >= Resources.Colors.size || userData.colorIndex < 0)
+          BadRequest(s"Color index ${userData.colorIndex} out of bounds (max: ${Resources.Colors.size})")
 
-    val newLobby = Lobby.make(name, Resources.Colors(colorIndex))
-    lobbies.put(newLobby.id, newLobby)
-    logger.debug(s"Lobby id=${newLobby.id} created")
-
-    Redirect(s"/lobby/host/${newLobby.id}")
+        val newLobby = Lobby.make(userData.name, Resources.Colors(userData.colorIndex))
+        lobbies.put(newLobby.id, newLobby)
+        logger.debug(s"Lobby id=${newLobby.id} created")
+        Redirect(s"/lobby/host/${newLobby.id}")
+      }
+    )
   }
 
   // Obtains the corresponding main page after a host has created

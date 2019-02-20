@@ -4,7 +4,7 @@
 
 # HTTP Calls for Host
 GET     /                           controllers.MainController.index
-POST    /lobby/make                 controllers.MainController.make(name: String, color: Int)
+POST    /lobby/make                 controllers.MainController.make
 GET     /lobby/host/:id             controllers.MainController.host(id: String)
 
 # HTTP Calls for Non-Hosts

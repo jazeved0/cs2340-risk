@@ -8,7 +8,7 @@ object Lobby {
 
   def generateId: String = {
     var id = Util.randomString(IdLength)
-    while (!LobbyIds.contains(id)) id = Util.randomString(IdLength)
+    while (LobbyIds.contains(id)) id = Util.randomString(IdLength)
     id
   }
 
