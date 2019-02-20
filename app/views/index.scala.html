@@ -1,4 +1,4 @@
-@(userForm: Form[UserData], colors: List[Color], postUrl: Call)(implicit request: MessagesRequestHeader)
+@(userForm: Form[UserData], colorList: List[Color], postUrl: Call)(implicit request: MessagesRequestHeader)
 @import helper._
 @base("Welcome to Risk!") {
   <!-- so this is the main page which uses the templating engine to insert
@@ -13,10 +13,19 @@
             @helper.inputText(userForm("name"))
             @helper.inputRadioGroup(
                 userForm("colorIndex"),
-                options=colors.indices.map((i: Int) => i.toString -> i.toString)
+                options=colorList.indices.map((i: Int) => i.toString -> i.toString)
             )
             <button>Create Game</button>
         }
+
     </div>
+
+      <script type="text/javascript">
+          @for(i <- colorList.indices) {
+            $("[for='colorIndex_@i']").css("color", "#@colorList(i).hex.toString");
+          }
+      </script>
+
+
   </div>
 }
