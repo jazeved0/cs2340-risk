@@ -1,12 +1,16 @@
 package controllers
 
 import javax.inject.Inject
-import models.{Color, Resources}
-import play.api.mvc.{Action, AnyContent, MessagesAbstractController, MessagesControllerComponents}
+import models.{Color, Resources, UserData}
+import play.api.data.Form
+import play.api.mvc._
 
 class MainController @Inject()(cc: MessagesControllerComponents) extends MessagesAbstractController(cc) {
 
   // Host HTTP calls
+
+  private val logger = play.api.Logger(this.getClass)
+  private val makeURL = routes.MainController.make()
 
   /** This is the entry point for the host; this loads the page
     * at which a new game is made
@@ -15,17 +19,44 @@ class MainController @Inject()(cc: MessagesControllerComponents) extends Message
   def index : Action[AnyContent] = Action {
     // send landing page to the client (host)
     // colors from https://flatuicolors.com/palette/defo
-    Ok(views.html.index(Resources.COLORS))
+    implicit request: MessagesRequest[AnyContent] =>
+    Ok(views.html.index(Resources.userForm, Resources.COLORS, makeURL))
   }
 
   // POST /lobby/make
-  def make(name: String, colorIndex: Int): Action[AnyContent] = Action { implicit request =>
+  def make(): Action[AnyContent] = Action { implicit request: MessagesRequest[AnyContent] =>
     // makes the lobby with the following fields in the request:
     // name (String, hostname) and color (unsigned int, host color)
     // sends redirect to /lobby/host and generates main ID
     // TODO implement
-    var color = Resources.COLORS(colorIndex)
-    Ok("not implemented")
+
+    val errorFunction = { formWithErrors: Form[UserData] =>
+      logger.debug("CAME INTO errorFunction")
+      // this is the bad case, where the form had validation errors.
+      // show the user the form again, with the errors highlighted.
+      BadRequest("lmao don't be bad 4head")
+    }
+
+    var returnString = "pewds did an oopsie"
+
+    val successFunction = { data: UserData =>
+      logger.debug("CAME INTO successFunction")
+      // this is the SUCCESS case, where the form was successfully parsed as a BlogPost
+      val formData = UserData (
+        data.name,
+        data.colorIndex
+      )
+      returnString = formData.toString
+    }
+
+    val formValidationResult: Form[UserData] = Resources.userForm.bindFromRequest
+
+    formValidationResult.fold(
+      errorFunction,   // sad case
+      successFunction  // happy case
+    )
+
+    Ok(returnString)
   }
 
   // Obtains the corresponding main page after a host has created

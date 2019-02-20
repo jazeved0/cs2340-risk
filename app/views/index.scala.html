@@ -1,36 +1,22 @@
-@(colors: List[Color])
-
+@(userForm: Form[UserData], colors: List[Color], postUrl: Call)(implicit request: MessagesRequestHeader)
+@import helper._
 @base("Welcome to Risk!") {
   <!-- so this is the main page which uses the templating engine to insert
     the base file which adds header information -->
-  <script>
-    $(function() {
-      $("#new-lobby-form").submit(function(e) {
-        e.preventDefault();
-        var path = "/lobby/make?" + $("#new-lobby-form").serialize();
-        console.log("hello the url should be " + path);
-        $.ajax({
-          type: 'POST',
-          url: path
-        });
-        return false;
-      });
-    })
-  </script>
   <div>
     <p>any jammers?</p>
     <img width="100" src="https://cdn.discordapp.com/emojis/520743112537276436.gif?v=1" alt="pepeJammer"/>
     <div style="margin-top: 40px;">
-      <form id="new-lobby-form">
-        Name: <input type="text" name="name"><br>
-        Color: <br>
-        @for(i <- colors.indices) {
-          <input type="radio" name="color" id="@i" value="@i" @{if (i == 0) "checked=\"checked\""}>
-            <p style="font-weight: bold; color: #@colors(i).hex; display: inline;">@i</p>
-          <br>
+
+        @helper.form(postUrl, 'id -> "user_form") {
+            @CSRF.formField
+            @helper.inputText(userForm("name"))
+            @helper.inputRadioGroup(
+                userForm("colorIndex"),
+                options=colors.indices.map((i: Int) => i.toString -> i.toString)
+            )
+            <button>Create Game</button>
         }
-        <input style="margin-top: 16px;" type="submit" value="Create Lobby">
-      </form>
     </div>
   </div>
 }
