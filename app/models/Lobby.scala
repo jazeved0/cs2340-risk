@@ -7,8 +7,8 @@ object Lobby {
   val LobbyIds: mutable.HashSet[String] = new mutable.HashSet()
 
   def generateId: String = {
-    var id = Util.randomString(IdLength)
-    while (LobbyIds.contains(id)) id = Util.randomString(IdLength)
+    var id = Util.randomId(IdLength)
+    while (LobbyIds.contains(id)) id = Util.randomId(IdLength)
     id
   }
 

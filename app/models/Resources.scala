@@ -20,4 +20,6 @@ object Resources {
       "colorIndex" -> number
     )(UserData.apply)(UserData.unapply)
   )
+
+  val OriginsConfigKey = "app.controllers.origins"
 }

@@ -2,16 +2,24 @@ package controllers
 
 import javax.inject.Inject
 import models._
-import play.api.Logger
+import play.api.cache.Cached
+import play.api.{Configuration, Logger}
 import play.api.data.Form
 import play.api.mvc._
 
 import scala.collection.mutable
+import scala.concurrent.ExecutionContext
 
-class MainController @Inject()(cc: MessagesControllerComponents) extends MessagesAbstractController(cc) {
-  private val logger: Logger = Logger(this.getClass)
-  private val lobbies: mutable.HashMap[String, Lobby] = mutable.HashMap()
+class MainController @Inject()(cached: Cached,
+                               cc: MessagesControllerComponents,
+                               config: Configuration)
+                              (implicit ec: ExecutionContext)
+    extends MessagesAbstractController(cc) with SameOriginCheck {
+  val logger: Logger = Logger(this.getClass)
   private val makeURL = routes.MainController.make()
+
+  // mutable val collection
+  private val lobbies: mutable.HashMap[String, Lobby] = mutable.HashMap()
 
   // Host HTTP calls
 
@@ -19,13 +27,16 @@ class MainController @Inject()(cc: MessagesControllerComponents) extends Message
     * at which a new game is made
     */
   // GET /
-  def index : Action[AnyContent] = Action { implicit request =>
-    // send landing page to the client (host)
-    Ok(views.html.index(Resources.UserForm, Resources.Colors, makeURL))
+  def index: EssentialAction = cached("indexPage") {
+    Action {
+      implicit request =>
+        // send landing page to the client (host)
+        Ok(views.html.index(Resources.UserForm, Resources.Colors, makeURL))
+    }
   }
 
   // POST /lobby/make
-  def make(): Action[AnyContent] = Action { implicit request: MessagesRequest[AnyContent] =>
+  def make: Action[AnyContent] = Action { implicit request: MessagesRequest[AnyContent] =>
     val formValidationResult: Form[UserData] = Resources.UserForm.bindFromRequest
     formValidationResult.fold(
       userData => {
@@ -62,7 +73,7 @@ class MainController @Inject()(cc: MessagesControllerComponents) extends Message
       // (address should get rewritten to normal main url on the
       // front end immediately upon load)
       // TODO implement
-      Ok(views.html.main(id))
+      Ok(views.html.main(id, request.headers.get(HOST).getOrElse("*")))
     }
   }
 
@@ -76,7 +87,7 @@ class MainController @Inject()(cc: MessagesControllerComponents) extends Message
     else {
       // send main page to the client
       // TODO implement
-      Ok(views.html.main(id))
+      Ok(views.html.main(id, request.headers.get(HOST).getOrElse("*")))
     }
   }
 
@@ -87,4 +98,35 @@ class MainController @Inject()(cc: MessagesControllerComponents) extends Message
     // redirect to landing page
     Redirect("/")
   }
+
+  // WEB SOCKETS
+
+  // TODO web socket here
+
+  override def validOrigin(path: String): Boolean = config.get[Seq[String]](Resources.OriginsConfigKey)
+    .exists(path.contains(_))
+}
+
+/**
+  * Sourced from https://github.com/playframework/play-scala-websocket-example/blob/2.7.x/app/controllers/HomeController.scala
+  * @author Will Sargent
+  */
+trait SameOriginCheck{
+  def logger: Logger
+  def sameOriginCheck(rh: RequestHeader): Boolean = {
+    rh.headers.get("Origin") match {
+      case Some(originValue) if validOrigin(originValue) =>
+        logger.debug(s"originCheck: originValue = $originValue")
+        true
+
+      case Some(badOrigin) =>
+        logger.error(s"originCheck: rejecting request because Origin header value $badOrigin is not in the same origin")
+        false
+
+      case None =>
+        logger.error("originCheck: rejecting request because no Origin header found")
+        false
+    }
+  }
+  def validOrigin(origin: String): Boolean
 }

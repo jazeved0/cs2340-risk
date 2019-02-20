@@ -9,7 +9,7 @@ lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
 libraryDependencies += guice
 libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "4.0.1" % Test
-
+libraryDependencies += caffeine
 scalacOptions ++= Seq(
     "-feature",
     "-deprecation",

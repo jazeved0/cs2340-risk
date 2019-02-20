@@ -1,5 +1,6 @@
 package models
 
+// player DTO
 object Player {
   val MaxNameLength = 16
 }
