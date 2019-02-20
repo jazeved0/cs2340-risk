@@ -9,8 +9,8 @@ import play.api.mvc._
 import scala.collection.mutable
 
 class MainController @Inject()(cc: MessagesControllerComponents) extends MessagesAbstractController(cc) {
-  val logger: Logger = Logger(this.getClass)
-  val lobbies: mutable.HashMap[String, Lobby] = mutable.HashMap()
+  private val logger: Logger = Logger(this.getClass)
+  private val lobbies: mutable.HashMap[String, Lobby] = mutable.HashMap()
   private val makeURL = routes.MainController.make()
 
   // Host HTTP calls
@@ -55,8 +55,13 @@ class MainController @Inject()(cc: MessagesControllerComponents) extends Message
     // send lobby host page to the client
     // (address should get rewritten to normal main url on the
     // front end immediately upon load)
+    if (!lobbies.contains(id))
+      BadRequest(s"Invalid lobby id $id")
+    if (lobbies(id).hasHostJoined)
+      BadRequest(s"Host has already joined")
+
     // TODO implement
-    Ok(views.html.main())
+    Ok(views.html.main(id))
   }
 
   //This is the entry points for *non-hosts*;it gives them
@@ -64,9 +69,12 @@ class MainController @Inject()(cc: MessagesControllerComponents) extends Message
   //and then joining the existing game
   // GET /lobby/:id
   def lobby(id: String): Action[AnyContent] = Action { implicit request =>
+    if (!lobbies.contains(id))
+      BadRequest(s"Invalid lobby id $id")
+
     // send main page to the client
     // TODO implement
-    Ok(views.html.main())
+    Ok(views.html.main(id))
   }
 
   //ERROR HANDLING

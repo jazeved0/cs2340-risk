@@ -1,10 +1,15 @@
-@()
+@(lobbyId: String)
 
 @base("Lobby") {
   <!-- so this is the main page which uses the templating engine to insert
     the base file which adds header information -->
   <div>
+    <h1>Lobby @lobbyId</h1>
     <p>any flickers?</p>
     <img width="100" src="https://cdn.discordapp.com/emojis/539216903621574686.gif?v=1" alt="ricardoFlick"/>
+    <div style="margin-top: 32px;">
+      <p>Get your friends to join at the url:</p>
+      <p>http://base.url/lobby/@lobbyId</p>
+    </div>
   </div>
 }

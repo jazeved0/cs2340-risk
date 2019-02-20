@@ -29,6 +29,8 @@ class Lobby(val players: mutable.Buffer[Player], val id: String, var host: Playe
   // to the host lobby page
   private var hostInfo: Option[(String, Color)] = Option.empty
 
+  def hasHostJoined: Boolean = hostInfo.isEmpty
+
   def join(player: Player): Unit = {
     if (players.isEmpty) host = player
     players += player
