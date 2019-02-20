@@ -37,13 +37,14 @@ class MainController @Inject()(cc: MessagesControllerComponents) extends Message
       userData => {
         if (userData.name.length > Player.MaxNameLength)
           BadRequest(s"Length of name ${userData.name.length} too long (max: ${Player.MaxNameLength})")
-        if (userData.colorIndex >= Resources.Colors.size || userData.colorIndex < 0)
+        else if (userData.colorIndex >= Resources.Colors.size || userData.colorIndex < 0)
           BadRequest(s"Color index ${userData.colorIndex} out of bounds (max: ${Resources.Colors.size})")
-
-        val newLobby = Lobby.make(userData.name, Resources.Colors(userData.colorIndex))
-        lobbies.put(newLobby.id, newLobby)
-        logger.debug(s"Lobby id=${newLobby.id} created")
-        Redirect(s"/lobby/host/${newLobby.id}")
+        else {
+          val newLobby = Lobby.make(userData.name, Resources.Colors(userData.colorIndex))
+          lobbies.put(newLobby.id, newLobby)
+          logger.debug(s"Lobby id=${newLobby.id} created")
+          Redirect(s"/lobby/host/${newLobby.id}")
+        }
       }
     )
   }
@@ -52,16 +53,17 @@ class MainController @Inject()(cc: MessagesControllerComponents) extends Message
   // a main
   // GET /lobby/host/:id
   def host(id: String): Action[AnyContent] = Action { implicit request =>
-    // send lobby host page to the client
-    // (address should get rewritten to normal main url on the
-    // front end immediately upon load)
-    if (!lobbies.contains(id))
+    if (!lobbies.isDefinedAt(id))
       BadRequest(s"Invalid lobby id $id")
-    if (lobbies(id).hasHostJoined)
+    else if (lobbies(id).hasHostJoined)
       BadRequest(s"Host has already joined")
-
-    // TODO implement
-    Ok(views.html.main(id))
+    else {
+      // send lobby host page to the client
+      // (address should get rewritten to normal main url on the
+      // front end immediately upon load)
+      // TODO implement
+      Ok(views.html.main(id))
+    }
   }
 
   //This is the entry points for *non-hosts*;it gives them
@@ -71,10 +73,11 @@ class MainController @Inject()(cc: MessagesControllerComponents) extends Message
   def lobby(id: String): Action[AnyContent] = Action { implicit request =>
     if (!lobbies.contains(id))
       BadRequest(s"Invalid lobby id $id")
-
-    // send main page to the client
-    // TODO implement
-    Ok(views.html.main(id))
+    else {
+      // send main page to the client
+      // TODO implement
+      Ok(views.html.main(id))
+    }
   }
 
   //ERROR HANDLING
@@ -84,5 +87,4 @@ class MainController @Inject()(cc: MessagesControllerComponents) extends Message
     // redirect to landing page
     Redirect("/")
   }
-
 }
