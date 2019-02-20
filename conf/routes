@@ -2,22 +2,16 @@
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
 
-# Home page
-GET     /                           controllers.LobbyController.index
+# HTTP Calls for Host
+GET     /                           controllers.MainController.index
+POST    /lobby/make                 controllers.MainController.make
+GET     /lobby/host/:id             controllers.MainController.host(id: String)
 
-# Lobby page
-GET     /lobby                      controllers.LobbyController.redirectIndex
-POST    /lobby/make                 controllers.LobbyController.make
-GET     /lobby/host/:id             controllers.LobbyController.host(id: String)
-GET     /lobby/getid                controllers.LobbyController.getId
-GET     /lobby/:id                  controllers.LobbyController.lobby(id: String)
-POST    /lobby/join                 controllers.LobbyController.join(name: String, color: Int)
-POST    /lobby/ping                 controllers.LobbyController.ping(pid: String)
-POST    /lobby/start                controllers.LobbyController.start(pid: String)
+# HTTP Calls for Non-Hosts
+GET     /lobby/:id                  controllers.MainController.lobby(id: String)
 
-# Game page
-GET     /game                       controllers.GameController.load
-GET     /game/data                  controllers.GameController.getData
+# Deafult Redirect (in case you accidentally type /lobby instead of /lobby/:id
+GET     /lobby                      controllers.MainController.redirectIndex
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)

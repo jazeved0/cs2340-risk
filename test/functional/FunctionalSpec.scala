@@ -1,16 +1,10 @@
 package functional
 
-import controllers.{LobbyController, routes}
+import controllers.MainController
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
-import play.api.http.Status
-import play.api.mvc._
-import play.api.test.Helpers._
 import play.api.test._
-
-import scala.concurrent.Future
-
 /**
  * Functional specification that has a running Play application.
  *
@@ -28,14 +22,14 @@ class FunctionalSpec extends PlaySpec with GuiceOneAppPerSuite with Injecting wi
 
     "process a POST request successfully" in {
       // Pull the controller from the already running Play application, using Injecting
-      val controller = inject[LobbyController]
+      val controller = inject[MainController]
 
       // TODO functional tests
     }
 
     "reject a POST request when given bad input" in {
       // Pull the controller from the already running Play application, using Injecting
-      val controller = inject[LobbyController]
+      val controller = inject[MainController]
 
       // TODO functional tests
     }
