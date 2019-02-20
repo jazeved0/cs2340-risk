@@ -1,16 +1,10 @@
-@(title: String)(content: Html)
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <title>@title</title>
-        <link rel="stylesheet" media="screen" href="@routes.Assets.versioned("stylesheets/main.css")">
-        <link rel="shortcut icon" type="image/png" href="@routes.Assets.versioned("images/favicon.png")">
-        <script src="@routes.Assets.versioned("javascripts/hello.js")" type="text/javascript"></script>
-        <meta name="theme-color" content="#9793C7">
-        <!-- add scripts here, change favicon to ours, change javascript too
-            also add meta tags for things embeds -->
-    </head>
-    <body>
-        @content
-    </body>
-</html>
+@()
+
+@base("Lobby") {
+  <!-- so this is the main page which uses the templating engine to insert
+    the base file which adds header information -->
+  <div>
+    <p>any flickers?</p>
+    <img width="100" src="https://cdn.discordapp.com/emojis/539216903621574686.gif?v=1" alt="ricardoFlick"/>
+  </div>
+}

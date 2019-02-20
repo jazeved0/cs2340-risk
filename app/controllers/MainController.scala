@@ -1,6 +1,7 @@
 package controllers
 
 import javax.inject.Inject
+import models.{Color, Resources}
 import play.api.mvc.{Action, AnyContent, MessagesAbstractController, MessagesControllerComponents}
 
 class MainController @Inject()(cc: MessagesControllerComponents) extends MessagesAbstractController(cc) {
@@ -13,27 +14,29 @@ class MainController @Inject()(cc: MessagesControllerComponents) extends Message
   // GET /
   def index : Action[AnyContent] = Action {
     // send landing page to the client (host)
-    Ok(views.html.index())
+    // colors from https://flatuicolors.com/palette/defo
+    Ok(views.html.index(Resources.COLORS))
   }
 
   // POST /lobby/make
-  def make: Action[AnyContent] = Action { implicit request =>
+  def make(name: String, colorIndex: Int): Action[AnyContent] = Action { implicit request =>
     // makes the lobby with the following fields in the request:
     // name (String, hostname) and color (unsigned int, host color)
-    // sends redirect to /lobby/host and generates lobby ID
+    // sends redirect to /lobby/host and generates main ID
     // TODO implement
+    var color = Resources.COLORS(colorIndex)
     Ok("not implemented")
   }
 
-  // Obtains the corresponding lobby page after a host has created
-  // a lobby
+  // Obtains the corresponding main page after a host has created
+  // a main
   // GET /lobby/host/:id
   def host(id: String): Action[AnyContent] = Action { implicit request =>
     // send lobby host page to the client
-    // (address should get rewritten to normal lobby url on the
+    // (address should get rewritten to normal main url on the
     // front end immediately upon load)
     // TODO implement
-    Ok(views.html.lobby())
+    Ok(views.html.main())
   }
 
   //This is the entry points for *non-hosts*;it gives them
@@ -41,14 +44,14 @@ class MainController @Inject()(cc: MessagesControllerComponents) extends Message
   //and then joining the existing game
   // GET /lobby/:id
   def lobby(id: String): Action[AnyContent] = Action { implicit request =>
-    // send lobby page to the client
+    // send main page to the client
     // TODO implement
-    Ok(views.html.lobby())
+    Ok(views.html.main())
   }
 
   //ERROR HANDLING
 
-  //Redirects user to host index page if they do /lobby by mistake
+  //Redirects user to host index page if they do /main by mistake
   def redirectIndex: Action[AnyContent] = Action {
     // redirect to landing page
     Redirect("/")
