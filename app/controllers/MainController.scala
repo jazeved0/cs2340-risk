@@ -52,7 +52,7 @@ class MainController @Inject()(cached: Cached,
           BadRequest(s"Color index ${userData.colorIndex} out of bounds (max: ${Resources.Colors.size})")
         else {
           val newLobby = Lobby.make(userData.name, Resources.Colors(userData.colorIndex))
-          lobbies.put(newLobby.id, newLobby)
+          lobbies += newLobby.id -> newLobby
           logger.debug(s"Lobby id=${newLobby.id} created")
           Redirect(s"/lobby/host/${newLobby.id}")
         }
@@ -74,6 +74,7 @@ class MainController @Inject()(cached: Cached,
       // front end immediately upon load)
       // TODO implement
       Ok(views.html.main(id, request.headers.get(HOST).getOrElse("*")))
+        .withCookies(makeClientIdCookie)
     }
   }
 
@@ -81,15 +82,22 @@ class MainController @Inject()(cached: Cached,
   //the page responsible for them setting their name & color
   //and then joining the existing game
   // GET /lobby/:id
-  def lobby(id: String): Action[AnyContent] = Action { implicit request =>
-    if (!lobbies.contains(id))
-      BadRequest(s"Invalid lobby id $id")
-    else {
-      // send main page to the client
-      // TODO implement
-      Ok(views.html.main(id, request.headers.get(HOST).getOrElse("*")))
+  def lobby(id: String): EssentialAction = cached(s"lobbyPage/$id") {
+    Action { implicit request =>
+      if (!lobbies.isDefinedAt(id))
+        BadRequest(s"Invalid lobby id $id")
+      else {
+        // send main page to the client
+        // TODO implement
+        Ok(views.html.main(id, request.headers.get(HOST).getOrElse("*")))
+          .withCookies(makeClientIdCookie)
+      }
     }
   }
+
+  // generates client Id cookies for the frontend to consume
+  def makeClientIdCookie: Cookie = Cookie(Resources.ClientIdCookieKey,Util.generateClientId,
+    httpOnly = false)
 
   //ERROR HANDLING
 
@@ -100,8 +108,9 @@ class MainController @Inject()(cached: Cached,
   }
 
   // WEB SOCKETS
-
-  // TODO web socket here
+  def webSocket(gameId: String, clientId: String): Action[AnyContent] = Action {
+    Ok("uwu")
+  }
 
   override def validOrigin(path: String): Boolean = config.get[Seq[String]](Resources.OriginsConfigKey)
     .exists(path.contains(_))
@@ -118,11 +127,9 @@ trait SameOriginCheck{
       case Some(originValue) if validOrigin(originValue) =>
         logger.debug(s"originCheck: originValue = $originValue")
         true
-
       case Some(badOrigin) =>
         logger.error(s"originCheck: rejecting request because Origin header value $badOrigin is not in the same origin")
         false
-
       case None =>
         logger.error("originCheck: rejecting request because no Origin header found")
         false

@@ -11,7 +11,7 @@ GET     /lobby/host/:id             controllers.MainController.host(id: String)
 GET     /lobby/:id                  controllers.MainController.lobby(id: String)
 
 # WebSocket route for the main game
-#GET     /ws                         controllers.MainController.webSocket
+GET     /ws/:gameId/:clientId       controllers.MainController.webSocket(gameId: String, clientId: String)
 
 # Deafult Redirect (in case you accidentally type /lobby instead of /lobby/:id
 GET     /lobby                      controllers.MainController.redirectIndex

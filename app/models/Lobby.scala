@@ -3,7 +3,7 @@ package models
 import scala.collection.mutable
 
 object Lobby {
-  val IdLength = 5
+  val IdLength = 4
   val LobbyIds: mutable.HashSet[String] = new mutable.HashSet()
 
   def generateId: String = {
@@ -16,7 +16,7 @@ object Lobby {
 
   def make(hostName: String, hostColor: Color): Lobby = {
     val l = new Lobby(mutable.Buffer[Player](), generateId, null)
-    l.hostInfo = Option(hostName, hostColor)
+    l.hostInfo = Some(hostName, hostColor)
     l
   }
 }
@@ -27,7 +27,7 @@ class Lobby(val players: mutable.Buffer[Player], val id: String, var host: Playe
 
   // temporary information for the host of the lobby as they get redirected
   // to the host lobby page
-  private var hostInfo: Option[(String, Color)] = Option.empty
+  private var hostInfo: Option[(String, Color)] = None
 
   def hasHostJoined: Boolean = hostInfo.isEmpty
 
@@ -47,7 +47,7 @@ class Lobby(val players: mutable.Buffer[Player], val id: String, var host: Playe
     if (hostInfo.isEmpty) false
     else {
       join(Player(id, hostInfo.get._1, hostInfo.get._2))
-      hostInfo = Option.empty
+      hostInfo = None
       true
     }
   }

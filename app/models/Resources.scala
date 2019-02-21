@@ -6,7 +6,7 @@ import play.api.data.Forms._
 object Resources {
   // colors from https://flatuicolors.com/palette/defo
   val Colors = List(
-    Color("16a085"),
+    Color("2980b9"),
     Color("27ae60"),
     Color("8e44ad"),
     Color("f39c12"),
@@ -22,4 +22,5 @@ object Resources {
   )
 
   val OriginsConfigKey = "app.controllers.origins"
+  val ClientIdCookieKey: String = "clientId"
 }

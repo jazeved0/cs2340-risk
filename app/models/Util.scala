@@ -5,7 +5,7 @@ import scala.util.Random
 
 object Util {
   // adapted from the Open Location Code
-  private val IdChars: Seq[Char] = "BCFGHJMPQRVWX".toLowerCase.toList
+  private val IdChars: Seq[Char] = "BCEFGHJMPQRTVYWX".toLowerCase.toList
 
   def randomString(length: Int): String = Random.alphanumeric.take(length).mkString
   def randomString(length: Int, from: Seq[Char]): String = Random.shuffle(from).take(length).mkString
@@ -13,10 +13,11 @@ object Util {
 
   val ClientIdLength = 16
   val ClientIds: mutable.HashSet[String] = new mutable.HashSet()
-  def generateClientID: String = {
+  def generateClientId: String = {
     var id = Util.randomString(ClientIdLength)
     while (ClientIds.contains(id)) id = Util.randomString(ClientIdLength)
+    ClientIds += id
     id
   }
-  def freeClientID(id: String): Unit = ClientIds -= id
+  def freeClientId(id: String): Unit = ClientIds -= id
 }
