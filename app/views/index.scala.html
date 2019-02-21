@@ -1,6 +1,22 @@
 @(userForm: Form[UserData], colorList: List[Color], postUrl: Call)(implicit request: MessagesRequestHeader)
 @import helper._
-@base("CS 2340 Risk") {
+  @{/* second parameter adds font awesome */}
+@base("Risk: The Game of Global Domination", "<link rel=\"stylesheet\" " +
+        "href=\"https://use.fontawesome.com/releases/v5.7.2/css/brands.css\" " +
+        "integrity=\"sha384-BKw0P+CQz9xmby+uplDwp82Py8x1xtYPK3ORn/ZSoe6Dk3ETP59WCDnX+fI1XCKK\" " +
+        "crossorigin=\"anonymous\">\n<link rel=\"stylesheet\" " +
+        "href=\"https://use.fontawesome.com/releases/v5.7.2/css/fontawesome.css\" " +
+        "integrity=\"sha384-4aon80D8rXCGx9ayDt85LbyUHeMWd3UiBaWliBlJ53yzm9hqN21A+o1pqoyK04h+\" " +
+        "crossorigin=\"anonymous\">") {
+  <div>
+    <nav class="navbar navbar-dark bg-dark justify-content-between">
+      <a class="navbar-brand">Navbar</a>
+      <form class="form-inline">
+        <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
+        <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+      </form>
+    </nav>
+  </div>
   <div>
     <p>any jammers?</p>
     <img width="100" src="https://cdn.discordapp.com/emojis/520743112537276436.gif?v=1" alt="pepeJammer"/>
