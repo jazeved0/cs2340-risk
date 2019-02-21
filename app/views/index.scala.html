@@ -9,37 +9,77 @@
         "integrity=\"sha384-4aon80D8rXCGx9ayDt85LbyUHeMWd3UiBaWliBlJ53yzm9hqN21A+o1pqoyK04h+\" " +
         "crossorigin=\"anonymous\">") {
   <div>
-    <nav class="navbar navbar-dark bg-dark justify-content-between">
-      <a class="navbar-brand">Navbar</a>
-      <form class="form-inline">
-        <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
-        <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
-      </form>
-    </nav>
+      <nav class="navbar navbar-light bg-dark">
+          <a class="navbar-brand" href="https://github.gatech.edu/achafos3/CS2340Sp19Team10" target="_blank" rel="noopener">
+              <i class="fab fa-github repoImg"></i>
+          </a>
+          <form class="form-inline mr-2">
+              <div class = "content mr-3 mt-3">
+                  <p class="p1">Join Existing Lobby</p>
+              </div>
+              <input class="form-control mr-sm-2" type="search" placeholder="Lobby Code" Roboto-label="Search">
+              <button class="btn btn-outline-success my-2 my-sm-0 white dark_accent" type="submit">Join</button>
+          </form>
+      </nav>
   </div>
-  <div>
+
+  <div class="dark_background">
+      <div class="container background_padding">
+          <div class="row">
+              <div class="col-9 ml-5">
+                    <p class="title1"><strong>Risk</strong></p>
+                    <p class="subtitle1">The Game of Global Domination</p>
+                    <p class="paragraph1">Risk is a strategy board game of diplomacy, conflict and conquest for two to six players.
+                                The standard version is played on a board depicting a political map of Earth,
+                                divided into forty-two territories, which are grouped into six continents.
+                                Turn rotates among players who control armies of playing pieces with which they
+                                attempt to capture territories from other players, with results determined by dice rolls.
+                                Players may form and dissolve alliances during the course of the game.
+                                The goal of the game is to occupy every territory on the board and in doing so,
+                                eliminate the other players."</p>
+              </div>
+          </div>
+      </div>
+  </div>
+
+  <div id="light_background" class="create_game_padding">
+      <div class="container" id="start_game_window">
+        <p id="title2">Get Started:</p>
+        <form class="form-inline row">
+            <p id="host_name" class="col-3">Host Name:</p>
+            <input class="form-control col-5 form-control-lg mr-sm-4" type="search" placeholder="Host Name" Roboto-label="Search">
+            <button class="btn col-2 btn-outline-success my-2 btn-lg white dark_accent" type="submit">Start Lobby</button>
+        </form>
+      </div>
+  </div>
+
+  <div id="accent_background">
+      <div id="accent_background_padding"></div>
+  </div>
+
+<!-- <div>
     <p>any jammers?</p>
     <img width="100" src="https://cdn.discordapp.com/emojis/520743112537276436.gif?v=1" alt="pepeJammer"/>
     <div style="margin-top: 40px;">
 
         @helper.form(postUrl, 'id -> "user_form") {
-            @CSRF.formField
-            @helper.inputText(userForm("name"))
-            @helper.inputRadioGroup(
-                userForm("colorIndex"),
-                options=colorList.indices.map((i: Int) => i.toString -> i.toString)
-            )
-            <button>Create Game</button>
-        }
+        @CSRF.formField
+        @helper.inputText(userForm("name"))
+        @helper.inputRadioGroup(
+            userForm("colorIndex"),
+            options=colorList.indices.map((i: Int) => i.toString -> i.toString)
+        )
+        <button>Create Game</button>
+    }
 
     </div>
 
-      <script type="text/javascript">
-          @for(i <- colorList.indices) {
+    <script type="text/javascript">
+        @for(i <- colorList.indices) {
             $("[for='colorIndex_@i']").css("color", "#@colorList(i).hex.toString");
           }
-      </script>
+    </script>
 
-
+    -->
   </div>
 }

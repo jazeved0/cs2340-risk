@@ -1,0 +1,87 @@
+.repoImg {
+    font-size: 48px;
+    color: #F5F2F2;
+}
+
+.p1 {
+    color: #F5F2F2;
+    font-size: 20px;
+    font-family: Roboto, Serif;
+}
+
+.title1 {
+    color: #F5F2F2;
+    font-size: 120px;
+    font-family: Roboto Slab, Serif;
+}
+
+#title2 {
+    color: #362A4D;
+    font-size: 50px;
+    font-family: Roboto, Serif;
+}
+
+.subtitle1 {
+    color: #F5F2F2;
+    font-size: 30px;
+    font-family: Roboto, Serif;
+    margin-top: -50px;
+}
+
+#host_name {
+    font-size: 30px;
+    font-family: Roboto, Serif;
+    color: #362A4D;
+    padding-top: 15px;
+}
+
+.paragraph1 {
+    color: #F5F2F2;
+    font-size: 17px;
+    font-family: Roboto, Serif;
+}
+
+.background_padding {
+    padding-top: 80px;
+    padding-bottom: 120px;
+}
+
+#accent_background_padding {
+    padding-top: 200px;
+    padding-bottom: 200px;
+}
+
+.create_game_padding {
+    padding-top: 100px;
+    padding-bottom: 150px;
+}
+
+#start_game_window {
+    margin-top: -10px;
+    padding-left: 250px;
+}
+
+.dark_accent {
+    background-color: #5B78BB;
+}
+
+.white {
+    color: #F5F2F2;
+}
+
+.light_accent {
+    color: #D9B34F;
+}
+
+.dark_background {
+    background-color: #362A4D ;
+}
+
+#light_background {
+    background-image: url("/assets/images/stripes.svg");
+    background-size: 250px;
+}
+
+#accent_background {
+    background-color: #D9B34F;
+}
