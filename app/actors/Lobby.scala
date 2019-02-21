@@ -1,4 +1,7 @@
-package models
+package actors
+
+import common.Util
+import models.{Color, Player}
 
 import scala.collection.mutable
 
@@ -11,9 +14,7 @@ object Lobby {
     while (LobbyIds.contains(id)) id = Util.randomId(IdLength)
     id
   }
-
   def freeId(id: String): Unit = LobbyIds -= id
-
   def make(hostName: String, hostColor: Color): Lobby = {
     val l = new Lobby(mutable.Buffer[Player](), generateId, null)
     l.hostInfo = Some(hostName, hostColor)

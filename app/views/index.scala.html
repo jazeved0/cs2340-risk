@@ -1,4 +1,4 @@
-@(userForm: Form[UserData], colorList: List[Color], postUrl: Call)(implicit request: MessagesRequestHeader)
+@(userForm: Form[ClientSettings], colorList: List[Color], postUrl: Call)(implicit request: MessagesRequestHeader)
 @import helper._
   @{/* second parameter adds font awesome */}
 @base("Risk: The Game of Global Domination", "<link rel=\"stylesheet\" " +
@@ -26,7 +26,7 @@
             @CSRF.formField
             @helper.inputText(userForm("name"))
             @helper.inputRadioGroup(
-                userForm("colorIndex"),
+                userForm("ordinal"),
                 options=colorList.indices.map((i: Int) => i.toString -> i.toString)
             )
             <button>Create Game</button>

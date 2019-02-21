@@ -1,5 +1,6 @@
-package models
+package common
 
+import models.{ClientSettings, Color}
 import play.api.data.Form
 import play.api.data.Forms._
 
@@ -17,8 +18,8 @@ object Resources {
   val UserForm = Form(
     mapping(
       "name" -> nonEmptyText,
-      "colorIndex" -> number
-    )(UserData.apply)(UserData.unapply)
+      "ordinal" -> number
+    )(ClientSettings.apply)(ClientSettings.unapply)
   )
 
   val OriginsConfigKey = "app.controllers.origins"
