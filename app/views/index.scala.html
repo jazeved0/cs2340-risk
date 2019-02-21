@@ -4,26 +4,6 @@
   <div>
     <p>any jammers?</p>
     <img width="100" src="https://cdn.discordapp.com/emojis/520743112537276436.gif?v=1" alt="pepeJammer"/>
-    <div style="margin-top: 40px;">
-
-        @helper.form(postUrl, 'id -> "user_form") {
-            @CSRF.formField
-            @helper.inputText(userForm("name"))
-            @helper.inputRadioGroup(
-                userForm("colorIndex"),
-                options=colorList.indices.map((i: Int) => i.toString -> i.toString)
-            )
-            <button>Create Game</button>
-        }
-
-    </div>
-
-      <script type="text/javascript">
-          @for(i <- colorList.indices) {
-            $("[for='colorIndex_@i']").css("color", "#@colorList(i).hex.toString");
-          }
-      </script>
-
-
+    @newUserForm(postUrl)
   </div>
 }

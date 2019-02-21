@@ -17,6 +17,7 @@ class MainController @Inject()(cached: Cached,
     extends MessagesAbstractController(cc) with SameOriginCheck {
   val logger: Logger = Logger(this.getClass)
   private val makeURL = routes.MainController.make()
+  private val nonHostSubmitURL = routes.MainController.make()
 
   // mutable val collection
   private val lobbies: mutable.HashMap[String, Lobby] = mutable.HashMap()
@@ -73,7 +74,7 @@ class MainController @Inject()(cached: Cached,
       // (address should get rewritten to normal main url on the
       // front end immediately upon load)
       // TODO implement
-      Ok(views.html.main(id, request.headers.get(HOST).getOrElse("*")))
+      Ok(views.html.main(id, request.headers.get(HOST).getOrElse("*"), true, nonHostSubmitURL))
         .withCookies(makeClientIdCookie)
     }
   }
@@ -89,7 +90,7 @@ class MainController @Inject()(cached: Cached,
       else {
         // send main page to the client
         // TODO implement
-        Ok(views.html.main(id, request.headers.get(HOST).getOrElse("*")))
+        Ok(views.html.main(id, request.headers.get(HOST).getOrElse("*"), false, nonHostSubmitURL))
           .withCookies(makeClientIdCookie)
       }
     }
