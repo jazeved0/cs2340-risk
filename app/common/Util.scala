@@ -1,4 +1,4 @@
-package models
+package common
 
 import scala.collection.mutable
 import scala.util.Random

@@ -1,5 +1,7 @@
 package controllers
 
+import actors.Lobby
+import common.{Resources, Util}
 import javax.inject.Inject
 import models._
 import play.api.cache.Cached
@@ -17,6 +19,7 @@ class MainController @Inject()(cached: Cached,
     extends MessagesAbstractController(cc) with SameOriginCheck {
   val logger: Logger = Logger(this.getClass)
   private val makeURL = routes.MainController.make()
+  private val nonHostSubmitURL = routes.MainController.make()
 
   // mutable val collection
   private val lobbies: mutable.HashMap[String, Lobby] = mutable.HashMap()
@@ -37,7 +40,7 @@ class MainController @Inject()(cached: Cached,
 
   // POST /lobby/make
   def make: Action[AnyContent] = Action { implicit request: MessagesRequest[AnyContent] =>
-    val formValidationResult: Form[UserData] = Resources.UserForm.bindFromRequest
+    val formValidationResult: Form[ClientSettings] = Resources.UserForm.bindFromRequest
     formValidationResult.fold(
       userData => {
         logger.debug(s"Form submission for $userData failed")
@@ -48,10 +51,10 @@ class MainController @Inject()(cached: Cached,
       userData => {
         if (userData.name.length > Player.MaxNameLength)
           BadRequest(s"Length of name ${userData.name.length} too long (max: ${Player.MaxNameLength})")
-        else if (userData.colorIndex >= Resources.Colors.size || userData.colorIndex < 0)
-          BadRequest(s"Color index ${userData.colorIndex} out of bounds (max: ${Resources.Colors.size})")
+        else if (userData.ordinal >= Resources.Colors.size || userData.ordinal < 0)
+          BadRequest(s"Color index ${userData.ordinal} out of bounds (max: ${Resources.Colors.size})")
         else {
-          val newLobby = Lobby.make(userData.name, Resources.Colors(userData.colorIndex))
+          val newLobby = Lobby.make(userData.name, Resources.Colors(userData.ordinal))
           lobbies += newLobby.id -> newLobby
           logger.debug(s"Lobby id=${newLobby.id} created")
           Redirect(s"/lobby/host/${newLobby.id}")
@@ -73,7 +76,7 @@ class MainController @Inject()(cached: Cached,
       // (address should get rewritten to normal main url on the
       // front end immediately upon load)
       // TODO implement
-      Ok(views.html.main(id, request.headers.get(HOST).getOrElse("*")))
+      Ok(views.html.main(id, request.headers.get(HOST).getOrElse("*"), true, nonHostSubmitURL))
         .withCookies(makeClientIdCookie)
     }
   }
@@ -89,14 +92,14 @@ class MainController @Inject()(cached: Cached,
       else {
         // send main page to the client
         // TODO implement
-        Ok(views.html.main(id, request.headers.get(HOST).getOrElse("*")))
+        Ok(views.html.main(id, request.headers.get(HOST).getOrElse("*"), false, nonHostSubmitURL))
           .withCookies(makeClientIdCookie)
       }
     }
   }
 
   // generates client Id cookies for the frontend to consume
-  def makeClientIdCookie: Cookie = Cookie(Resources.ClientIdCookieKey,Util.generateClientId,
+  def makeClientIdCookie: Cookie = Cookie(Resources.ClientIdCookieKey, Util.generateClientId,
     httpOnly = false)
 
   //ERROR HANDLING

@@ -1,0 +1,7 @@
+@import common.Resources
+@()
+<div class="btn-group-lg" role="group" Roboto-label="color buttons">
+    @for(i <- Resources.Colors.indices) {
+        <button type="button" id="colorButton@i" class="btn-lg btn-secondary" style="background-color:#@Resources.Colors(i).hex.toString"></button>
+    }
+</div>

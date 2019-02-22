@@ -1,4 +1,4 @@
-@(lobbyId: String, baseUrl: String)
+@(lobbyId: String, baseUrl: String, isHost: Boolean, postUrl: Call)(implicit request: MessagesRequestHeader)
 
 @base("Lobby") {
   <!-- so this is the main page which uses the templating engine to insert
@@ -11,5 +11,8 @@
       <p>Get your friends to join at the url:</p>
       <p>http://@baseUrl/lobby/@lobbyId</p>
     </div>
+    @if(!isHost){
+      @newUserForm(postUrl, isHost)
+    }
   </div>
 }
