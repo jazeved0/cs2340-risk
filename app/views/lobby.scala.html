@@ -1,0 +1,53 @@
+@(lobbyId: String, baseUrl: String, isHost: Boolean, players: String, postUrl: Call)(implicit request: MessagesRequestHeader)
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.16/vue.js"></script>
+<script src='@routes.Assets.versioned("vue/components/App.js")'></script>
+
+<script>
+  function parse(s) {
+    return JSON.parse(decodeURIComponent(escape(atob(s))));
+  }
+</script>
+
+@base("Risk: The Game of Global Domination", "<link rel=\"stylesheet\" " +
+        "href=\"https://use.fontawesome.com/releases/v5.7.2/css/brands.css\" " +
+        "integrity=\"sha384-BKw0P+CQz9xmby+uplDwp82Py8x1xtYPK3ORn/ZSoe6Dk3ETP59WCDnX+fI1XCKK\" " +
+        "crossorigin=\"anonymous\">\n<link rel=\"stylesheet\" " +
+        "href=\"https://use.fontawesome.com/releases/v5.7.2/css/fontawesome.css\" " +
+        "integrity=\"sha384-4aon80D8rXCGx9ayDt85LbyUHeMWd3UiBaWliBlJ53yzm9hqN21A+o1pqoyK04h+\" " +
+        "crossorigin=\"anonymous\">") {
+  <div>
+    <nav class="navbar navbar-dark bg-dark justify-content-between">
+      <a class="navbar-brand">Lobby</a>
+      <form class="form-inline">
+        <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
+        <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+      </form>
+    </nav>
+  </div>
+
+  <!-- vue js tag-->
+  <div id='app' :json='setJson(@players)'>
+    <ul>
+      <li v-for="player in json" v:key="player.name" :style="{color: player.color}">{{ player.name }}</li>
+    </ul>
+  </div>
+}
+<script>
+  console.log('yikes man');
+  var app = new Vue({
+    el: '#app',
+    //render: function(html) {
+      //return html(App.default, {});
+    //},
+    data: {
+      json: []
+    },
+    methods: {
+      setJson: function(payload) {
+        this.json = payload;
+        console.log('hello');
+      }
+    },
+  })
+</script>

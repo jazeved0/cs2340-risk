@@ -9,3 +9,4 @@ target
 /.settings
 /RUNNING_PID
 vue/node_modules/
+node_modules

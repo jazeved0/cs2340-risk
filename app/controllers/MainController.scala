@@ -8,6 +8,7 @@ import play.api.cache.Cached
 import play.api.{Configuration, Logger}
 import play.api.data.Form
 import play.api.mvc._
+import play.api.libs.json._
 
 import scala.collection.mutable
 import scala.concurrent.ExecutionContext
@@ -76,7 +77,12 @@ class MainController @Inject()(cached: Cached,
       // (address should get rewritten to normal main url on the
       // front end immediately upon load)
       // TODO implement
-      Ok(views.html.main(id, request.headers.get(HOST).getOrElse("*"), true, nonHostSubmitURL))
+      val playerNames = List("Julian", "joalazer");
+      val playerColors = List("green", "red");
+      val playersRaw = """[{"name":"saxon_dr", "color": "green"}, {"name": "joazlazer", "color": "red"}, 
+        {"name": "iphish", "color": "purple"}, {"name": "bopas2", "color": "blue"}, {"name": "chafos", "color": "pink"}]"""
+      // val playersJson = Json.parse(playersRaw)
+      Ok(views.html.lobby(id, request.headers.get(HOST).getOrElse("*"), true, playersRaw, nonHostSubmitURL))
         .withCookies(makeClientIdCookie)
     }
   }
@@ -92,7 +98,12 @@ class MainController @Inject()(cached: Cached,
       else {
         // send main page to the client
         // TODO implement
-        Ok(views.html.main(id, request.headers.get(HOST).getOrElse("*"), false, nonHostSubmitURL))
+        val playerNames = List("Julian", "joalazer");
+        val playerColors = List("green", "red");
+        val playersRaw = """[{"name":"saxon_dr", "color": "green"}, {"name": "joazlazer", "color": "red"}, 
+          {"name": "iphish", "color": "purple"}, {"name": "bopas2", "color": "blue"}, {"name": "chafos", "color": "pink"}]"""
+        // val playersJson = Json.parse(playersRaw)
+        Ok(views.html.lobby(id, request.headers.get(HOST).getOrElse("*"), false, playersRaw, nonHostSubmitURL))
           .withCookies(makeClientIdCookie)
       }
     }
