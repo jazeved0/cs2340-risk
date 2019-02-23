@@ -1,10 +1,12 @@
 package common
 
+import controllers.routes
 import models.{ClientSettings, Color}
 import play.api.data.Form
 import play.api.data.Forms._
 
 object Resources {
+
   // colors from https://flatuicolors.com/palette/defo
   val Colors = List(
     Color("2980b9"),
@@ -23,5 +25,8 @@ object Resources {
   )
 
   val OriginsConfigKey = "app.controllers.origins"
-  val ClientIdCookieKey: String = "clientId"
+  val ClientIdCookieKey = "clientId"
+  val BaseUrl = "localhost:/9000"
+  val MakeUrl = routes.MainController.make()
+  val NonHostSubmitURL = routes.MainController.make()
 }

@@ -1,9 +1,7 @@
-@import helper._
 @import common.Resources
 @(postUrl: Call)(implicit request: MessagesRequestHeader)
 <div style="margin-top: 40px;">
     @helper.form(postUrl, 'id -> "user_form") {
-        @CSRF.formField
         @helper.inputText(Resources.UserForm("name"))
         @helper.inputRadioGroup(
             Resources.UserForm("ordinal"),
@@ -14,6 +12,6 @@
 </div>
 <script type="text/javascript">
   @for(i <- Resources.Colors.indices) {
-    $("[for='colorIndex_@i']").css("color", "#@Resources.Colors(i).hex.toString");
+    $("[for='ordinal_@i']").css("color", "#@Resources.Colors(i).hex.toString");
   }
 </script>
