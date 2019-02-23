@@ -1,60 +1,52 @@
 package actors
 
+import akka.actor.{Actor, Props}
 import common.Util
-import models.{Color, Player}
+import models.ClientSettings
 
 import scala.collection.mutable
 
 object Lobby {
+
+  // Lobby Id management (generation and return)
   val IdLength = 4
   val LobbyIds: mutable.HashSet[String] = new mutable.HashSet()
-
   def generateId: String = {
     var id = Util.randomId(IdLength)
     while (LobbyIds.contains(id)) id = Util.randomId(IdLength)
+    LobbyIds += id
     id
   }
   def freeId(id: String): Unit = LobbyIds -= id
-  def make(hostName: String, hostColor: Color): Lobby = {
-    val l = new Lobby(mutable.Buffer[Player](), generateId, null)
-    l.hostInfo = Some(hostName, hostColor)
-    l
-  }
+
+  // Actor factory methods
+  def props: Props = Props[Lobby]
+  def apply(id: String, hostInfo: ClientSettings): Props =
+    Props(new Lobby(id, Some(hostInfo)))
 }
 
-class Lobby(val players: mutable.Buffer[Player], val id: String, var host: Player) {
-  // add constructor id to HashSet
-  Lobby.LobbyIds += id
-
-  // temporary information for the host of the lobby as they get redirected
-  // to the host lobby page
-  private var hostInfo: Option[(String, Color)] = None
+class Lobby(val id: String,
+            // mutable depending on state
+            var hostInfo: Option[ClientSettings],
+            // List of clients who have joined the lobby
+            val players:    mutable.LinkedHashMap[String, ClientWithActor]
+                          = mutable.LinkedHashMap[String, ClientWithActor](),
+            // List of clients who have established a ws connection, but not in lobby
+            val connected:  mutable.LinkedHashMap[String, ClientWithActor]
+                          = mutable.LinkedHashMap[String, ClientWithActor]()) extends Actor {
 
   def hasHostJoined: Boolean = hostInfo.isEmpty
-
-  def join(player: Player): Unit = {
-    if (players.isEmpty) host = player
-    players += player
-  }
-
-  /**
-    * Used to make the host of the lobby officially join as a player, using their
-    * previously collected information as well as their client id to construct a
-    * Player object for them
-    * @param id The client ID of the host
-    * @return True if the function succeeded, false otherwise
-    */
-  def hostJoin(id: String): Boolean = {
-    if (hostInfo.isEmpty) false
-    else {
-      join(Player(id, hostInfo.get._1, hostInfo.get._2))
-      hostInfo = None
-      true
-    }
-  }
-
   def close(): Unit = {
     // close the lobby
     Lobby.freeId(id)
+  }
+
+  // TODO Handle reception of incoming network packets here
+  override def receive: Receive = {
+    case ClientConnect(_, clientId: String, actor: ClientWithActor) =>
+      // No need to validate input, message generated internally
+      connected += clientId -> actor
+    case RequestClientJoin(_, clientId: String, withSettings: ClientSettings) =>
+
   }
 }

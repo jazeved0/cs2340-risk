@@ -3,6 +3,7 @@ package models
 import common.Resources
 
 object ClientSettings {
+  val MaxNameLength = 16
   def apply(name: String, colorIndex: Int): ClientSettings = {
     ClientSettings(name, Resources.Colors.lift(colorIndex).getOrElse(Color.default))
   }
