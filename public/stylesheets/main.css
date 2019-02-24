@@ -70,8 +70,8 @@
 }
 
 #accent_background_padding {
-    padding-top: 200px;
-    padding-bottom: 200px;
+    padding-top: 100px;
+    padding-bottom: 50px;
 }
 
 .create_game_padding {
@@ -107,4 +107,14 @@
 
 #accent_background {
     background-color: #D9B34F;
+}
+
+.btn-circle {
+    width: 25px;
+    height: 25px;
+    text-align: center;
+    padding: 6px 0;
+    font-size: 12px;
+    line-height: 1.42;
+    border-radius: 15px;
 }

@@ -1,6 +1,6 @@
-@(userForm: Form[ClientSettings], colorList: List[Color], postUrl: Call)(implicit request: MessagesRequestHeader)
 @import helper._
-  @{/* second parameter adds font awesome */}
+@(userForm: Form[ClientSettings], colorList: List[Color], postUrl: Call)(implicit request: MessagesRequestHeader)
+@{/* second parameter adds font awesome */}
 @base("Risk: The Game of Global Domination", "<link rel=\"stylesheet\" " +
         "href=\"https://use.fontawesome.com/releases/v5.7.2/css/brands.css\" " +
         "integrity=\"sha384-BKw0P+CQz9xmby+uplDwp82Py8x1xtYPK3ORn/ZSoe6Dk3ETP59WCDnX+fI1XCKK\" " +
@@ -9,7 +9,6 @@
         "integrity=\"sha384-4aon80D8rXCGx9ayDt85LbyUHeMWd3UiBaWliBlJ53yzm9hqN21A+o1pqoyK04h+\" " +
         "crossorigin=\"anonymous\">") {
   <div>
-      <body>onload=""</body>
       <nav class="navbar fixed-top navbar-dark bg-dark">
           <a class="navbar-brand" href="https://github.gatech.edu/achafos3/CS2340Sp19Team10" target="_blank" rel="noopener">
               <i class="fab fa-github repoImg pl-2"></i>
@@ -45,85 +44,23 @@
   </div>
 
   <div id="light_background" class="create_game_padding">
-      <div class="container" id="start_game_window">
-        <p id="title2">Start a new game:</p>
-        <form class="form-inline row">
-            <p id="host_name" class="col-2 mr-4">Username:</p>
-            <input id="username_field" class="form-control md col-5 form-control-lg mr-sm-4"
-                   type="search" maxlength="16" placeholder="" Roboto-label="Search">
-            <input id="username_button" class="btn col-2 btn-primary my-2 btn-lg white dark_accent"
-                   type="submit" value="Start Lobby" disabled/>
-        </form>
-        <form class="form-inline row">
-            <p id="color_txt" class="col-3">Color:</p>
-            @injectColor()
-        </form>
-      </div>
+    <div class="container" id="start_game_window">
+      <p id="title2">Start a new game:</p>
+      <form class="form-inline row">
+          <p id="host_name" class="col-2 mr-4">Username:</p>
+          <input id="username_field" class="form-control md col-5 form-control-lg mr-sm-4"
+                 type="search" maxlength="16" placeholder="" Roboto-label="Search">
+          <input id="username_button" class="btn col-2 btn-primary my-2 btn-lg white dark_accent"
+                 type="submit" value="Start Lobby" disabled/>
+      </form>
+      <form class="form-inline row">
+          <p id="color_txt" class="col-3">Color:</p>
+          @injectColor()
+      </form>
+    </div>
   </div>
 
   <div id="accent_background">
       <div id="accent_background_padding"></div>
   </div>
-
-  <script>
-      var usernameField = document.getElementById('username_field');
-      var usernameButton = document.getElementById('username_button');
-      var username = $("#username_field")
-
-      usernameField.addEventListener('keyup', function (event) {
-          var isValidUsername = username.val() != null
-                  && username.val().length > 2
-                  && username.val().length <=16
-                  && /^[a-zA-Z0-9]+$/.test(username.val());
-
-          if (isValidUsername) {
-              usernameButton.disabled = false;
-          } else {
-              usernameButton.disabled = true;
-          }
-      });
-  </script>
-
-  <script>
-      var codeField = document.getElementById('search_field');
-      var codeButton = document.getElementById('search_button');
-      var nameRegex = /^[A-Z]+$/;
-      var code = $("#search_field")
-
-      codeField.addEventListener('keyup', function (event) {
-          var isValidCode = code.val() != null
-                  && code.val().length == 4
-                  && code.val().match(nameRegex);
-
-          if (isValidCode) {
-              codeButton.disabled = false;
-          } else {
-              codeButton.disabled = true;
-          }
-      });
-  </script>
-
-  <script>
-      $('#search_button').click(function() {
-          window.location.href = "lobby/" + $("#search_field").val();
-          return false;
-      });
-  </script>
-
-  <script>
-      $('#search_button').click(function() {
-          window.location.href = "lobby/" + $("#search_field").val();
-          return false;
-      });
-  </script>
-
-  <script>
-      function generateColors() {
-        document.write("hi")
-          <!--
-        @for(i <- colorList.indices) {
-          $("[for='colorIndex_@i']").css("color", "#@colorList(i).hex.toString");
-        } -->
-      }
-  </script>
 }
