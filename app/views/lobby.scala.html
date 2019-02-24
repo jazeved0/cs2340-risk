@@ -27,7 +27,7 @@
   </div>
 
   <!-- vue js tag-->
-  <div id='app' :json='setJson(@players)'>
+  <div id='app' :json='setJson(@{players})'>
     <ul>
       <li v-for="player in json" v:key="player.name" :style="{color: player.color}">{{ player.name }}</li>
     </ul>
