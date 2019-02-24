@@ -1,58 +1,69 @@
-var usernameField = document.getElementById('username_field');
-var usernameButton = document.getElementById('username_button');
-var username = $("#username_field")
-
-usernameField.addEventListener('keyup', function (event) {
-  var isValidUsername = username.val() != null
-      && username.val().length > 2
-      && username.val().length <=16
-      && /^[a-zA-Z0-9]+$/.test(username.val());
+// Handle input on username field
+var usernameButton = $('#username_button');
+var usernameField = $('#username_field');
+var usernameRegex = /^[a-zA-Z0-9]+$/
+usernameField.on('input', function () {
+  var username = String(usernameField.val());
+  var isValidUsername = username != null
+     && username.length >= 2
+     && username.length <= 16
+     && usernameRegex.test(username);
 
   if (isValidUsername) {
-    usernameButton.disabled = false;
+    usernameButton.prop('disabled', false);
   } else {
-    usernameButton.disabled = true;
+    usernameButton.prop('disabled', true);
   }
 });
 
-var codeField = document.getElementById('search_field');
-var codeButton = document.getElementById('search_button');
-var nameRegex = /^[BCEFGHJMPQRTVYWX]+$/;
-var code = $("#search_field")
-
-codeField.addEventListener('keyup', function (event) {
-  var isValidCode = code.val() != null
-      && code.val().length == 4
-      && code.val().match(nameRegex);
-
-  if (isValidCode) {
-    codeButton.disabled = false;
-  } else {
-    codeButton.disabled = true;
+// Handle submission of the username form (and cancel the
+// standard submission in favor of a POST)
+$('#username-form').on('submit', function () {
+  var username = String($("#username_field").val());
+  var colorIndex = $('input[name=colorButton]:checked', '#colorButtonGroup').val();
+  if (colorIndex === undefined) {
+    colorIndex = 0;
   }
-});
+  // noinspection JSIgnoredPromiseFromCall
+  $.post('/lobby/make', {"name": username, "color": colorIndex}, function() {});
 
-$('#search_button').click(function() {
-  window.location.href = "lobby/" + $("#search_field").val();
+  // var postUrl = '/lobby/make?name=' + username + "&color=" + colorIndex;
+  // // noinspection JSIgnoredPromiseFromCall
+  // $.post(postUrl, {}, function() {});
+
   return false;
 });
 
-$('#username_button').click(function() {
-  var username = $("#username_field").val();
-  var colorIndex = $('input[name=colorButton]:checked', '#colorButtonGroup').val();
-  if (colorIndex == undefined) {
-    colorIndex = 0;
+// Handle input on lobby code field
+var codeField = $('#search_field');
+var codeButton = $('#search_button');
+var codeRegex = /^[BCEFGHJMPQRTVYWXbcefghjmpqrtvywx]+$/;
+codeField.on('input', function () {
+  var code = String(codeField.val());
+  var isValidUsername = code != null
+     && code.length === 4
+     && codeRegex.test(code);
+
+  if (isValidUsername) {
+    codeButton.prop('disabled', false);
+  } else {
+    codeButton.prop('disabled', true);
   }
-  var postUrl = 'url/lobby/make?name=' + username + '&color=' + colorIndex;
-  $.post(postUrl)
 });
 
-window.onColorButtonClick = function(matchid) {
-  $("#colorButtonGroup label").each(function() {
-    if ($(this).attr("id") == (matchid)) {
-      $(this).fadeTo("slow", 1);
+// Handle button press of the lobby field and redirect
+codeButton.on('click', function () {
+  window.location.href = "lobby/" + String($("#search_field").val());
+  return false;
+});
+
+// Handle color select button click
+function onColorButtonClick(id) {
+  $("#colorButtonGroup label").each(function () {
+    if ($(this).attr("id") === (id)) {
+      $(this).fadeTo(200, 1);
     } else {
-      $(this).fadeTo("slow", 0.4);
+      $(this).fadeTo(200, 0.4);
     }
   });
 }

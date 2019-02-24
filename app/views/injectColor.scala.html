@@ -1,9 +1,9 @@
 @import common.Resources
 @()
-<div id="colorButtonGroup" class="btn-group-lg btn-group-toggle" data-toggle="buttons" Roboto-label="color buttons">
-    <div class="row">
+<div id="colorButtonGroup" class="btn-group-lg btn-group-toggle" data-toggle="buttons">
+    <div class="d-flex">
         @for(i <- Resources.Colors.indices) {
-            <label class="btn-circle btn btn-secondary ml-2 mb-2" onclick="onColorButtonClick('colorButton@i')" id="colorButton@i" style="background-color:#@Resources.Colors(i).hex.toString">
+            <label class="btn-circle btn btn-secondary" onclick="onColorButtonClick('colorButton@i')" id="colorButton@i" style="background-color:#@Resources.Colors(i).hex.toString">
                 <input type="radio" name = "colorButton" value="@i" autocomplete="off" style="display:none"/> &nbsp
             </label>
         }

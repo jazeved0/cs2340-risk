@@ -4,7 +4,7 @@
 @base("Risk: The Game of Global Domination", "<link rel=\"stylesheet\" " +
         "href=\"https://use.fontawesome.com/releases/v5.7.2/css/brands.css\" " +
         "integrity=\"sha384-BKw0P+CQz9xmby+uplDwp82Py8x1xtYPK3ORn/ZSoe6Dk3ETP59WCDnX+fI1XCKK\" " +
-        "crossorigin=\"anonymous\">\n<link rel=\"stylesheet\" " +
+        "crossorigin=\"anonymous\">\n        <link rel=\"stylesheet\" " +
         "href=\"https://use.fontawesome.com/releases/v5.7.2/css/fontawesome.css\" " +
         "integrity=\"sha384-4aon80D8rXCGx9ayDt85LbyUHeMWd3UiBaWliBlJ53yzm9hqN21A+o1pqoyK04h+\" " +
         "crossorigin=\"anonymous\">") {
@@ -13,11 +13,11 @@
           <a class="navbar-brand" href="https://github.gatech.edu/achafos3/CS2340Sp19Team10" target="_blank" rel="noopener">
               <i class="fab fa-github repoImg pl-2"></i>
           </a>
-          <form class="form-inline mr-2">
-              <div class = "content mr-3 mt-3">
-                  <p class="p1">Join Existing Lobby</p>
+          <form class="form-inline mr-2 d-none d-md-flex">
+              <div class = "content mr-3 mt-3" style="opacity: 0.85;">
+                  <p class="subtext">Join Existing Lobby</p>
               </div>
-              <input id="search_field" class="form-control mr-sm-2" type="search" maxlength="4" placeholder="Lobby Code" Roboto-label="Search">
+              <input id="search_field" class="form-control mr-3" type="search" maxlength="4" placeholder="Lobby Code" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
               <input id="search_button" class="btn btn-primary my-2 my-sm-0 white dark_accent"
                      type="submit" value="Join" disabled/>
           </form>
@@ -27,9 +27,10 @@
   <div class="dark_background">
       <div class="container background_padding">
           <div class="row">
-              <div class="col-9 ml-5">
-                    <p class="title1"><strong>Risk</strong></p>
-                    <p class="subtitle1">The Game of Global Domination</p>
+              <div class="d-none col-12 d-lg-flex col-lg-1"></div>
+              <div class="col-12 col-md-10 col-lg-8">
+                    <p class="title">Risk</p>
+                    <p class="subtitle">The Game of Global Domination</p>
                     <p class="paragraph1">Risk is a strategy board game of diplomacy, conflict and conquest for two to six players.
                                 The standard version is played on a board depicting a political map of Earth,
                                 divided into forty-two territories, which are grouped into six continents.
@@ -39,28 +40,38 @@
                                 The goal of the game is to occupy every territory on the board and in doing so,
                                 eliminate the other players."</p>
               </div>
+              <div class="d-none col-12 d-lg-flex col-lg-3"></div>
           </div>
       </div>
   </div>
 
-  <div id="light_background" class="create_game_padding">
-    <div class="container" id="start_game_window">
-      <p id="title2">Start a new game:</p>
-      <form class="form-inline row">
-          <p id="host_name" class="col-2 mr-4">Username:</p>
-          <input id="username_field" class="form-control md col-5 form-control-lg mr-sm-4"
-                 type="search" maxlength="16" placeholder="" Roboto-label="Search">
-          <input id="username_button" class="btn col-2 btn-primary my-2 btn-lg white dark_accent"
-                 type="submit" value="Start Lobby" disabled/>
-      </form>
-      <form class="form-inline row">
-          <p id="color_txt" class="col-3">Color:</p>
-          @injectColor()
-      </form>
+  <div id="light-background-container">
+    <div id="light_background" class="create_game_padding">
+      <div class="container" id="start_game_window">
+        <p id="heading">Start a new game:</p>
+        <form id="username-form" class="form-inline mb-1 mb-sm-3">
+          <div class="row">
+            <div class="col-12 col-sm-3 d-flex form-label-container">
+              <p id="host_name">Username:</p>
+            </div>
+            <div class="col-12 col-sm-9 d-flex">
+              <input id="username_field" class="form-control md form-control-lg flex-fill mr-3" type="search" maxlength="16" placeholder="" autocapitalize="off" spellcheck="false">
+              <button id="username_button" class="btn btn-primary btn-lg white dark_accent" type="submit" disabled>Start<span class="d-none d-sm-inline"> Lobby</span></button>
+            </div>
+          </div>
+        </form>
+        <form class="form-inline">
+          <div class="row">
+            <div class="col-12 col-sm-3 d-flex form-label-container">
+              <p id="color_txt">Color:</p>
+            </div>
+            <div class="col-12 col-sm-9 d-flex">
+              @injectColor()
+            </div>
+          </div>
+        </form>
+      </div>
     </div>
   </div>
-
-  <div id="accent_background">
-      <div id="accent_background_padding"></div>
-  </div>
+  <script type="text/javascript" src="@{routes.Assets.versioned("javascripts/index.js")}"></script>"
 }
