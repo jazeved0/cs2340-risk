@@ -12,6 +12,7 @@ import javax.inject.{Inject, Named}
 import models._
 import play.api.cache.Cached
 import play.api.data.Form
+import play.api.libs.json.Json
 import play.api.mvc.WebSocket.MessageFlowTransformer
 import play.api.mvc._
 import play.api.{Configuration, Logger}
@@ -79,7 +80,7 @@ class MainController @Inject()(cached: Cached,
       case true =>
         val playersRaw = """[{"name":"saxon_dr", "color": "green"}, {"name": "joazlazer", "color": "red"},
             {"name": "iphish", "color": "purple"}, {"name": "bopas2", "color": "blue"}, {"name": "chafos", "color": "pink"}]"""
-        Ok(views.html.lobby(id, Resources.BaseUrl, isHost = true, playersRaw, Resources.NonHostSubmitURL))
+        Ok(views.html.lobby(id, Resources.BaseUrl, isHost = true, Json.parse(playersRaw), Resources.NonHostSubmitURL))
         .withCookies(makeClientIdCookie)
       case false => BadRequest(s"Invalid lobby id $id")
     }
@@ -99,7 +100,7 @@ class MainController @Inject()(cached: Cached,
         case true =>
           val playersRaw = """[{"name":"saxon_dr", "color": "green"}, {"name": "joazlazer", "color": "red"},
             {"name": "iphish", "color": "purple"}, {"name": "bopas2", "color": "blue"}, {"name": "chafos", "color": "pink"}]"""
-          Ok(views.html.lobby(id, Resources.BaseUrl, isHost = false, playersRaw, Resources.NonHostSubmitURL))
+          Ok(views.html.lobby(id, Resources.BaseUrl, isHost = false, Json.parse(playersRaw), Resources.NonHostSubmitURL))
           .withCookies(makeClientIdCookie)
         case false => BadRequest(s"Invalid lobby id $id")
       }

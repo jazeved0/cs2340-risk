@@ -1,5 +1,5 @@
 <template>
-    <div class="row">
+    <div>
         <ul>
             <li v-for="player in players" :key='player.name' :style='{color: player.color}'>{{ player.name }}</li>
         </ul>
@@ -8,22 +8,26 @@
 
 <script>
     export default {
+        name: "player-list",
+        props: ['playersArray'],
         data: function() {
             return {
                 text: "OMEGALUL",
-                players: [
-                    {name: 'Julian', color: 'green'},
-                    {name: 'joalazer', color: 'blue'},
-                    {name: 'bopas2', color: 'orange'},
-                    {name: 'GT iPhish', color: 'red'},
-                    {name: 'Chafos', color: 'purple'}
-                ]
+                players: []
             }
         },
         methods: {
-            changeText: function() {
-                this.text = "POGGERS";
+            logType: function() {
+                console.log(typeof this.playersArray);
+                console.log(this.playersArray);
+            },
+            parseArray: function() {
+                this.players = JSON.parse(this.playersArray);
             }
-        }
+        },
+        beforeMount() {
+            this.parseArray();
+            console.log(this.baseUrl);
+        },
     }
 </script>
