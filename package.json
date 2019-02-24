@@ -1,5 +1,7 @@
 {
-  "dependencies": {},
+  "dependencies": {
+    "npm": "^6.8.0"
+  },
   "browserslist": [
     "> 1%",
     "last 2 versions",

@@ -1,10 +1,6 @@
 package common
 
-import controllers.routes
-import models.{ClientSettings, Color}
-import play.api.data.Form
-import play.api.data.Forms._
-import play.api.mvc.Call
+import models.Color
 
 /**
   * General resources for the application
@@ -21,18 +17,9 @@ object Resources {
     Color("bdc3c7")
   )
 
-  val UserForm = Form(
-    mapping(
-      "name" -> nonEmptyText,
-      "ordinal" -> number
-    )(ClientSettings.apply)(ClientSettings.unapply)
-  )
-
   val OriginsConfigKey = "app.controllers.origins"
   val ClientIdCookieKey = "clientId"
   val BaseUrl = "localhost:9000"
-  val MakeUrl: Call = routes.MainController.make()
-  val NonHostSubmitURL: Call = routes.MainController.make()
   val LobbyIdChars: Seq[Char] = "BCEFGHJMPQRTVYWX".toLowerCase.toList
   val MinimumPlayers: Int = 2
 }

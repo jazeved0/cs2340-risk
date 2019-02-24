@@ -34,7 +34,7 @@ object Lobby extends UniqueIdProvider {
   * @param id The unique lobby Id
   */
 class Lobby(val id: String)
-    extends Actor with UniqueValueManager[ClientSettings] {
+  extends Actor with UniqueValueManager[ClientSettings] {
 
   val logger: Logger = Logger(this.getClass)
 
@@ -175,9 +175,9 @@ class Lobby(val id: String)
 
   def constructLobbyUpdate: OutPacket =
     LobbyUpdate(players.valuesIterator
-        .map(_.client.settings)
-        .filter(_.isDefined)
-        .map(_.get).toList,
+      .map(_.client.settings)
+      .filter(_.isDefined)
+      .map(_.get).toList,
       host
         .map(_.client.settings.map(_.name).getOrElse(""))
         .getOrElse(""))
