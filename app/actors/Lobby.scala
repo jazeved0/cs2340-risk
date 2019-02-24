@@ -89,11 +89,11 @@ class Lobby(val id: String)
     case RequestClientJoin(_, clientId: String, withSettings: ClientSettings) =>
       if (connected.isDefinedAt(clientId)) {
         if (!ClientSettings.isValid(withSettings))
-        // Reject with response
+          // Reject with response
           connected(clientId).actor ! RequestReply(RequestResponse.Rejected,
             ClientSettings.formatInvalid(withSettings))
         else if (!isUnique(withSettings))
-        // Reject with response
+          // Reject with response
           connected(clientId).actor ! RequestReply(RequestResponse.Rejected,
             "Name and color must be unique: non-unique inputs " +
               s"{${nonUniqueElements(withSettings).mkString(", ")}}")

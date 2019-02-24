@@ -12,11 +12,9 @@ import javax.inject.{Inject, Named}
 import models._
 import play.api.cache.Cached
 import play.api.data.Form
-import play.api.libs.json.{Json, OFormat, Reads, Writes}
 import play.api.mvc.WebSocket.MessageFlowTransformer
 import play.api.mvc._
 import play.api.{Configuration, Logger}
-
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -38,8 +36,6 @@ class MainController @Inject()(cached: Cached,
                               (implicit ec: ExecutionContext)
     extends MessagesAbstractController(cc) with SameOriginCheck {
   val logger: Logger = Logger(this.getClass)
-  private val makeURL = routes.MainController.make()
-  private val nonHostSubmitURL = routes.MainController.make()
   implicit val timeout: Timeout = 5.seconds
 
   // ***************
@@ -53,7 +49,7 @@ class MainController @Inject()(cached: Cached,
     Action {
       implicit request =>
         // send landing page to the client (host)
-        Ok(views.html.index(Resources.UserForm, Resources.Colors, makeURL))
+        Ok(views.html.index(Resources.UserForm, Resources.Colors, Resources.MakeUrl))
     }
   }
 
@@ -83,7 +79,7 @@ class MainController @Inject()(cached: Cached,
   // GET /lobby/host/:id
   def host(id: String): Action[AnyContent] = Action.async { implicit request =>
     (lobbySupervisor ? LobbyExists(id)).mapTo[Boolean].map {
-      case true => Ok(views.html.main(id, isHost = true, nonHostSubmitURL))
+      case true => Ok(views.html.main(id, isHost = true, Resources.NonHostSubmitURL))
         .withCookies(makeClientIdCookie)
       case false => BadRequest(s"Invalid lobby id $id")
     }
@@ -100,7 +96,7 @@ class MainController @Inject()(cached: Cached,
   def lobby(id: String): EssentialAction = cached(s"lobby-$id") {
     Action.async { implicit request =>
       (lobbySupervisor ? LobbyExists(id)).mapTo[Boolean].map {
-        case true => Ok(views.html.main(id, isHost = false, nonHostSubmitURL))
+        case true => Ok(views.html.main(id, isHost = false, Resources.NonHostSubmitURL))
           .withCookies(makeClientIdCookie)
         case false => BadRequest(s"Invalid lobby id $id")
       }
@@ -154,11 +150,7 @@ class MainController @Inject()(cached: Cached,
     }
   }
 
-  // TODO Figure out how to make the json not expect/not include lobbyId or
-  //  clientId (make sure they get properly injected into the packets)
-  // TODO Can't find apply for the traits... figure out how JSON serialization is done
-  implicit val inPacketFormat: Reads[InPacket] = null
-  implicit val outPacketFormat: Writes[OutPacket] = null
+  import controllers.JsonMarshallers._
   implicit val messageFlowTransformer: MessageFlowTransformer[InPacket, OutPacket] =
     MessageFlowTransformer.jsonMessageFlowTransformer[InPacket, OutPacket]
   val clientActorSource: Source[OutPacket, ActorRef] =
