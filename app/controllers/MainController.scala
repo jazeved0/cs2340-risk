@@ -81,8 +81,8 @@ class MainController @Inject()(cached: Cached,
       val playerColors = List("green", "red");
       val playersRaw = """[{"name":"saxon_dr", "color": "green"}, {"name": "joazlazer", "color": "red"}, 
         {"name": "iphish", "color": "purple"}, {"name": "bopas2", "color": "blue"}, {"name": "chafos", "color": "pink"}]"""
-      // val playersJson = Json.parse(playersRaw)
-      Ok(views.html.lobby(id, request.headers.get(HOST).getOrElse("*"), true, playersRaw, nonHostSubmitURL))
+      val playersJson = Json.parse(playersRaw)
+      Ok(views.html.lobby(id, request.headers.get(HOST).getOrElse("*"), true, playersJson, nonHostSubmitURL))
         .withCookies(makeClientIdCookie)
     }
   }
@@ -102,8 +102,8 @@ class MainController @Inject()(cached: Cached,
         val playerColors = List("green", "red");
         val playersRaw = """[{"name":"saxon_dr", "color": "green"}, {"name": "joazlazer", "color": "red"}, 
           {"name": "iphish", "color": "purple"}, {"name": "bopas2", "color": "blue"}, {"name": "chafos", "color": "pink"}]"""
-        // val playersJson = Json.parse(playersRaw)
-        Ok(views.html.lobby(id, request.headers.get(HOST).getOrElse("*"), false, playersRaw, nonHostSubmitURL))
+        val playersJson = Json.parse(playersRaw)
+        Ok(views.html.lobby(id, request.headers.get(HOST).getOrElse("*"), false, playersJson, nonHostSubmitURL))
           .withCookies(makeClientIdCookie)
       }
     }
