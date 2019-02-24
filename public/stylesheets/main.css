@@ -251,3 +251,10 @@ nav {
 .bg-dark {
     background-color: #191919!important;
 }
+
+.form-fix dl, .form-fix dd {
+    margin-bottom: 0;
+}
+.form-fix dl dd.info, .form-fix dl dt label {
+    display: none
+}

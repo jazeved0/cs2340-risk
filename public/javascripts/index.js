@@ -3,6 +3,14 @@ var usernameButton = $('#username_button');
 var usernameField = $('#username_field');
 var usernameRegex = /^[a-zA-Z0-9]+$/
 usernameField.on('input', function () {
+  validateUsernameField()
+});
+
+$(document).ready(function() {
+  validateUsernameField()
+});
+
+function validateUsernameField() {
   var username = String(usernameField.val());
   var isValidUsername = username != null
      && username.length >= 2
@@ -14,25 +22,7 @@ usernameField.on('input', function () {
   } else {
     usernameButton.prop('disabled', true);
   }
-});
-
-// Handle submission of the username form (and cancel the
-// standard submission in favor of a POST)
-$('#username-form').on('submit', function () {
-  var username = String($("#username_field").val());
-  var colorIndex = $('input[name=colorButton]:checked', '#colorButtonGroup').val();
-  if (colorIndex === undefined) {
-    colorIndex = 0;
-  }
-  // // noinspection JSIgnoredPromiseFromCall
-  // $.post('/lobby/make', {"name": username, "color": colorIndex}, function() {});
-
-  var postUrl = '/lobby/make?name=' + username + "&color=" + colorIndex;
-  // noinspection JSIgnoredPromiseFromCall
-  $.post(postUrl, {}, function() {});
-
-  return false;
-});
+}
 
 // Handle input on lobby code field
 var codeField = $('#search_field');
@@ -62,8 +52,10 @@ function onColorButtonClick(id) {
   $("#colorButtonGroup label").each(function () {
     if ($(this).attr("id") === (id)) {
       $(this).fadeTo(200, 1);
+      $("input", this).prop("checked", true);
     } else {
       $(this).fadeTo(200, 0.4);
+      $("input", this).prop("checked", false);
     }
   });
 }

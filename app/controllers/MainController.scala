@@ -11,6 +11,7 @@ import common.Resources
 import javax.inject.{Inject, Named}
 import models._
 import play.api.cache.Cached
+import play.api.data.Form
 import play.api.libs.json.Json
 import play.api.mvc.WebSocket.MessageFlowTransformer
 import play.api.mvc._
@@ -50,22 +51,28 @@ class MainController @Inject()(cached: Cached,
     Action {
       implicit request =>
         // send landing page to the client (host)
-        Ok(views.html.index(Resources.Colors))
+        Ok(views.html.index(Resources.UserForm, Resources.Colors, Resources.MakeUrl))
     }
   }
 
   // POST /lobby/make
-  def make(name: String, colorIndex: Int): Action[AnyContent] = Action.async { implicit request =>
-    val userData = ClientSettings(name, colorIndex)
-    if (!ClientSettings.isValid(userData))
-      Future[Result](BadRequest(ClientSettings.formatInvalid(userData)))
-    else {
-      val hostInfo = ClientSettings(userData.name, userData.ordinal)
-      (lobbySupervisor ? MakeLobby(hostInfo)).mapTo[String].map { id =>
-        Redirect(s"/lobby/host/$id")
+  def make: Action[AnyContent] = Action.async { implicit request =>
+    val formValidationResult: Form[ClientSettings] = Resources.UserForm.bindFromRequest
+    formValidationResult.fold(
+      _ => Future[Result](BadRequest("Form submission failed")),
+      userData => {
+        if (!ClientSettings.isValid(userData))
+          Future[Result](BadRequest(ClientSettings.formatInvalid(userData)))
+        else {
+          val hostInfo = ClientSettings(userData.name, userData.ordinal)
+          (lobbySupervisor ? MakeLobby(hostInfo)).mapTo[String].map { id =>
+            Redirect(s"/lobby/host/$id")
+          }
+        }
       }
-    }
+    )
   }
+
 
   // Obtains the corresponding main page after a host has created
   // GET /lobby/host/:id

@@ -1,0 +1,42 @@
+@import common.Resources
+@(postUrl: Call)(implicit request: MessagesRequestHeader)
+
+@helper.form(postUrl, 'id -> "username-form", 'class -> "form-inline") {
+  <div class="row mb-1 mb-sm-3">
+    <div class="col-12 col-sm-3 d-flex form-label-container">
+      <p id="host_name">Username:</p>
+    </div>
+    <div class="col-12 col-sm-9 d-flex form-fix">
+      @helper.inputText(Resources.UserForm("name"),
+        'id -> "username_field",
+        'class -> "form-control md form-control-lg flex-fill mr-3 mb-0",
+        'type -> "search", 'maxlength -> "16", 'placeholder -> "",
+        'autocapitalize -> "off", 'spellcheck -> "false")
+      <button id="username_button" class="btn btn-primary btn-lg white dark_accent" disabled><span class="d-inline">Start<span class="d-none d-sm-inline"> Lobby</span></span></button>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-12 col-sm-3 d-flex form-label-container">
+      <p id="color_txt">Color:</p>
+    </div>
+    <div class="col-12 col-sm-9 d-flex form-fix">
+      <dl class=" " id="ordinal_field">
+        <dt><label for="ordinal">ordinal</label></dt>
+        <dd>
+          <div id="colorButtonGroup" class="btn-group-lg btn-group-toggle" data-toggle="buttons" id="ordinal">
+            <div class="d-flex">
+            @for(i <- Resources.Colors.indices) {
+              <label class="btn-circle btn btn-secondary" onclick="onColorButtonClick('colorButton@i')" id="colorButton@i" style="background-color:#@Resources.Colors(i).hex.toString" for="ordinal_@i">
+                <input type="radio" id="ordinal_@i" name = "ordinal" value="@i" autocomplete="off" @{if (i == 0) "checked" else ""} style="display:none"/> &nbsp
+              </label>
+            }
+            </div>
+          </div>
+        </dd>
+        <dd class="info">Numeric</dd>
+      </dl>
+    @{/*injectColor()*/}
+    </div>
+  </div>
+
+}
