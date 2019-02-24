@@ -73,7 +73,7 @@ class Lobby(val id: String)
   }
 
   // Handle incoming packets in the lobby state
-  def receiveLobby(lobbyPacket: LobbyPacket): Any = lobbyPacket match {
+  def receiveLobby(lobbyPacket: LobbyPacket): Unit = lobbyPacket match {
     case ClientConnect(_, clientId: String, actor: ActorRef) =>
       if (!hasInitialHostJoined) {
         // Add the initial host to the list of players
@@ -155,7 +155,7 @@ class Lobby(val id: String)
   }
 
   // Handle incoming packets during the InGame state
-  def receiveInGame(inGamePacket: InGamePacket): Any = inGamePacket match {
+  def receiveInGame(inGamePacket: InGamePacket): Unit = inGamePacket match {
     case p =>
       badPacket(p)
   }
