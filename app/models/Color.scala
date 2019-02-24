@@ -5,4 +5,5 @@ object Color {
   val DefaultColorHex = "FF33FF"
 }
 
+// Color DTO
 case class Color(hex: String)

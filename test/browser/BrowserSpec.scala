@@ -14,12 +14,5 @@ import org.scalatestplus.play.guice._
  * http://www.scalatest.org/user_guide/using_selenium
  */
 class BrowserSpec extends PlaySpec with GuiceOneServerPerSuite with OneBrowserPerSuite with HtmlUnitFactory {
-  "The browser should" must {
-    "successfully start a lobby" in {
-      val indexURL = controllers.routes.LobbyController.index().absoluteURL(false, s"localhost:$port")
-      go to indexURL
 
-      // TODO implement browser tests
-    }
-  }
 }

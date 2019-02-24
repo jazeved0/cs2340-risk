@@ -2,27 +2,29 @@ package common
 
 import scala.util.Random
 
+/**
+  * Various utility functions used throughout the application
+  */
 object Util {
-  // adapted from the Open Location Code
-  private val IdChars: Seq[Char] = "BCEFGHJMPQRTVYWX".toLowerCase.toList
-  private val AlphanumericChars: Seq[Char] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789".toList
+  private val AlphanumericChars: Seq[Char] =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789".toList
   val Alphanumeric: List[Range] = {
-    def reduceRanges(ranges: List[Range]): List[Range] = {
-      ranges match {
-        case a :: b :: tail =>
-          if(a.end == b.start)
-            reduceRanges((a.start to b.end) :: tail)
-          else
-            a :: reduceRanges(b :: tail)
-        case _ => ranges
+    val CharValues = AlphanumericChars.map(c => c.toInt).toList
+    def helper(list: List[Int], res: List[List[Int]]): List[List[Int]] = {
+      list match {
+        case a :: _ =>
+          // If last element + 1 == current element
+          if (res.head.head + 1 == a) {
+            helper(list.tail, (a :: res.head) :: res.tail)
+          } else {
+            helper(list.tail, List(a) :: res)
+          }
+        case Nil => res
       }
     }
-    reduceRanges(AlphanumericChars
-      .map(c => c.toInt)
-      .sliding(2)
-      .map(e => e.head to e(1))
-      .filter(r => r.end == r.start + 1)
-      .toList)
+    helper(CharValues.tail, List(List(CharValues.head)))
+      .reverse
+      .map(list => Range(list.last, list.head))
   }
   def isAlphanumeric(c: Char): Boolean = Some(c)
     .map(c => c.toInt)
@@ -30,5 +32,4 @@ object Util {
 
   def randomString(length: Int): String = Random.alphanumeric.take(length).mkString
   def randomString(length: Int, from: Seq[Char]): String = Random.shuffle(from).take(length).mkString
-  def randomId(length: Int): String = randomString(length, IdChars)
 }

@@ -1,4 +1,4 @@
-@(userForm: Form[ClientSettings], colorList: List[Color], postUrl: Call)(implicit request: MessagesRequestHeader)
+@(userForm: Form[ClientSettings], colorList: Seq[Color], postUrl: Call)(implicit request: MessagesRequestHeader)
 @import helper._
   @{/* second parameter adds font awesome */}
 @base("Risk: The Game of Global Domination", "<link rel=\"stylesheet\" " +

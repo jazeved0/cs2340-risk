@@ -1,26 +1,17 @@
 package models
 
-import common.Util
+import common.{Resources, UniqueIdProvider, Util}
 
-import scala.collection.mutable
+object Client extends UniqueIdProvider {
+  // Methods for UniqueIdProvider
+  override def idLength = 16
+  override protected def generateId(len: Int): String = Util.randomString(len)
+  override protected def isIdChar(c: Char): Boolean = Util.isAlphanumeric(c)
 
-// player DTO
-object Client {
-  def apply(id: String, name: String, color: Color): Client = Client(id, Some(ClientSettings(name, color)))
+  def apply(id: String, name: String, color: Color): Client =
+    Client(id, Some(ClientSettings(name, Resources.Colors.indexOf(color))))
   def apply(id: String): Client = Client(id, None)
-  val IdLength = 16
-  val Ids: mutable.HashSet[String] = new mutable.HashSet()
-  def generateClientId: String = {
-    var id = Util.randomString(IdLength)
-    while (Ids.contains(id)) id = Util.randomString(IdLength)
-    Ids += id
-    id
-  }
-  def freeClientId(id: String): Unit = Ids -= id
-  def isValidId(id: String): Boolean =
-    id.length == IdLength &&
-    id.forall(Util.isAlphanumeric) &&
-    Ids.contains(id)
 }
 
+// client DTO
 case class Client(id: String, settings: Option[ClientSettings])

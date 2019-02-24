@@ -2,17 +2,20 @@ package actors
 
 import actors.LobbySupervisor.{LobbyExists, MakeLobby}
 import akka.actor.{Actor, ActorRef}
+import controllers.InPacket
 import models.ClientSettings
-
 import scala.collection.mutable
 
 object LobbySupervisor {
   // internal messages from MainController
-  // TODO Implement Lobby destruction/closure
   case class LobbyExists(id: String)
   case class MakeLobby(hostInfo: ClientSettings)
 }
 
+/**
+  * Root actor of the actor system that holds reference to every Lobby that
+  * has been generated
+  */
 class LobbySupervisor extends Actor {
   val lobbies: mutable.HashMap[String, ActorRef] = mutable.HashMap[String, ActorRef]()
   override def receive: Receive = {
@@ -22,7 +25,7 @@ class LobbySupervisor extends Actor {
 
       // Internal message to make a new Lobby actor given the host's ClientSettings
     case MakeLobby(hostInfo) =>
-      val id = Lobby.generateId
+      val id = Lobby.generateAndIssueId
       val lobby = context.actorOf(Lobby(id, hostInfo))
       lobbies += id -> lobby
       sender() ! id

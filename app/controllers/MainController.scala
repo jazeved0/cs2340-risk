@@ -1,26 +1,35 @@
 package controllers
 
+import actors.LobbySupervisor.{LobbyExists, MakeLobby}
 import actors._
-import actors.LobbySupervisor.LobbyExists
-import actors.LobbySupervisor.MakeLobby
 import akka.actor.{ActorRef, ActorSystem}
-import akka.util.Timeout
 import akka.pattern.ask
-import akka.stream.{FlowShape, OverflowStrategy}
 import akka.stream.scaladsl.{Flow, GraphDSL, Merge, Sink, Source}
-import common.{Resources, Util}
+import akka.stream.{FlowShape, OverflowStrategy}
+import akka.util.Timeout
+import common.Resources
 import javax.inject.{Inject, Named}
 import models._
 import play.api.cache.Cached
-import play.api.{Configuration, Logger}
 import play.api.data.Form
-import play.api.libs.json.{Json, OFormat}
+import play.api.libs.json.{Json, OFormat, Reads, Writes}
 import play.api.mvc.WebSocket.MessageFlowTransformer
 import play.api.mvc._
+import play.api.{Configuration, Logger}
 
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 
+/**
+  * Is the primary router for incoming network messages, whether they be over
+  * HTTP or through the WebSocket protocol
+  * @param cached The caching API endpoint
+  * @param cc Implicit component helper
+  * @param config The application's configuration
+  * @param actorSystem The application's single actor system for managing state
+  * @param lobbySupervisor The application's root actor, used to manage lobbies
+  * @param ec Implicit context
+  */
 class MainController @Inject()(cached: Cached,
                                cc: MessagesControllerComponents,
                                config: Configuration,
@@ -57,14 +66,10 @@ class MainController @Inject()(cached: Cached,
         Future[Result](BadRequest("Form submission failed"))
       },
       userData => {
-        if (userData.name.length > Client.MaxNameLength)
-          Future[Result](BadRequest(s"Length of name ${userData.name.length} too long " +
-            s"(max: ${Client.MaxNameLength})"))
-        else if (userData.ordinal >= Resources.Colors.size || userData.ordinal < 0)
-          Future[Result](BadRequest(s"Color index ${userData.ordinal} out of bounds " +
-            s"(max: ${Resources.Colors.size})"))
+        if (!ClientSettings.isValid(userData))
+          Future[Result](BadRequest(ClientSettings.formatInvalid(userData)))
         else {
-          val hostInfo = ClientSettings(userData.name, Resources.Colors(userData.ordinal))
+          val hostInfo = ClientSettings(userData.name, userData.ordinal)
           (lobbySupervisor ? MakeLobby(hostInfo)).mapTo[String].map { id =>
             logger.debug(s"Lobby id=$id created")
             Redirect(s"/lobby/host/$id")
@@ -88,9 +93,9 @@ class MainController @Inject()(cached: Cached,
   // NON-HOST HTTP CALLS
   // *******************
 
-  //This is the entry points for *non-hosts*;it gives them
-  //the page responsible for them setting their name & color
-  //and then joining the existing game
+  // This is the entry points for *non-hosts*; it gives them
+  // the page responsible for them setting their name & color
+  // and then joining the existing game
   // GET /lobby/:id
   def lobby(id: String): EssentialAction = cached(s"lobby-$id") {
     Action.async { implicit request =>
@@ -104,7 +109,7 @@ class MainController @Inject()(cached: Cached,
 
   // generates client Id cookies for the frontend to consume
   def makeClientIdCookie: Cookie = Cookie(Resources.ClientIdCookieKey,
-    Util.generateClientId, httpOnly = false)
+    Client.generateAndIssueId, httpOnly = false)
 
   // **************
   // ERROR HANDLING
@@ -123,19 +128,19 @@ class MainController @Inject()(cached: Cached,
   // WEB SOCKETS
   // ***********
 
-  // TODO Figure out how to make the json not expect/not include lobbyId or
-  //  clientId (make sure they get properly injected into the packets)
-  // TODO Can't find apply for the traits... figure out how JSON serialization is done
-  implicit val inPacketFormat: OFormat[InPacket] = Json.format[InPacket]
-  implicit val outPacketFormat: OFormat[OutPacket] = Json.format[OutPacket]
-  implicit val messageFlowTransformer: MessageFlowTransformer[InPacket, OutPacket] =
-    MessageFlowTransformer.jsonMessageFlowTransformer[InPacket, OutPacket]
-  val clientActorSource: Source[OutPacket, ActorRef] = Source.actorRef[OutPacket](5, OverflowStrategy.fail)
-
   // webSocket/lobbyId/clientId
   def webSocket(lobbyId: String, clientId: String): WebSocket = {
     WebSocket.acceptOrResult[InPacket, OutPacket] {
-      case rh if sameOriginCheck(rh) && Client =>
+      // validate supplied ids
+      case _ if !Client.isValidId(clientId) =>
+        Future.successful {
+          Left(BadRequest(s"Invalid client id $clientId supplied"))
+        }
+      case _ if !Lobby.isValidId(lobbyId) =>
+        Future.successful {
+          Left(BadRequest(s"Invalid lobby id $lobbyId supplied"))
+        }
+      case header if sameOriginCheck(header) =>
         Future.successful(flow(lobbyId, clientId)).map { flow =>
           Right(flow)
         }.recover {
@@ -149,6 +154,16 @@ class MainController @Inject()(cached: Cached,
     }
   }
 
+  // TODO Figure out how to make the json not expect/not include lobbyId or
+  //  clientId (make sure they get properly injected into the packets)
+  // TODO Can't find apply for the traits... figure out how JSON serialization is done
+  implicit val inPacketFormat: Reads[InPacket] = null
+  implicit val outPacketFormat: Writes[OutPacket] = null
+  implicit val messageFlowTransformer: MessageFlowTransformer[InPacket, OutPacket] =
+    MessageFlowTransformer.jsonMessageFlowTransformer[InPacket, OutPacket]
+  val clientActorSource: Source[OutPacket, ActorRef] =
+    Source.actorRef[OutPacket](5, OverflowStrategy.fail)
+
   // Builds a flow for each WebSocket connection
   def flow(lobbyId: String, clientId: String): Flow[InPacket, OutPacket, ActorRef] =
     Flow.fromGraph(GraphDSL.create(clientActorSource) {
@@ -158,7 +173,7 @@ class MainController @Inject()(cached: Cached,
 
         // Join & Network entry points for InPackets
         val materialization = builder.materializedValue.map(clientActor =>
-          ClientConnect(lobbyId,clientId, ClientWithActor(Client(clientId), clientActor)))
+          ClientConnect(lobbyId, clientId, clientActor))
         val incomingRouter: FlowShape[InPacket, InPacket] = builder.add(Flow[InPacket])
 
         // Merge Join & Network sources
@@ -167,7 +182,8 @@ class MainController @Inject()(cached: Cached,
         incomingRouter ~> merge
 
         // Output for messages that don't get processed (dead connection)
-        val lobbySink = Sink.actorRef[InPacket](lobbySupervisor, ClientDisconnect(lobbyId, clientId))
+        val lobbySink = Sink.actorRef[InPacket](lobbySupervisor,
+          ClientDisconnect(lobbyId, clientId))
         merge ~> lobbySink
 
         // Set the WebSocket points of ingress and egress
