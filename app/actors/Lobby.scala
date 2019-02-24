@@ -66,13 +66,15 @@ class Lobby(val id: String)
   // Receive incoming packets and turn them into internal state
   // changes and/or outgoing packets (returns partial function)
   override def receive: Receive = {
-    case _: LobbyPacket => receiveLobby
-    case _: InGamePacket => receiveInGame
+    case p: LobbyPacket =>
+      receiveLobby(p)
+    case p: InGamePacket =>
+      receiveInGame(p)
   }
 
   // Handle incoming packets in the lobby state
-  def receiveLobby: Receive = {
-    case ClientConnect(_: String, clientId: String, actor: ActorRef) =>
+  def receiveLobby(lobbyPacket: LobbyPacket): Any = lobbyPacket match {
+    case ClientConnect(_, clientId: String, actor: ActorRef) =>
       if (!hasInitialHostJoined) {
         // Add the initial host to the list of players
         val client = ClientWithActor(Client(clientId, initialHostSettings), actor)
@@ -81,26 +83,26 @@ class Lobby(val id: String)
         initialHostSettings = None
         notifyLobbyChanged()
       } else {
-        connected += clientId -> ClientWithActor(Client(clientId), actor)
         // Send current lobby information
-        actor ! constructLobbyUpdate(generateLobbyInfo)
+        connected += clientId -> ClientWithActor(Client(clientId), actor)
+        actor ! constructLobbyUpdate
       }
 
     case RequestClientJoin(_, clientId: String, withSettings: ClientSettings) =>
       if (connected.isDefinedAt(clientId)) {
-        if (!ClientSettings.isValid(withSettings))
+        if (!ClientSettings.isValid(withSettings)) {
           // Reject with response
           connected(clientId).actor ! RequestReply(RequestResponse.Rejected,
             ClientSettings.formatInvalid(withSettings))
-        else if (!isUnique(withSettings))
+        } else if (!isUnique(withSettings)) {
           // Reject with response
           connected(clientId).actor ! RequestReply(RequestResponse.Rejected,
             "Name and color must be unique: non-unique inputs " +
               s"{${nonUniqueElements(withSettings).mkString(", ")}}")
-        else {
+        } else {
           val client = connected(clientId)
           connected -= clientId
-          players += clientId -> client
+          players += clientId -> ClientWithActor(Client(clientId, Some(withSettings)), client.actor)
           // Approve with response
           client.actor ! RequestReply(RequestResponse.Accepted)
           // Broadcast lobby update to all other players
@@ -148,28 +150,14 @@ class Lobby(val id: String)
           RequestReply(RequestResponse.Rejected, "Must be the host " +
             "of the lobby to start it (invalid privileges)")
 
-    case p: InGamePacket =>
-      // Packet sent for wrong state
+    case p =>
       badPacket(p)
-
-    case p: InPacket =>
-      // Bad/unknown InPacket
-      badPacket(p)
-
-    case _ =>
   }
 
   // Handle incoming packets during the InGame state
-  def receiveInGame: Receive = {
-    case p: InGamePacket =>
-      // Packet sent for wrong state
+  def receiveInGame(inGamePacket: InGamePacket): Any = inGamePacket match {
+    case p =>
       badPacket(p)
-
-    case p: InPacket =>
-      // Bad/unknown InPacket
-      badPacket(p)
-
-    case _ =>
   }
 
   /**
@@ -179,31 +167,29 @@ class Lobby(val id: String)
     *                message to (used when accepting RequestClientJoins)
     */
   def notifyLobbyChanged(exclude: ActorRef = null): Unit = {
-    val lobby = generateLobbyInfo
+    val packet = constructLobbyUpdate
     (players.valuesIterator ++ connected.valuesIterator)
       .filter(_.actor != exclude)
-      .foreach(_.actor ! constructLobbyUpdate(lobby))
+      .foreach(_.actor ! packet)
   }
 
-  def generateLobbyInfo: Iterable[ClientSettings] = players.valuesIterator
-    .map(_.client.settings)
-    .filter(_.isDefined)
-    .map(_.get).toList
+  def constructLobbyUpdate: OutPacket =
+    LobbyUpdate(players.valuesIterator
+        .map(_.client.settings)
+        .filter(_.isDefined)
+        .map(_.get).toList,
+      host
+        .map(_.client.settings.map(_.name).getOrElse(""))
+        .getOrElse(""))
 
-  def constructLobbyUpdate(lobby: Iterable[ClientSettings]) =
-    LobbyUpdate(lobby, host
-      .map(_.client.settings.map(_.name).getOrElse(""))
-      .getOrElse(""))
 
   def packetInvalidState(p: InPacket): Unit = {
-    logger.debug(s"Packet received $p is invalid for current state $state")
     connected.get(p.clientId).orElse(players.get(p.clientId)).foreach(
       actor => actor.actor ! BadPacket(s"Bad/unknown InPacket received: $p")
     )
   }
 
   def badPacket(p: InPacket): Unit = {
-    logger.debug(s"Bad/unknown InPacket received: $p")
     connected.get(p.clientId).orElse(players.get(p.clientId)).foreach(
       actor => actor.actor ! BadPacket(s"Bad/unknown InPacket received: $p")
     )

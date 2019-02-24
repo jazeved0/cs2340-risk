@@ -15,6 +15,7 @@ import play.api.data.Form
 import play.api.mvc.WebSocket.MessageFlowTransformer
 import play.api.mvc._
 import play.api.{Configuration, Logger}
+
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -57,17 +58,13 @@ class MainController @Inject()(cached: Cached,
   def make: Action[AnyContent] = Action.async { implicit request =>
     val formValidationResult: Form[ClientSettings] = Resources.UserForm.bindFromRequest
     formValidationResult.fold(
-      userData => {
-        logger.debug(s"Form submission for $userData failed")
-        Future[Result](BadRequest("Form submission failed"))
-      },
+      _ => Future[Result](BadRequest("Form submission failed")),
       userData => {
         if (!ClientSettings.isValid(userData))
           Future[Result](BadRequest(ClientSettings.formatInvalid(userData)))
         else {
           val hostInfo = ClientSettings(userData.name, userData.ordinal)
           (lobbySupervisor ? MakeLobby(hostInfo)).mapTo[String].map { id =>
-            logger.debug(s"Lobby id=$id created")
             Redirect(s"/lobby/host/$id")
           }
         }
@@ -104,8 +101,11 @@ class MainController @Inject()(cached: Cached,
   }
 
   // generates client Id cookies for the frontend to consume
-  def makeClientIdCookie: Cookie = Cookie(Resources.ClientIdCookieKey,
-    Client.generateAndIssueId, httpOnly = false)
+  def makeClientIdCookie: Cookie = {
+    val id = Client.generateAndIssueId
+    Cookie(Resources.ClientIdCookieKey,
+      id, httpOnly = false)
+  }
 
   // **************
   // ERROR HANDLING
@@ -157,7 +157,7 @@ class MainController @Inject()(cached: Cached,
     Source.actorRef[OutPacket](5, OverflowStrategy.fail)
 
   // Builds a flow for each WebSocket connection
-  def flow(lobbyId: String, clientId: String): Flow[InPacket, OutPacket, ActorRef] =
+  def flow(lobbyId: String, clientId: String): Flow[InPacket, OutPacket, ActorRef] = {
     Flow.fromGraph(GraphDSL.create(clientActorSource) {
       implicit builder => clientActor =>
         import GraphDSL.Implicits._
@@ -180,8 +180,8 @@ class MainController @Inject()(cached: Cached,
 
         // Set the WebSocket points of ingress and egress
         FlowShape(incomingRouter.in, clientActor.out)
-      }
-    )
+    })
+  }
 
   override def validOrigin(path: String): Boolean = config.get
     [Seq[String]](Resources.OriginsConfigKey).exists(path.contains(_))
@@ -200,11 +200,11 @@ trait SameOriginCheck{
         logger.debug(s"[OriginCheck] OriginValue = $originValue")
         true
       case Some(badOrigin) =>
-        logger.error(s"[OriginCheck] Rejecting request because origin " +
+        logger.warn(s"[OriginCheck] Rejecting request because origin " +
           s"$badOrigin is invalid")
         false
       case None =>
-        logger.error("[OriginCheck] Rejecting request because no " +
+        logger.warn("[OriginCheck] Rejecting request because no " +
           "Origin header found")
         false
     }

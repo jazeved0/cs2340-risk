@@ -4,6 +4,8 @@ import actors.LobbySupervisor.{LobbyExists, MakeLobby}
 import akka.actor.{Actor, ActorRef}
 import controllers.InPacket
 import models.ClientSettings
+import play.api.Logger
+
 import scala.collection.mutable
 
 object LobbySupervisor {
@@ -17,8 +19,11 @@ object LobbySupervisor {
   * has been generated
   */
 class LobbySupervisor extends Actor {
+  val logger: Logger = Logger(this.getClass)
   val lobbies: mutable.HashMap[String, ActorRef] = mutable.HashMap[String, ActorRef]()
+
   override def receive: Receive = {
+
     // Internal message to poll lobby existence
     case LobbyExists(lobbyId) =>
       sender() ! lobbies.isDefinedAt(lobbyId)
