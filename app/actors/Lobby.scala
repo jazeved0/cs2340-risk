@@ -66,9 +66,13 @@ class Lobby(val id: String)
   // Receive incoming packets and turn them into internal state
   // changes and/or outgoing packets (returns partial function)
   override def receive: Receive = {
-    // TODO separate based on state
+    case _: LobbyPacket => receiveLobby
+    case _: InGamePacket => receiveInGame
+  }
 
-    case ClientConnect(_: String, clientId: String, actor: ActorRef) => {
+  // Handle incoming packets in the lobby state
+  def receiveLobby: Receive = {
+    case ClientConnect(_: String, clientId: String, actor: ActorRef) =>
       if (!hasInitialHostJoined) {
         // Add the initial host to the list of players
         val client = ClientWithActor(Client(clientId, initialHostSettings), actor)
@@ -81,7 +85,6 @@ class Lobby(val id: String)
         // Send current lobby information
         actor ! constructLobbyUpdate(generateLobbyInfo)
       }
-    }
 
     case RequestClientJoin(_, clientId: String, withSettings: ClientSettings) =>
       if (connected.isDefinedAt(clientId)) {
@@ -108,7 +111,7 @@ class Lobby(val id: String)
     // Disconnect within Lobby stage
     case ClientDisconnect(_, clientId: String) =>
       if (connected.isDefinedAt(clientId))
-        // Client hadn't actually joined, silently remove them
+      // Client hadn't actually joined, silently remove them
         connected -= clientId
       else if (host.exists(_.client.id == clientId)) {
         // Host disconnecting
@@ -134,17 +137,33 @@ class Lobby(val id: String)
           startGame()
 
         } else
-          // Reject with response
+        // Reject with response
           connected.getOrElse(clientId, players(clientId)).actor !
             RequestReply(RequestResponse.Rejected, "Cannot start game: " +
               s"not enough players (min: ${Resources.MinimumPlayers})")
 
       } else
-        // Reject with response
+      // Reject with response
         connected.getOrElse(clientId, players(clientId)).actor !
           RequestReply(RequestResponse.Rejected, "Must be the host " +
             "of the lobby to start it (invalid privileges)")
 
+    case p: InGamePacket =>
+      // Packet sent for wrong state
+      badPacket(p)
+
+    case p: InPacket =>
+      // Bad/unknown InPacket
+      badPacket(p)
+
+    case _ =>
+  }
+
+  // Handle incoming packets during the InGame state
+  def receiveInGame: Receive = {
+    case p: InGamePacket =>
+      // Packet sent for wrong state
+      badPacket(p)
 
     case p: InPacket =>
       // Bad/unknown InPacket
@@ -175,6 +194,13 @@ class Lobby(val id: String)
     LobbyUpdate(lobby, host
       .map(_.client.settings.map(_.name).getOrElse(""))
       .getOrElse(""))
+
+  def packetInvalidState(p: InPacket): Unit = {
+    logger.debug(s"Packet received $p is invalid for current state $state")
+    connected.get(p.clientId).orElse(players.get(p.clientId)).foreach(
+      actor => actor.actor ! BadPacket(s"Bad/unknown InPacket received: $p")
+    )
+  }
 
   def badPacket(p: InPacket): Unit = {
     logger.debug(s"Bad/unknown InPacket received: $p")

@@ -6,8 +6,8 @@ object ClientSettings {
   val MaxNameLength = 16
 
   def isValid(arg: ClientSettings): Boolean =
-    arg.name.length > ClientSettings.MaxNameLength &&
-      (arg.ordinal >= Resources.Colors.size || arg.ordinal < 0)
+    arg.name.length <= ClientSettings.MaxNameLength &&
+      (arg.ordinal < Resources.Colors.size && arg.ordinal >= 0)
   def formatInvalid(userData: ClientSettings): String = userData match {
     case ClientSettings(name: String, _) if name.length > MaxNameLength =>
       s"Given name $name is too long (max: $MaxNameLength)"

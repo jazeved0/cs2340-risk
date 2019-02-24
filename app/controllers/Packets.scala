@@ -10,15 +10,17 @@ sealed trait InPacket {
   def clientId: String
   def unapply(packet: InPacket): (String, String) = (packet.lobbyId, packet.clientId)
 }
+sealed trait LobbyPacket extends InPacket
+sealed trait InGamePacket extends InPacket
 // Client connection internal message created when WebSocket is established
 // Also used to add the host when they are the first one to join
-case class ClientConnect(lobbyId: String, clientId: String, actor: ActorRef) extends InPacket
+case class ClientConnect(lobbyId: String, clientId: String, actor: ActorRef) extends LobbyPacket
 // Requests to join the lobby with the provided settings
-case class RequestClientJoin(lobbyId: String, clientId: String, withSettings: ClientSettings) extends InPacket
+case class RequestClientJoin(lobbyId: String, clientId: String, withSettings: ClientSettings) extends LobbyPacket
 // Client connection internal message created when WebSocket is closed
-case class ClientDisconnect(lobbyId: String, clientId: String) extends InPacket
+case class ClientDisconnect(lobbyId: String, clientId: String) extends LobbyPacket with InGamePacket
 // Incoming packet for starting the lobby
-case class RequestStartLobby(lobbyId: String, clientId: String) extends InPacket
+case class RequestStartLobby(lobbyId: String, clientId: String) extends LobbyPacket
 
 // Outgoing packets to the network
 sealed trait OutPacket

@@ -30,7 +30,7 @@ object Resources {
 
   val OriginsConfigKey = "app.controllers.origins"
   val ClientIdCookieKey = "clientId"
-  val BaseUrl = "localhost:/9000"
+  val BaseUrl = "localhost:9000"
   val MakeUrl: Call = routes.MainController.make()
   val NonHostSubmitURL: Call = routes.MainController.make()
   val LobbyIdChars: Seq[Char] = "BCEFGHJMPQRTVYWX".toLowerCase.toList
