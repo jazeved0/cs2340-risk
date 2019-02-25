@@ -4,7 +4,7 @@ import common.{Resources, UniqueIdProvider, Util}
 
 object Client extends UniqueIdProvider {
   // Methods for UniqueIdProvider
-  override def idLength = 16
+  override def idLength: Int = Resources.ClientIdLength
   override protected def generateId(len: Int): String = Util.randomString(len)
   override protected def isIdChar(c: Char): Boolean = Util.isAlphanumeric(c)
 

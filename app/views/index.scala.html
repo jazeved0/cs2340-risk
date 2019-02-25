@@ -1,4 +1,5 @@
 @import helper._
+@import common.Resources
 @(userForm: Form[ClientSettings], colorList: Seq[Color], postUrl: Call)(implicit request: MessagesRequestHeader)
 @{/* second parameter adds font awesome */}
 @base("Risk: The Game of Global Domination", "<link rel=\"stylesheet\" " +
@@ -7,7 +8,7 @@
         "crossorigin=\"anonymous\">\n        <link rel=\"stylesheet\" " +
         "href=\"https://use.fontawesome.com/releases/v5.7.2/css/fontawesome.css\" " +
         "integrity=\"sha384-4aon80D8rXCGx9ayDt85LbyUHeMWd3UiBaWliBlJ53yzm9hqN21A+o1pqoyK04h+\" " +
-        "crossorigin=\"anonymous\">") {
+        "crossorigin=\"anonymous\">\n        <link rel=\"stylesheet\" media=\"screen\" href=\"" + routes.Assets.versioned("stylesheets/index.css") + "\">") {
   <div>
     <nav class="navbar fixed-top navbar-dark bg-dark">
       <a class="navbar-brand" href="https://github.gatech.edu/achafos3/CS2340Sp19Team10" target="_blank" rel="noopener">
@@ -47,6 +48,10 @@
   </div>
 
   <div id="light-background-container">
+    <div id="formsSettings" class="d-none" data-lobby-chars="@{(Resources.LobbyIdChars ++ Resources.LobbyIdChars.map(Character.toUpperCase)).mkString}"
+    data-lobby-length="@Resources.LobbyIdLength" data-name-min="@Resources.MinNameLength" data-name-max = "@Resources.MaxNameLength"
+    data-name-regex="@Resources.NameRegex">
+    </div>
     <div id="light_background" class="create_game_padding">
       <div class="container" id="start_game_window">
         <p id="heading">Start a new game:</p>

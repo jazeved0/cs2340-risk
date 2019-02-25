@@ -48,7 +48,7 @@ class MainController @Inject()(cached: Cached,
   // at which a new game is made
   // GET /
   def index: EssentialAction = cached("indexPage") {
-    Action {
+    Action.apply {
       implicit request =>
         // send landing page to the client (host)
         Ok(views.html.index(Resources.UserForm, Resources.Colors, Resources.MakeUrl))
@@ -111,7 +111,7 @@ class MainController @Inject()(cached: Cached,
   // generates client Id cookies for the frontend to consume
   def makeClientIdCookie: Cookie = {
     val id = Client.generateAndIssueId
-    Cookie(Resources.ClientIdCookieKey,
+    Cookie(Resources.ClientIdCookie,
       id, httpOnly = false)
   }
 
@@ -168,7 +168,7 @@ class MainController @Inject()(cached: Cached,
   def flow(lobbyId: String, clientId: String): Flow[InPacket, OutPacket, ActorRef] = {
     Flow.fromGraph(GraphDSL.create(clientActorSource) {
       implicit builder => clientActor =>
-        import GraphDSL.Implicits._
+        import akka.stream.scaladsl.GraphDSL.Implicits._
         // TODO implement ping/pong
 
         // Join & Network entry points for InPackets
@@ -191,8 +191,7 @@ class MainController @Inject()(cached: Cached,
     })
   }
 
-  override def validOrigin(path: String): Boolean = config.get
-    [Seq[String]](Resources.OriginsConfigKey).exists(path.contains(_))
+  override def validOrigin(path: String): Boolean = Resources.Origins.exists(path.contains(_))
 }
 
 /**

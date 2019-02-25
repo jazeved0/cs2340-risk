@@ -7,32 +7,51 @@ import play.api.data.Forms._
 import play.api.mvc.Call
 
 /**
-  * General resources for the application
+  * General resources for the application loaded from the configuration
+  * file
   */
 object Resources {
-
-  // colors from https://flatuicolors.com/palette/defo
-  val Colors: Seq[Color] = Vector(
-    Color("2980b9"),
-    Color("27ae60"),
-    Color("8e44ad"),
-    Color("f39c12"),
-    Color("c0392b"),
-    Color("bdc3c7")
-  )
-
   val UserForm = Form(
     mapping(
       "name" -> nonEmptyText,
       "ordinal" -> number
     )(ClientSettings.apply)(ClientSettings.unapply)
   )
-
-  val OriginsConfigKey = "app.controllers.origins"
-  val ClientIdCookieKey = "clientId"
-  val BaseUrl = "localhost:9000"
   val MakeUrl: Call = routes.MainController.make()
   val NonHostSubmitURL: Call = routes.MainController.make()
-  val LobbyIdChars: Seq[Char] = "BCEFGHJMPQRTVYWX".toLowerCase.toList
-  val MinimumPlayers: Int = 2
+
+  // Consumed in Module
+  object ConfigKeys {
+    val OriginsConfig = "app.controllers.origins"
+
+    val Colors = "app.settings.colors"
+    val ClientIdCookie = "app.controllers.clientIdCookie"
+    val BaseUrl = "app.controllers.baseUrl"
+    val LobbyIdChars = "app.settings.lobbyIdChars"
+    val LobbyIdLength = "app.settings.lobbyIdLength"
+    val ClientIdLength = "app.settings.clientIdLength"
+    val NameRegex = "app.settings.nameRegex"
+    val MinNameLength = "app.settings.minNameLength"
+    val MaxNameLength = "app.settings.maxNameLength"
+    val MinimumPlayers = "app.gameplay.minPlayers"
+    val MaximumPlayers = "app.gameplay.maxPlayers"
+  }
+
+  // ********************
+  // CONFIG LOADED VALUES
+  // ********************
+
+  var Origins: Seq[String] = _
+  var Colors: Seq[Color] = _
+  var ClientIdCookie: String = _
+  var BaseUrl: String = _
+  var LobbyIdChars: Seq[Char] = _
+  var NameRegex: String = _
+
+  var LobbyIdLength: Int = _
+  var ClientIdLength: Int = _
+  var MinNameLength: Int = _
+  var MaxNameLength: Int = _
+  var MinimumPlayers: Int = _
+  var MaximumPlayers: Int = _
 }

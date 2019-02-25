@@ -10,7 +10,7 @@
       @helper.inputText(Resources.UserForm("name"),
         'id -> "username_field",
         'class -> "form-control md form-control-lg flex-fill mr-3 mb-0",
-        'type -> "search", 'maxlength -> "16", 'placeholder -> "",
+        'type -> "search", 'maxlength -> Resources.MaxNameLength.toString, 'placeholder -> "",
         'autocapitalize -> "off", 'spellcheck -> "false")
       <button id="username_button" class="btn btn-primary btn-lg white dark_accent" disabled><span class="d-inline">Start<span class="d-none d-sm-inline"> Lobby</span></span></button>
     </div>

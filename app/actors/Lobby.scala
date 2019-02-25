@@ -12,7 +12,7 @@ import scala.collection.mutable
 
 object Lobby extends UniqueIdProvider {
   // Methods for UniqueIdProvider
-  override def idLength = 4
+  override def idLength: Int = Resources.LobbyIdLength
   private val IdCharsSet: Set[Char] = HashSet() ++ Resources.LobbyIdChars
   override protected def generateId(len: Int): String =
     Util.randomString(len, Resources.LobbyIdChars)
@@ -59,7 +59,7 @@ class Lobby(val id: String)
   def hasInitialHostJoined: Boolean = initialHostSettings.isEmpty
   def hasHost: Boolean = host.isEmpty
 
-  def startGame(): Unit = {
+  def startGame() {
     // TODO Implement
   }
 
@@ -73,91 +73,95 @@ class Lobby(val id: String)
   }
 
   // Handle incoming packets in the lobby state
-  def receiveLobby(lobbyPacket: LobbyPacket): Unit = lobbyPacket match {
-    case ClientConnect(_, clientId: String, actor: ActorRef) =>
-      if (!hasInitialHostJoined) {
-        // Add the initial host to the list of players
-        val client = ClientWithActor(Client(clientId, initialHostSettings), actor)
-        players += clientId -> client
-        host = Some(client)
-        initialHostSettings = None
-        notifyLobbyChanged()
-      } else {
-        // Send current lobby information
-        connected += clientId -> ClientWithActor(Client(clientId), actor)
-        actor ! constructLobbyUpdate
-      }
-
-    case RequestClientJoin(_, clientId: String, withSettings: ClientSettings) =>
-      if (connected.isDefinedAt(clientId)) {
-        if (!ClientSettings.isValid(withSettings)) {
-          // Reject with response
-          connected(clientId).actor ! RequestReply(RequestResponse.Rejected,
-            ClientSettings.formatInvalid(withSettings))
-        } else if (!isUnique(withSettings)) {
-          // Reject with response
-          connected(clientId).actor ! RequestReply(RequestResponse.Rejected,
-            "Name and color must be unique: non-unique inputs " +
-              s"{${nonUniqueElements(withSettings).mkString(", ")}}")
+  def receiveLobby(lobbyPacket: LobbyPacket) {
+    lobbyPacket match {
+      case ClientConnect(_, clientId: String, actor: ActorRef) =>
+        if (!hasInitialHostJoined) {
+          // Add the initial host to the list of players
+          val client = ClientWithActor(Client(clientId, initialHostSettings), actor)
+          players += clientId -> client
+          host = Some(client)
+          initialHostSettings = None
+          notifyLobbyChanged()
         } else {
-          val client = connected(clientId)
-          connected -= clientId
-          players += clientId -> ClientWithActor(Client(clientId, Some(withSettings)), client.actor)
-          // Approve with response
-          client.actor ! RequestReply(RequestResponse.Accepted)
-          // Broadcast lobby update to all other players
-          notifyLobbyChanged(client.actor)
+          // Send current lobby information
+          connected += clientId -> ClientWithActor(Client(clientId), actor)
+          actor ! constructLobbyUpdate
         }
-      }
 
-    // Disconnect within Lobby stage
-    case ClientDisconnect(_, clientId: String) =>
-      if (connected.isDefinedAt(clientId))
-      // Client hadn't actually joined, silently remove them
-        connected -= clientId
-      else if (host.exists(_.client.id == clientId)) {
-        // Host disconnecting
-        players.remove(clientId)
-        // Promote the first-joined player to host if there is one
-        if (players.isEmpty) host = None
-        else host = Some(players.head._2)
-        notifyLobbyChanged()
-      } else {
-        // Normal player disconnecting
-        players.remove(clientId)
-        notifyLobbyChanged()
-      }
+      case RequestClientJoin(_, clientId: String, withSettings: ClientSettings) =>
+        if (connected.isDefinedAt(clientId)) {
+          if (!ClientSettings.isValid(withSettings)) {
+            // Reject with response
+            connected(clientId).actor ! RequestReply(RequestResponse.Rejected,
+              ClientSettings.formatInvalid(withSettings))
+          } else if (!isUnique(withSettings)) {
+            // Reject with response
+            connected(clientId).actor ! RequestReply(RequestResponse.Rejected,
+              "Name and color must be unique: non-unique inputs " +
+                s"{${nonUniqueElements(withSettings).mkString(", ")}}")
+          } else {
+            val client = connected(clientId)
+            connected -= clientId
+            players += clientId -> ClientWithActor(Client(clientId, Some(withSettings)), client.actor)
+            // Approve with response
+            client.actor ! RequestReply(RequestResponse.Accepted)
+            // Broadcast lobby update to all other players
+            notifyLobbyChanged(client.actor)
+          }
+        }
 
-    case RequestStartLobby(_, clientId: String) =>
-      if (host.exists(_.client.id == clientId)) {
-        if (players.size >= Resources.MinimumPlayers) {
-          // Request is coming from the host, start game
-          (players.values.iterator ++ connected.values.iterator)
-            .foreach(_.actor ! StartLobby)
-          connected.empty
-          this.state = LobbyState.InGame
-          startGame()
+      // Disconnect within Lobby stage
+      case ClientDisconnect(_, clientId: String) =>
+        if (connected.isDefinedAt(clientId))
+        // Client hadn't actually joined, silently remove them
+          connected -= clientId
+        else if (host.exists(_.client.id == clientId)) {
+          // Host disconnecting
+          players.remove(clientId)
+          // Promote the first-joined player to host if there is one
+          if (players.isEmpty) host = None
+          else host = Some(players.head._2)
+          notifyLobbyChanged()
+        } else {
+          // Normal player disconnecting
+          players.remove(clientId)
+          notifyLobbyChanged()
+        }
+
+      case RequestStartLobby(_, clientId: String) =>
+        if (host.exists(_.client.id == clientId)) {
+          if (players.size >= Resources.MinimumPlayers) {
+            // Request is coming from the host, start game
+            (players.values.iterator ++ connected.values.iterator)
+              .foreach(_.actor ! StartLobby)
+            connected.empty
+            this.state = LobbyState.InGame
+            startGame()
+
+          } else
+          // Reject with response
+            connected.getOrElse(clientId, players(clientId)).actor !
+              RequestReply(RequestResponse.Rejected, "Cannot start game: " +
+                s"not enough players (min: ${Resources.MinimumPlayers})")
 
         } else
         // Reject with response
           connected.getOrElse(clientId, players(clientId)).actor !
-            RequestReply(RequestResponse.Rejected, "Cannot start game: " +
-              s"not enough players (min: ${Resources.MinimumPlayers})")
+            RequestReply(RequestResponse.Rejected, "Must be the host " +
+              "of the lobby to start it (invalid privileges)")
 
-      } else
-      // Reject with response
-        connected.getOrElse(clientId, players(clientId)).actor !
-          RequestReply(RequestResponse.Rejected, "Must be the host " +
-            "of the lobby to start it (invalid privileges)")
-
-    case p =>
-      badPacket(p)
+      case p =>
+        badPacket(p)
+    }
   }
 
   // Handle incoming packets during the InGame state
-  def receiveInGame(inGamePacket: InGamePacket): Unit = inGamePacket match {
-    case p =>
-      badPacket(p)
+  def receiveInGame(inGamePacket: InGamePacket) {
+    inGamePacket match {
+      case p =>
+        badPacket(p)
+    }
   }
 
   /**
@@ -166,7 +170,7 @@ class Lobby(val id: String)
     * @param exclude Optional client ActorRef to exclude sending the
     *                message to (used when accepting RequestClientJoins)
     */
-  def notifyLobbyChanged(exclude: ActorRef = null): Unit = {
+  def notifyLobbyChanged(exclude: ActorRef = null) {
     val packet = constructLobbyUpdate
     (players.valuesIterator ++ connected.valuesIterator)
       .filter(_.actor != exclude)
@@ -178,18 +182,16 @@ class Lobby(val id: String)
       .map(_.client.settings)
       .filter(_.isDefined)
       .map(_.get).toList,
-      host
-        .map(_.client.settings.map(_.name).getOrElse(""))
-        .getOrElse(""))
+      host.fold("")(_.client.settings.fold("")(_.name)))
 
 
-  def packetInvalidState(p: InPacket): Unit = {
+  def packetInvalidState(p: InPacket) {
     connected.get(p.clientId).orElse(players.get(p.clientId)).foreach(
       actor => actor.actor ! BadPacket(s"Bad/unknown InPacket received: $p")
     )
   }
 
-  def badPacket(p: InPacket): Unit = {
+  def badPacket(p: InPacket) {
     connected.get(p.clientId).orElse(players.get(p.clientId)).foreach(
       actor => actor.actor ! BadPacket(s"Bad/unknown InPacket received: $p")
     )
