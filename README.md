@@ -6,9 +6,17 @@ England is my city
 
 [![Build Status](https://api.travis-ci.org/playframework/play-scala-forms-example.svg?branch=2.6.x)](https://www.youtube.com/watch?v=hSlb1ezRqfA)
 
-## How to run
+## Setup
 
-Start the Risk game:
+To compile the web application from its sources, make sure you have [Node.js](https://nodejs.org/en/) installed. To install dependencies, run the following command in the root directory of the project.
+
+```bash
+npm install
+```
+
+### Running
+
+To start up the server, simply run the following command from the project directory:
 
 ```bash
 sbt run
