@@ -27,12 +27,7 @@
   </div>
 
   <!-- vue js tag-->
-  <div id='app' :json='setJson(@{players})'>
-    <ul>
-      <li v-for="player in json" v:key="player.name" :style="{color: player.color}">{{ player.name }}</li>
-    </ul>
-  </div> -->
-  <div id='app' data-players=@players data-domain-link=@baseUrl data-lobby-id=@lobbyId data-is-host=@isHost>
+  <div id="app" :json="setJson(@{players})" data-players="@players" data-domain-link="@baseUrl" data-lobby-id="@lobbyId" data-is-host="@isHost">
     <player-list></player-list>
   </div>
 }

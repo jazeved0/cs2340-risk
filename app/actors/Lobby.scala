@@ -113,15 +113,14 @@ class Lobby(val id: String)
 
       // Disconnect within Lobby stage
       case ClientDisconnect(_, clientId: String) =>
-        if (connected.isDefinedAt(clientId))
-        // Client hadn't actually joined, silently remove them
+        if (connected.isDefinedAt(clientId)) {
+          // Client hadn't actually joined, silently remove them
           connected -= clientId
-        else if (host.exists(_.client.id == clientId)) {
+        } else if (host.exists(_.client.id == clientId)) {
           // Host disconnecting
           players.remove(clientId)
           // Promote the first-joined player to host if there is one
-          if (players.isEmpty) host = None
-          else host = Some(players.head._2)
+          host = if (players.isEmpty) None else Some(players.head._2)
           notifyLobbyChanged()
         } else {
           // Normal player disconnecting
