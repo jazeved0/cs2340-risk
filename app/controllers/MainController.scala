@@ -1,6 +1,6 @@
 package controllers
 
-import actors.LobbySupervisor.{LobbyExists, MakeLobby}
+import actors.GameSupervisor.{GameExists, MakeGame}
 import actors._
 import akka.actor.{ActorRef, ActorSystem}
 import akka.pattern.ask
@@ -50,22 +50,22 @@ class MainController @Inject()(cached: Cached,
   def index: EssentialAction = cached("indexPage") {
     Action.apply {
       implicit request =>
-        // send landing page to the client (host)
+        // send landing page to the player (host)
         Ok(views.html.index(Resources.UserForm, Resources.Colors, Resources.MakeUrl))
     }
   }
 
   // POST /lobby/make
   def make: Action[AnyContent] = Action.async { implicit request =>
-    val formValidationResult: Form[ClientSettings] = Resources.UserForm.bindFromRequest
+    val formValidationResult: Form[PlayerSettings] = Resources.UserForm.bindFromRequest
     formValidationResult.fold(
       _ => Future[Result](BadRequest("Form submission failed")),
       userData => {
-        if (!ClientSettings.isValid(userData))
-          Future[Result](BadRequest(ClientSettings.formatInvalid(userData)))
-        else {
-          val hostInfo = ClientSettings(userData.name, userData.ordinal)
-          (lobbySupervisor ? MakeLobby(hostInfo)).mapTo[String].map { id =>
+        if (!PlayerSettings.isValid(userData)) {
+          Future[Result](BadRequest(PlayerSettings.formatInvalid(userData)))
+        } else {
+          val hostInfo = PlayerSettings(userData.name, userData.ordinal)
+          (lobbySupervisor ? MakeGame(hostInfo)).mapTo[String].map { id =>
             Redirect(s"/lobby/host/$id")
           }
         }
@@ -77,7 +77,7 @@ class MainController @Inject()(cached: Cached,
   // Obtains the corresponding main page after a host has created
   // GET /lobby/host/:id
   def host(id: String): Action[AnyContent] = Action.async { implicit request =>
-    (lobbySupervisor ? LobbyExists(id)).mapTo[Boolean].map {
+    (lobbySupervisor ? GameExists(id)).mapTo[Boolean].map {
       case true =>
         val playersRaw = """[{"name":"saxon_dr", "color": "green"}, {"name": "joazlazer", "color": "red"},
             {"name": "iphish", "color": "purple"}, {"name": "bopas2", "color": "blue"}, {"name": "chafos", "color": "pink"}]"""
@@ -97,7 +97,7 @@ class MainController @Inject()(cached: Cached,
   // GET /lobby/:id
   def lobby(id: String): EssentialAction = cached(s"lobby-$id") {
     Action.async { implicit request =>
-      (lobbySupervisor ? LobbyExists(id)).mapTo[Boolean].map {
+      (lobbySupervisor ? GameExists(id)).mapTo[Boolean].map {
         case true =>
           val playersRaw = """[{"name":"saxon_dr", "color": "green"}, {"name": "joazlazer", "color": "red"},
             {"name": "iphish", "color": "purple"}, {"name": "bopas2", "color": "blue"}, {"name": "chafos", "color": "pink"}]"""
@@ -108,10 +108,10 @@ class MainController @Inject()(cached: Cached,
     }
   }
 
-  // generates client Id cookies for the frontend to consume
+  // generates player Id cookies for the frontend to consume
   def makeClientIdCookie: Cookie = {
-    val id = Client.generateAndIssueId
-    Cookie(Resources.ClientIdCookie,
+    val id = Player.generateAndIssueId
+    Cookie(Resources.PlayerIdCookie,
       id, httpOnly = false)
   }
 
@@ -132,15 +132,15 @@ class MainController @Inject()(cached: Cached,
   // WEB SOCKETS
   // ***********
 
-  // webSocket/lobbyId/clientId
+  // webSocket/gameId/clientId
   def webSocket(lobbyId: String, clientId: String): WebSocket = {
     WebSocket.acceptOrResult[InPacket, OutPacket] {
       // validate supplied ids
-      case _ if !Client.isValidId(clientId) =>
+      case _ if !Player.isValidId(clientId) =>
         Future.successful {
-          Left(BadRequest(s"Invalid client id $clientId supplied"))
+          Left(BadRequest(s"Invalid player id $clientId supplied"))
         }
-      case _ if !Lobby.isValidId(lobbyId) =>
+      case _ if !Game.isValidId(lobbyId) =>
         Future.successful {
           Left(BadRequest(s"Invalid lobby id $lobbyId supplied"))
         }
@@ -162,7 +162,7 @@ class MainController @Inject()(cached: Cached,
   implicit val messageFlowTransformer: MessageFlowTransformer[InPacket, OutPacket] =
     MessageFlowTransformer.jsonMessageFlowTransformer[InPacket, OutPacket]
   val clientActorSource: Source[OutPacket, ActorRef] =
-    Source.actorRef[OutPacket](5, OverflowStrategy.fail)
+    Source.actorRef[OutPacket](Resources.IncomingPacketBufferSize, OverflowStrategy.fail)
 
   // Builds a flow for each WebSocket connection
   def flow(lobbyId: String, clientId: String): Flow[InPacket, OutPacket, ActorRef] = {
@@ -173,7 +173,7 @@ class MainController @Inject()(cached: Cached,
 
         // Join & Network entry points for InPackets
         val materialization = builder.materializedValue.map(clientActor =>
-          ClientConnect(lobbyId, clientId, clientActor))
+          PlayerConnect(lobbyId, clientId, clientActor))
         val incomingRouter: FlowShape[InPacket, InPacket] = builder.add(Flow[InPacket])
 
         // Merge Join & Network sources
@@ -183,7 +183,7 @@ class MainController @Inject()(cached: Cached,
 
         // Output for messages that don't get processed (dead connection)
         val lobbySink = Sink.actorRef[InPacket](lobbySupervisor,
-          ClientDisconnect(lobbyId, clientId))
+          PlayerDisconnect(lobbyId, clientId))
         merge ~> lobbySink
 
         // Set the WebSocket points of ingress and egress

@@ -8,16 +8,20 @@ import scala.collection.mutable
   * matching predicate. The lifecycle of an Id is to be generated,
   * issued, consumed, and then returned
   *
-  * Known implementors are Client and Lobby
+  * Known implementors are Player and Game
   */
 trait UniqueIdProvider {
   def idLength: Int
   protected def generateId(len: Int): String
   protected def isIdChar(c: Char): Boolean
   protected val Ids: mutable.HashSet[String] = new mutable.HashSet()
-  protected def issueId(id: String): Unit = Ids += id
+  protected def issueId(id: String) {
+    Ids += id
+  }
 
-  def returnId(id: String): Unit = Ids -= id
+  def returnId(id: String) {
+    Ids -= id
+  }
   def generateAndIssueId: String = {
     var id = ""
     do id = generateId(idLength)

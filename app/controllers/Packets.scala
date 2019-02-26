@@ -2,33 +2,38 @@ package controllers
 
 import akka.actor.ActorRef
 import controllers.RequestResponse.Response
-import models.ClientSettings
-import play.api.libs.json.{Json, Reads, Writes}
+import gameplay.{Army, PlayerState}
+import models.PlayerSettings
+import play.api.libs.json._
 
 // Incoming packets from the network
 sealed trait InPacket {
-  def lobbyId: String
+  def gameId: String
   def clientId: String
-  def unapply(packet: InPacket): (String, String) = (packet.lobbyId, packet.clientId)
+  def unapply(packet: InPacket): (String, String) = (packet.gameId, packet.clientId)
 }
 sealed trait LobbyPacket extends InPacket
 sealed trait InGamePacket extends InPacket
-// Client connection internal message created when WebSocket is established
+sealed trait GlobalPacket extends InPacket
+// Player connection internal message created when WebSocket is established
 // Also used to add the host when they are the first one to join
-case class ClientConnect(lobbyId: String, clientId: String, actor: ActorRef) extends LobbyPacket
-// Requests to join the lobby with the provided settings
-case class RequestClientJoin(lobbyId: String, clientId: String, withSettings: ClientSettings) extends LobbyPacket
-// Client connection internal message created when WebSocket is closed
-case class ClientDisconnect(lobbyId: String, clientId: String) extends LobbyPacket with InGamePacket
-// Incoming packet for starting the lobby
-case class RequestStartLobby(lobbyId: String, clientId: String) extends LobbyPacket
+case class PlayerConnect(gameId: String, clientId: String, actor: ActorRef) extends LobbyPacket
+// Requests to join the game lobby with the provided settings
+case class RequestPlayerJoin(gameId: String, clientId: String, withSettings: PlayerSettings) extends LobbyPacket
+// Player connection internal message created when WebSocket is closed
+case class PlayerDisconnect(gameId: String, clientId: String) extends GlobalPacket
+// Incoming packet for starting the game
+case class RequestStartGame(gameId: String, clientId: String) extends LobbyPacket
+// Temporary class to satisfy Marshaller macros
+case class Unused(gameId: String, clientId: String) extends InGamePacket
 
 // Outgoing packets to the network
 sealed trait OutPacket
-case class LobbyUpdate(iter: Iterable[ClientSettings], host: String) extends OutPacket
+case class GameLobbyUpdate(seq: Seq[PlayerSettings], host: String) extends OutPacket
 case class RequestReply(response: Response, message: String = "") extends OutPacket
 case class BadPacket(message: String = "") extends OutPacket
 case class StartLobby(identity: String = "start") extends OutPacket
+case class UpdatePlayerState(seq: Seq[PlayerState]) extends OutPacket
 
 // Response type to the given Request
 object RequestResponse extends Enumeration {
@@ -36,24 +41,37 @@ object RequestResponse extends Enumeration {
   val Accepted, Rejected = Value
 }
 
+class UnusedFormat[T <: InPacket] extends Reads[T] {
+  override def reads(json: JsValue): JsResult[T] = {
+    throw new NotImplementedError("Cannot deserialize internal messages")
+  }
+}
+
 object JsonMarshallers {
   // Data object marshallers
-  implicit val clientSettingsR: Reads[ClientSettings] = Json.reads[ClientSettings]
-  implicit val clientSettingsW: Writes[ClientSettings] = Json.writes[ClientSettings]
+  implicit val clientSettingsR: Reads[PlayerSettings] = Json.reads[PlayerSettings]
+  implicit val clientSettingsW: Writes[PlayerSettings] = Json.writes[PlayerSettings]
+  implicit val armyW: Writes[Army] = Json.writes[Army]
+  implicit val playerStateW: Writes[PlayerState] = Json.writes[PlayerState]
 
   // Deserializers
-  implicit val clientConnect: Reads[ClientConnect] = null // unused
-  implicit val requestClientJoin: Reads[RequestClientJoin] = Json.reads[RequestClientJoin]
-  implicit val clientDisconnect: Reads[ClientDisconnect] = Json.reads[ClientDisconnect]
-  implicit val requestStartLobby: Reads[RequestStartLobby] = Json.reads[RequestStartLobby]
+  implicit val requestClientJoin: Reads[RequestPlayerJoin] = Json.reads[RequestPlayerJoin]
+  implicit val requestStartLobby: Reads[RequestStartGame] = Json.reads[RequestStartGame]
+  implicit val unused: Reads[Unused] = Json.reads[Unused]
+
+  // Unused Deserializers; necessary for macros to work
+  implicit val clientConnect: Reads[PlayerConnect] = new UnusedFormat[PlayerConnect]
+  implicit val clientDisconnect: Reads[PlayerDisconnect] = new UnusedFormat[PlayerDisconnect]
 
   // Serializers
-  implicit val lobbyUpdate: Writes[LobbyUpdate] = Json.writes[LobbyUpdate]
+  implicit val lobbyUpdate: Writes[GameLobbyUpdate] = Json.writes[GameLobbyUpdate]
   implicit val requestReply: Writes[RequestReply] = Json.writes[RequestReply]
   implicit val badPacket: Writes[BadPacket] = Json.writes[BadPacket]
   implicit val startLobby: Writes[StartLobby] = Json.writes[StartLobby]
+  implicit val updatePlayerState: Writes[UpdatePlayerState] = Json.writes[UpdatePlayerState]
 
   // Trait marshallers
+  implicit val globalPacket: Reads[GlobalPacket] = Json.reads[GlobalPacket]
   implicit val lobbyPacket: Reads[LobbyPacket] = Json.reads[LobbyPacket]
   implicit val inGamePacket: Reads[InGamePacket] = Json.reads[InGamePacket]
   implicit val inPacket: Reads[InPacket] = Json.reads[InPacket]

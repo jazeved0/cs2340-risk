@@ -1,7 +1,8 @@
 package common
 
 import controllers.routes
-import models.{ClientSettings, Color}
+import gameplay.GameMode
+import models.{PlayerSettings, Color}
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.mvc.Call
@@ -15,7 +16,7 @@ object Resources {
     mapping(
       "name" -> nonEmptyText,
       "ordinal" -> number
-    )(ClientSettings.apply)(ClientSettings.unapply)
+    )(PlayerSettings.apply)(PlayerSettings.unapply)
   )
   val MakeUrl: Call = routes.MainController.make()
   val NonHostSubmitURL: Call = routes.MainController.make()
@@ -23,18 +24,22 @@ object Resources {
   // Consumed in Module
   object ConfigKeys {
     val OriginsConfig = "app.controllers.origins"
+    val PlayerIdCookie = "app.controllers.playerIdCookie"
+    val BaseUrl = "app.controllers.baseUrl"
+    val IncomingPacketBufferSize = "app.controller.incomingPacketBufferSize"
 
     val Colors = "app.settings.colors"
-    val ClientIdCookie = "app.controllers.clientIdCookie"
-    val BaseUrl = "app.controllers.baseUrl"
-    val LobbyIdChars = "app.settings.lobbyIdChars"
-    val LobbyIdLength = "app.settings.lobbyIdLength"
-    val ClientIdLength = "app.settings.clientIdLength"
+    val GameIdChars = "app.settings.gameIdChars"
     val NameRegex = "app.settings.nameRegex"
+    val GameIdLength = "app.settings.gameIdLength"
+    val PlayerIdLength = "app.settings.playerIdLength"
     val MinNameLength = "app.settings.minNameLength"
     val MaxNameLength = "app.settings.maxNameLength"
+
+    val GameMode = "app.gameplay.gameMode"
     val MinimumPlayers = "app.gameplay.minPlayers"
     val MaximumPlayers = "app.gameplay.maxPlayers"
+    val InitialArmies = "app.gameplay.initialArmies"
   }
 
   // ********************
@@ -42,16 +47,20 @@ object Resources {
   // ********************
 
   var Origins: Seq[String] = _
-  var Colors: Seq[Color] = _
-  var ClientIdCookie: String = _
+  var PlayerIdCookie: String = _
   var BaseUrl: String = _
-  var LobbyIdChars: Seq[Char] = _
-  var NameRegex: String = _
+  var IncomingPacketBufferSize: Int = _
 
-  var LobbyIdLength: Int = _
-  var ClientIdLength: Int = _
+  var Colors: Seq[Color] = _
+  var GameIdChars: Seq[Char] = _
+  var NameRegex: String = _
+  var GameIdLength: Int = _
+  var PlayerIdLength: Int = _
   var MinNameLength: Int = _
   var MaxNameLength: Int = _
+
+  var GameMode: GameMode = _
   var MinimumPlayers: Int = _
   var MaximumPlayers: Int = _
+  var InitialArmies: Map[Int, Int] = _
 }

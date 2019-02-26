@@ -1,6 +1,6 @@
 @import helper._
 @import common.Resources
-@(userForm: Form[ClientSettings], colorList: Seq[Color], postUrl: Call)(implicit request: MessagesRequestHeader)
+@(userForm: Form[PlayerSettings], colorList: Seq[Color], postUrl: Call)(implicit request: MessagesRequestHeader)
 @{/* second parameter adds font awesome */}
 @base("Risk: The Game of Global Domination", "<link rel=\"stylesheet\" " +
         "href=\"https://use.fontawesome.com/releases/v5.7.2/css/brands.css\" " +
@@ -48,8 +48,8 @@
   </div>
 
   <div id="light-background-container">
-    <div id="formsSettings" class="d-none" data-lobby-chars="@{(Resources.LobbyIdChars ++ Resources.LobbyIdChars.map(Character.toUpperCase)).mkString}"
-    data-lobby-length="@Resources.LobbyIdLength" data-name-min="@Resources.MinNameLength" data-name-max = "@Resources.MaxNameLength"
+    <div id="formsSettings" class="d-none" data-lobby-chars="@{(Resources.GameIdChars ++ Resources.GameIdChars.map(Character.toUpperCase)).mkString}"
+    data-lobby-length="@Resources.GameIdLength" data-name-min="@Resources.MinNameLength" data-name-max = "@Resources.MaxNameLength"
     data-name-regex="@Resources.NameRegex">
     </div>
     <div id="light_background" class="create_game_padding">

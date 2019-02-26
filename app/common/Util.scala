@@ -10,6 +10,7 @@ object Util {
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789".toList
   val Alphanumeric: List[Range] = {
     val CharValues = AlphanumericChars.map(c => c.toInt).toList
+    @scala.annotation.tailrec
     def helper(list: List[Int], res: List[List[Int]]): List[List[Int]] = {
       list match {
         case a :: _ =>
