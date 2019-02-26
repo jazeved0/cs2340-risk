@@ -1,13 +1,12 @@
 package actors
 
-import actors.GameLobbyState.State
 import akka.actor.{Actor, ActorRef, Props}
 import common.{Resources, UniqueIdProvider, UniqueValueManager, Util}
 import controllers._
 import gameplay.{GameMode, GameState}
-import models.{Player, PlayerSettings}
+import models.GameLobbyState.State
+import models.{GameLobbyState, Player, PlayerSettings}
 import play.api.Logger
-
 import scala.collection.immutable.HashSet
 import scala.collection.mutable
 
@@ -226,10 +225,4 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
       actor => actor.actor ! BadPacket(s"Bad/unknown InPacket received: $p")
     )
   }
-}
-
-// State enumeration for a game lobby
-object GameLobbyState extends Enumeration {
-  type State = Value
-  val Lobby, InGame = Value
 }
