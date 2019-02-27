@@ -1,5 +1,6 @@
-package gameplay
+package game.mode
 
+import game.{Army, GameState, PlayerState}
 import models.Player
 
 import scala.collection.mutable

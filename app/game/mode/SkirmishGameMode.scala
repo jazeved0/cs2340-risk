@@ -1,5 +1,7 @@
-package gameplay
+package game.mode
+
 import common.Resources
+import game.{Army, GameState}
 import models.Player
 
 import scala.util.Random

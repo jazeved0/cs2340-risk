@@ -1,7 +1,7 @@
 import actors.GameSupervisor
 import com.google.inject.{AbstractModule, Inject}
 import common.Resources
-import gameplay.GameMode
+import game.mode.GameMode
 import models.Color
 import play.api.{Configuration, Environment}
 import play.api.libs.concurrent.AkkaGuiceSupport

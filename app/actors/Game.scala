@@ -3,7 +3,8 @@ package actors
 import akka.actor.{Actor, ActorRef, Cancellable, PoisonPill, Props}
 import common.{Resources, UniqueIdProvider, UniqueValueManager, Util}
 import controllers._
-import gameplay.{GameMode, GameState}
+import game.GameState
+import game.mode.GameMode
 import models.GameLobbyState.State
 import models.{GameLobbyState, Player, PlayerSettings}
 import play.api.Logger

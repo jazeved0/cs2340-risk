@@ -1,8 +1,8 @@
 package common
 
 import controllers.routes
-import gameplay.GameMode
-import models.{PlayerSettings, Color}
+import game.mode.GameMode
+import models.{Color, PlayerSettings}
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.mvc.Call
