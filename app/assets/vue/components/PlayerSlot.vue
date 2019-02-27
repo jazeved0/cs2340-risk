@@ -1,8 +1,7 @@
 <template>
 	<div>
 		<div v-if="isEmpty" class="player-slot-outer placeholder">
-			<div>
-			</div>
+			<div></div>
 		</div>
 		<div v-else class="player-slot-outer" v-bind:class="{ current: isCurrent }">
 			<div>
@@ -46,11 +45,22 @@
 	border-color: #D9B34FB0;
 }
 .player-slot-outer.placeholder {
-	background-image: url("/assets/images/stripes.svg");
+	background-color: #3F3354;
+	position: relative;
+}
+.player-slot-outer.placeholder::before {
+	content:"";
+	display: block;
+	height: 100%;
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	background-image: url("/assets/images/darkStripes.svg");
 	background-size: 250px;
 }
 .player-slot-outer div {
-	color: #333333;
+	color: #F5F2F2;
 	font-size: 28px;
 	font-family: Roboto Slab, serif;
 	min-height: 42px;

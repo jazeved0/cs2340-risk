@@ -24,7 +24,7 @@ class GameSupervisor extends Actor {
 
   override def receive: Receive = {
 
-    // Internal message to poll lobby existence
+    // Internal message to poll app existence
     case GameExists(gameId) =>
       sender() ! lobbies.isDefinedAt(gameId)
 

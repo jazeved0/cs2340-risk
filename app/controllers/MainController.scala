@@ -34,7 +34,7 @@ class MainController @Inject()(cached: Cached,
                                cc: MessagesControllerComponents,
                                config: Configuration,
                                actorSystem: ActorSystem,
-                               @Named("lobby-supervisor") lobbySupervisor: ActorRef)
+                               @Named("app-supervisor") lobbySupervisor: ActorRef)
                               (implicit ec: ExecutionContext)
     extends MessagesAbstractController(cc) with SameOriginCheck {
   val logger: Logger = Logger(this.getClass)
@@ -73,7 +73,7 @@ class MainController @Inject()(cached: Cached,
     )
   }
 
-
+  // TODO validate
   // Obtains the corresponding main page after a host has created
   // GET /lobby/host/:id
   def host(id: String): Action[AnyContent] = Action.async { implicit request =>
@@ -81,9 +81,9 @@ class MainController @Inject()(cached: Cached,
       case true =>
         val playersRaw = """[{"name":"saxon_dr", "color": "green"}, {"name": "joazlazer", "color": "red"},
             {"name": "iphish", "color": "purple"}, {"name": "bopas2", "color": "blue"}, {"name": "chafos", "color": "pink"}]"""
-        Ok(views.html.lobby(id, Resources.BaseUrl, isHost = true, Json.parse(playersRaw)))
+        Ok(views.html.app(id, Resources.BaseUrl, isHost = true, Json.parse(playersRaw)))
         .withCookies(makeClientIdCookie)
-      case false => BadRequest(s"Invalid lobby id $id")
+      case false => BadRequest(s"Invalid app id $id")
     }
   }
 
@@ -95,15 +95,15 @@ class MainController @Inject()(cached: Cached,
   // the page responsible for them setting their name & color
   // and then joining the existing game
   // GET /lobby/:id
-  def lobby(id: String): EssentialAction = cached(s"lobby-$id") {
+  def lobby(id: String): EssentialAction = cached(s"app-$id") {
     Action.async { implicit request =>
       (lobbySupervisor ? GameExists(id)).mapTo[Boolean].map {
         case true =>
           val playersRaw = """[{"name":"saxon_dr", "color": "green"}, {"name": "joazlazer", "color": "red"},
             {"name": "iphish", "color": "purple"}, {"name": "bopas2", "color": "blue"}, {"name": "chafos", "color": "pink"}]"""
-          Ok(views.html.lobby(id, Resources.BaseUrl, isHost = false, Json.parse(playersRaw)))
+          Ok(views.html.app(id, Resources.BaseUrl, isHost = false, Json.parse(playersRaw)))
           .withCookies(makeClientIdCookie)
-        case false => BadRequest(s"Invalid lobby id $id")
+        case false => BadRequest(s"Invalid app id $id")
       }
     }
   }
@@ -133,19 +133,19 @@ class MainController @Inject()(cached: Cached,
   // ***********
 
   // webSocket/gameId/clientId
-  def webSocket(lobbyId: String, clientId: String): WebSocket = {
+  def webSocket(gameId: String, clientId: String): WebSocket = {
     WebSocket.acceptOrResult[InPacket, OutPacket] {
       // validate supplied ids
       case _ if !Player.isValidId(clientId) =>
         Future.successful {
           Left(BadRequest(s"Invalid player id $clientId supplied"))
         }
-      case _ if !Game.isValidId(lobbyId) =>
+      case _ if !Game.isValidId(gameId) =>
         Future.successful {
-          Left(BadRequest(s"Invalid lobby id $lobbyId supplied"))
+          Left(BadRequest(s"Invalid app id $gameId supplied"))
         }
       case header if sameOriginCheck(header) =>
-        Future.successful(flow(lobbyId, clientId)).map { flow =>
+        Future.successful(flow(gameId, clientId)).map { flow =>
           Right(flow)
         }.recover {
           case _: Exception =>
@@ -165,7 +165,7 @@ class MainController @Inject()(cached: Cached,
     Source.actorRef[OutPacket](Resources.IncomingPacketBufferSize, OverflowStrategy.fail)
 
   // Builds a flow for each WebSocket connection
-  def flow(lobbyId: String, clientId: String): Flow[InPacket, OutPacket, ActorRef] = {
+  def flow(gameId: String, clientId: String): Flow[InPacket, OutPacket, ActorRef] = {
     Flow.fromGraph(GraphDSL.create(clientActorSource) {
       implicit builder => clientActor =>
         import akka.stream.scaladsl.GraphDSL.Implicits._
@@ -173,7 +173,7 @@ class MainController @Inject()(cached: Cached,
 
         // Join & Network entry points for InPackets
         val materialization = builder.materializedValue.map(clientActor =>
-          PlayerConnect(lobbyId, clientId, clientActor))
+          PlayerConnect(gameId, clientId, clientActor))
         val incomingRouter: FlowShape[InPacket, InPacket] = builder.add(Flow[InPacket])
 
         // Merge Join & Network sources
@@ -183,7 +183,7 @@ class MainController @Inject()(cached: Cached,
 
         // Output for messages that don't get processed (dead connection)
         val lobbySink = Sink.actorRef[InPacket](lobbySupervisor,
-          PlayerDisconnect(lobbyId, clientId))
+          PlayerDisconnect(gameId, clientId))
         merge ~> lobbySink
 
         // Set the WebSocket points of ingress and egress

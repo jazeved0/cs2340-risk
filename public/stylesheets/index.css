@@ -1,261 +1,175 @@
-/* Makes body take up at least one screen height (and set bg color) */
-html {
-    margin: 0;
-    height: 100%;
-    width: 100%;
-}
-body {
-    margin: 0;
-    min-height: 100%;
-    width: 100%;
-    background-color: #362A4D;
-}
-
-/* Github icon */
-.repoImg {
-    font-size: 40px;
-    color: #F5F2F2;
-    opacity: 0.88;
-}
-
-/* Reduced emphasis label for lobby field */
+/* Reduced emphasis label for app field */
 .subtext {
-    color: #F5F2F2;
-    font-size: 20px;
-    font-family: Roboto, sans-serif;
-    opacity: 0.88;
+	color: #F5F2F2;
+	font-size: 20px;
+	font-family: Roboto, sans-serif;
+	opacity: 0.88;
 }
 
 /* Font settings for Create game text */
 #heading {
-    color: #362A4D;
-    font-size: 44px;
-    line-height: 42px;
-    font-weight: 200;
-    font-family: Roboto, sans-serif;
-    margin-bottom: 0.8em;
+	color: #362A4D;
+	font-size: 44px;
+	line-height: 42px;
+	font-weight: 200;
+	font-family: Roboto, sans-serif;
+	margin-bottom: 0.8em;
 }
 
 
 /* Primary 'Risk' title font styles */
 .title {
-    color: #F5F2F2;
-    font-size: 90px;
-    font-family: Roboto Slab, serif;
-    font-weight: bold;
-    margin-bottom: 30px;
+	color: #F5F2F2;
+	font-size: 90px;
+	font-family: Roboto Slab, serif;
+	font-weight: bold;
+	margin-bottom: 30px;
 }
 
 /* Main title's subtitle text */
 .subtitle {
-    color: #F5F2F2;
-    font-size: 30px;
-    font-family: Roboto, sans-serif;
-    margin-top: -50px;
-    line-height: 30px;
+	color: #F5F2F2;
+	font-size: 30px;
+	font-family: Roboto, sans-serif;
+	margin-top: -50px;
+	line-height: 30px;
 }
 
 /* Flavor text in the center jumbotron */
 .paragraph1 {
-    color: #F5F2F2;
-    font-size: 17px;
-    font-family: Roboto, sans-serif;
-    opacity: 0.85;
-    margin-bottom: 20px;
+	color: #F5F2F2;
+	font-size: 17px;
+	font-family: Roboto, sans-serif;
+	opacity: 0.85;
+	margin-bottom: 20px;
 }
 
 /* Base whitespace on small screens */
 .background_padding {
-    padding-top: 98px; /* +58.4 px for the nav */
-    padding-bottom: 40px;
+	padding-top: 98px; /* +58.4 px for the nav */
+	padding-bottom: 40px;
 }
 
 /* Base whitespace on small screens */
 .create_game_padding {
-    padding-top: 60px;
-    padding-bottom: 60px;
+	padding-top: 60px;
+	padding-bottom: 60px;
 }
 
 /* Form label font settings */
 .form-label-container p {
-    font-size: 24px;
-    font-family: Roboto, sans-serif;
-    color: #362A4D;
-    margin-bottom: 0;
-    margin-top: 4px;
-    margin-right: -10px;
-    display: inline;
+	font-size: 24px;
+	font-family: Roboto, sans-serif;
+	color: #362A4D;
+	margin-bottom: 0;
+	margin-top: 4px;
+	margin-right: -10px;
+	display: inline;
 }
 
 /* Scale for lg/large(992px wide) devices and larger */
 @media(min-width: 992px) {
-    /* Larger font larger screens */
-    .title {
-        font-size: 120px;
-        margin-bottom: 18px;
-    }
-    /* Larger font larger screens */
-    #heading {
-        font-size: 56px;
-    }
-    /* More whitespace on larger screens */
-    #start_game_window {
-        padding-left: 140px;
-        padding-right: 140px;
-    }
-    /* More whitespace on larger screens */
-    .background_padding {
-        padding-top: 178px; /* +58.4 px for the nav */
-        padding-bottom: 120px;
-    }
-    /* More whitespace on larger screens */
-    .create_game_padding {
-        padding-top: 120px;
-        padding-bottom: 120px;
-    }
-    /* Wider on larger screens */
-    #username_field {
-        width: 360px;
-    }
+	/* Larger font larger screens */
+	.title {
+		font-size: 108px;
+		margin-bottom: 20px;
+	}
+	/* Larger font larger screens */
+	#heading {
+		font-size: 52px;
+	}
+	/* More whitespace on larger screens */
+	#start_game_window {
+		padding-left: 140px;
+		padding-right: 140px;
+	}
+	/* More whitespace on larger screens */
+	.background_padding {
+		padding-top: 148px; /* +58.4 px for the nav */
+		padding-bottom: 90px;
+	}
+	/* More whitespace on larger screens */
+	.create_game_padding {
+		padding-top: 120px;
+		padding-bottom: 120px;
+	}
+	/* Wider on larger screens */
+	#username_field {
+		width: 360px;
+	}
 }
 
 /* Scale for md/medium(768px wide) devices and larger */
 @media(min-width: 768px) {
-    /* More whitespace on larger screens */
-    .create_game_padding {
-        padding-top: 80px;
-        padding-bottom: 80px;
-    }
+	/* More whitespace on larger screens */
+	.create_game_padding {
+		padding-top: 80px;
+		padding-bottom: 80px;
+	}
 }
 
 /* Scale for sm/small(576px wide) devices and larger */
 @media(min-width: 576px) {
-    /* Right align form labels */
-    .form-label-container {
-        -webkit-box-orient: horizontal!important;
-        -webkit-box-direction: reverse!important;
-        -ms-flex-direction: row-reverse!important;
-        flex-direction: row-reverse!important;
-    }
-    /* Change alignment of start header */
-    #heading {
-        padding-left: 30px;
-        padding-right: 15px;
-        margin-bottom: 0.4em;
-    }
+	/* Right align form labels */
+	.form-label-container {
+		-webkit-box-orient: horizontal!important;
+		-webkit-box-direction: reverse!important;
+		-ms-flex-direction: row-reverse!important;
+		flex-direction: row-reverse!important;
+	}
+	/* Change alignment of start header */
+	#heading {
+		padding-left: 30px;
+		padding-right: 15px;
+		margin-bottom: 0.4em;
+	}
 }
 
-/* Dark accent from theme */
-.dark_accent {
-    background-color: #5B78BB;
-}
-
-/* White color from theme */
-.white {
-    color: #F5F2F2;
-}
-
-/* Dark color from theme */
-.dark_background {
-    background-color: #362A4D ;
-}
-
-/* Striped background */
-#light_background {
-    background-image: url("/assets/images/stripes.svg");
-    background-size: 250px;
-}
-
-/* Adds white background behind striped background */
-#light-background-container {
-    background-color: #FFFFFF;
-    z-index: 10;
-    box-shadow: 0 0 72px #00000060;
-}
-
-/* Color button styling */
-.btn-circle {
-    width: 25px;
-    height: 25px;
-    text-align: center;
-    padding: 6px 0;
-    font-size: 12px;
-    line-height: 1.42;
-    border-radius: 15px;
-}
-
-/* Adds translucent 'pane' behind the group */
-#colorButtonGroup {
-    background-color: #362A4D20;
-    border-radius: 4px;
-}
-
-/* Modify spacing of group and then its children */
-#colorButtonGroup div {
-    padding-left: 10px;
-    padding-right: 10px;
-}
-#colorButtonGroup div label {
-    margin: 10px 6px 10px 6px;
-    border-style: none;
-}
-
-/* Modify padding and add shadow to nav, color */
-nav {
-    padding: .2rem 1rem!important;
-    box-shadow: 0 0 72px #00000060;
-}
-
-/* Modify styling of lobby field */
+/* Modify styling of app field */
 #search_field {
-    text-transform: uppercase;
-    font-weight: 500;
-    background-color: #FFFFFF1A;
-    border-style: none;
-    color: #EEEEEE;
+	text-transform: uppercase;
+	font-weight: 500;
+	background-color: #FFFFFF1A;
+	border-style: none;
+	color: #EEEEEE;
 }
 
-/* Modify placeholder text (esp. in lobby code box) */
+/* Modify placeholder text (esp. in app code box) */
 :-ms-input-placeholder {
-    text-transform: initial;
-    font-weight: initial;
-    color: #BBBBBB!important;
+	text-transform: initial;
+	font-weight: initial;
+	color: #BBBBBB!important;
 }
 ::-moz-placeholder {
-    text-transform: initial;
-    font-weight: initial;
-    color: #BBBBBB!important;
+	text-transform: initial;
+	font-weight: initial;
+	color: #BBBBBB!important;
 }
 :-moz-placeholder {
-    text-transform: initial;
-    font-weight: initial;
-    color: #BBBBBB!important;
+	text-transform: initial;
+	font-weight: initial;
+	color: #BBBBBB!important;
 }
 ::-webkit-input-placeholder {
-    text-transform: initial;
-    font-weight: initial;
-    color: #BBBBBB!important;
-}
-
-/* Fix button color to theme color */
-.btn-primary {
-    background-color: #5B78BB!important;
-    border-color: #5B78BB!important;
+	text-transform: initial;
+	font-weight: initial;
+	color: #BBBBBB!important;
 }
 
 /* Ensure the row divs within the start game forms are 100% wide */
 #start_game_window form div.row {
-    width: 100%;
-}
-
-/* Override nav color */
-.bg-dark {
-    background-color: #191919!important;
+	width: 100%;
 }
 
 .form-fix dl, .form-fix dd {
-    margin-bottom: 0;
+	margin-bottom: 0;
 }
 .form-fix dl dd.info, .form-fix dl dt label {
-    display: none
+	display: none
+}
+
+/* transition jitter fix */
+.repoImg {
+	position: relative;
+	top: 1px;
 }

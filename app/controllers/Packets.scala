@@ -18,7 +18,7 @@ sealed trait GlobalPacket extends InPacket
 // Player connection internal message created when WebSocket is established
 // Also used to add the host when they are the first one to join
 case class PlayerConnect(gameId: String, clientId: String, actor: ActorRef) extends LobbyPacket
-// Requests to join the game lobby with the provided settings
+// Requests to join the game app with the provided settings
 case class RequestPlayerJoin(gameId: String, clientId: String, withSettings: PlayerSettings) extends LobbyPacket
 // Player connection internal message created when WebSocket is closed
 case class PlayerDisconnect(gameId: String, clientId: String) extends GlobalPacket

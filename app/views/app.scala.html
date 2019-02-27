@@ -3,25 +3,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.16/vue.js"></script>
 <script src='@routes.Assets.versioned("vue/components/Lobby.js")'></script>
 
-<script>
-  function parse(s) {
-    return JSON.parse(decodeURIComponent(escape(atob(s))));
-  }
-</script>
-
 @base("Risk: The Game of Global Domination", "<link rel=\"stylesheet\" media=\"screen\" href=\"" + routes.Assets.versioned("stylesheets/app.css") + "\">") {
-  <div>
-    <nav class="navbar navbar-dark bg-dark justify-content-between">
-      <a class="navbar-brand">Lobby</a>
-      <form class="form-inline">
-        <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
-        <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
-      </form>
-    </nav>
-  </div>
-
   <!-- vue js tag-->
-  <div id="app" :json="setJson(@{players})" data-players="@players" data-domain-link="@baseUrl" data-lobby-id="@lobbyId" data-is-host="@isHost">
+  <div id="app">
   </div>
 }
 <script>

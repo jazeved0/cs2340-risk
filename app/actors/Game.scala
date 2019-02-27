@@ -31,7 +31,7 @@ object Game extends UniqueIdProvider {
 /**
   * Game actor that supervises a collection of connected clients that
   * may or may not have actually joined
-  * @param gameMode The current game mode of the game lobby
+  * @param gameMode The current game mode of the game app
   * @param id The unique game Id
   * @param hostInfo The PlayerSettings of the host
   */
@@ -50,7 +50,7 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
   // List of clients who have joined the game
   val players: mutable.LinkedHashMap[String, PlayerWithActor] =
     mutable.LinkedHashMap[String, PlayerWithActor]()
-  // List of clients who have established a ws connection, but not in lobby)
+  // List of clients who have established a ws connection, but not in app)
   val connected: mutable.LinkedHashMap[String, PlayerWithActor] =
     mutable.LinkedHashMap[String, PlayerWithActor]()
   // Always a member of players
@@ -88,7 +88,7 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
     }
   }
 
-  // Handle incoming packets in the lobby state
+  // Handle incoming packets in the app state
   def receiveLobby(lobbyPacket: LobbyPacket) {
     lobbyPacket match {
       case PlayerConnect(_, id: String, actor: ActorRef) =>
@@ -119,7 +119,7 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
       initialHostSettings = None
       notifyGame(constructGameUpdate)
     } else {
-      // Send current lobby information
+      // Send current app information
       connected += clientId -> PlayerWithActor(Player(clientId), actor)
       actor ! constructGameUpdate
     }
@@ -142,7 +142,7 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
         players += clientId -> PlayerWithActor(Player(clientId, Some(withSettings)), client.actor)
         // Approve with response
         client.actor ! RequestReply(RequestResponse.Accepted)
-        // Broadcast lobby update to all other players
+        // Broadcast app update to all other players
         notifyGame(constructGameUpdate, Some(client.actor))
       }
     }
@@ -169,7 +169,7 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
       // Reject with response
       connected.getOrElse(clientId, players(clientId)).actor !
         RequestReply(RequestResponse.Rejected, "Must be the host " +
-          "of the game lobby to start it (invalid privileges)")
+          "of the game app to start it (invalid privileges)")
     }
   }
 

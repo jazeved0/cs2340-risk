@@ -1,7 +1,7 @@
 <template>
 	<div class="container">
 		<div class="d-flex flex-wrap">
-			<player-slot class="player-slot" v-for="player in playerList" :key="player.name" v-bind="player"></player-slot>
+			<player-slot class="player-slot" v-for="player in playerList" :key="player.num" v-bind="player"></player-slot>
 		</div>
 	</div>
 </template>
@@ -25,7 +25,7 @@
 				let i;
 				for (i = 0; i < this.slots; i++) {
 					if (i >= this.players.length) {
-				 		paddedList.push({ name: "", color: "" });
+				 		paddedList.push({ name: "", color: "", num: i });
 					} else {
 						const player = this.players[i];
 						let newPlayer = JSON.parse(JSON.stringify(player));
@@ -35,6 +35,7 @@
 						if (player.name === this.host) {
 							newPlayer.isHost = true;
 						}
+				 		newPlayer.num = i;
 						paddedList.push(newPlayer)
 					}
 				}

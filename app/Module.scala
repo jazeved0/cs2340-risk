@@ -9,7 +9,7 @@ import play.api.libs.concurrent.AkkaGuiceSupport
 class Module @Inject()(environment: Environment, configuration: Configuration) extends AbstractModule with AkkaGuiceSupport {
   override def configure() {
     // Create root actor and bind it for DI
-    bindActor[GameSupervisor]("lobby-supervisor")
+    bindActor[GameSupervisor]("app-supervisor")
 
     // Load configuration values to the Resources object
     Option(configuration).foreach { config =>
