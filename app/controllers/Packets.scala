@@ -12,6 +12,7 @@ sealed trait InPacket {
   def clientId: String
   def unapply(packet: InPacket): (String, String) = (packet.gameId, packet.clientId)
 }
+
 sealed trait LobbyPacket extends InPacket
 sealed trait InGamePacket extends InPacket
 sealed trait GlobalPacket extends InPacket
@@ -26,14 +27,18 @@ case class PlayerDisconnect(gameId: String, clientId: String) extends GlobalPack
 case class RequestStartGame(gameId: String, clientId: String) extends LobbyPacket
 // Temporary class to satisfy Marshaller macros
 case class Unused(gameId: String, clientId: String) extends InGamePacket
+// Expected Ping Packet Response from Client (in Response to PingClient)
+case class PingResponse(gameId: String, clientId: String) extends GlobalPacket
 
 // Outgoing packets to the network
 sealed trait OutPacket
-case class GameLobbyUpdate(seq: Seq[PlayerSettings], host: String) extends OutPacket
+case class GameLobbyUpdate(seq: Seq[PlayerSettings], host: Int) extends OutPacket
 case class RequestReply(response: Response, message: String = "") extends OutPacket
 case class BadPacket(message: String = "") extends OutPacket
 case class StartLobby(identity: String = "start") extends OutPacket
 case class UpdatePlayerState(seq: Seq[PlayerState]) extends OutPacket
+//Ping client
+case class PingClient(identity: String = "ping") extends OutPacket
 
 // Response type to the given Request
 object RequestResponse extends Enumeration {
@@ -57,6 +62,7 @@ object JsonMarshallers {
   // Deserializers
   implicit val requestClientJoin: Reads[RequestPlayerJoin] = Json.reads[RequestPlayerJoin]
   implicit val requestStartLobby: Reads[RequestStartGame] = Json.reads[RequestStartGame]
+  implicit val pingResponse: Reads[PingResponse] = Json.reads[PingResponse]
   implicit val unused: Reads[Unused] = Json.reads[Unused]
 
   // Unused Deserializers; necessary for macros to work
@@ -69,6 +75,7 @@ object JsonMarshallers {
   implicit val badPacket: Writes[BadPacket] = Json.writes[BadPacket]
   implicit val startLobby: Writes[StartLobby] = Json.writes[StartLobby]
   implicit val updatePlayerState: Writes[UpdatePlayerState] = Json.writes[UpdatePlayerState]
+  implicit val pingClient: Writes[PingClient] = Json.writes[PingClient]
 
   // Trait marshallers
   implicit val globalPacket: Reads[GlobalPacket] = Json.reads[GlobalPacket]

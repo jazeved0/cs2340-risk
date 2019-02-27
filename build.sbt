@@ -10,6 +10,7 @@ lazy val root = (project in file(".")).enablePlugins(PlayScala, SbtWeb, SbtVuefy
 libraryDependencies += guice
 libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "4.0.1" % Test
 libraryDependencies += caffeine
+libraryDependencies += "com.typesafe.akka" %% "akka-actor" % "2.5.21"
 scalacOptions ++= Seq(
     "-feature",
     "-deprecation",
