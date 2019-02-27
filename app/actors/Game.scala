@@ -3,10 +3,12 @@ package actors
 import akka.actor.{Actor, ActorRef, Props}
 import common.{Resources, UniqueIdProvider, UniqueValueManager, Util}
 import controllers._
-import gameplay.{GameMode, GameState}
+import game.GameState
+import game.mode.GameMode
 import models.GameLobbyState.State
 import models.{GameLobbyState, Player, PlayerSettings}
 import play.api.Logger
+
 import scala.collection.immutable.HashSet
 import scala.collection.mutable
 

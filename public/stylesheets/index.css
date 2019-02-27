@@ -197,6 +197,7 @@ body {
 }
 #colorButtonGroup div label {
     margin: 10px 6px 10px 6px;
+    border-style: none;
 }
 
 /* Modify padding and add shadow to nav, color */

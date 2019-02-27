@@ -2,7 +2,7 @@ package controllers
 
 import akka.actor.ActorRef
 import controllers.RequestResponse.Response
-import gameplay.{Army, PlayerState}
+import game.{Army, PlayerState}
 import models.PlayerSettings
 import play.api.libs.json._
 

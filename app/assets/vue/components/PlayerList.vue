@@ -1,12 +1,13 @@
 <template>
-    <div>
-        <ul>
-            <li v-for="player in players" :key='player.name' :style='{color: player.color}'>{{ player.name }}</li>
-        </ul>
+    <div class="container">
+        <div class="d-flex flex-wrap">
+            <player-slot class="player-slot" v-for="player in players" :key="player.name" v-bind:name="player.name" v-bind:color="player.color"></player-slot>
+        </div>
     </div>
 </template>
 
 <script>
+    import PlayerSlot from './PlayerSlot.vue';
     export default {
         name: "player-list",
         props: ['playersArray'],
@@ -15,6 +16,9 @@
                 text: "OMEGALUL",
                 players: []
             }
+        },
+        components: {
+            'player-slot': PlayerSlot
         },
         methods: {
             logType: function() {
@@ -31,3 +35,12 @@
         },
     }
 </script>
+
+<style lang="scss">
+.player-slot {
+    -webkit-box-flex: 0;
+    -ms-flex: 0 0 33.333333%;
+    flex: 0 0 33.333333%;
+    max-width: 33.333333%;
+}
+</style>
