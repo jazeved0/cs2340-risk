@@ -1,10 +1,10 @@
 // Settings injection object
 var formSettings = $('#formsSettings');
 var usernameRegex = new RegExp(formSettings.attr('data-name-regex'));
-var lobbyRegex = new RegExp('^[' + formSettings.attr('data-lobby-chars') + ']+$');
+var gameRegex = new RegExp('^[' + formSettings.attr('data-game-chars') + ']+$');
 var minNameLength = parseInt(formSettings.attr('data-name-min'));
 var maxNameLength = parseInt(formSettings.attr('data-name-max'));
-var lobbyLength = parseInt(formSettings.attr('data-lobby-length'));
+var gameLength = parseInt(formSettings.attr('data-game-length'));
 
 // Handle input on username field
 var usernameButton = $('#username_button');
@@ -31,16 +31,16 @@ function validateUsernameField() {
   }
 }
 
-// Handle input on lobby code field
+// Handle input on game code field
 var codeField = $('#search_field');
 var codeButton = $('#search_button');
 codeField.on('input', function () {
   var code = String(codeField.val());
-  var isValidUsername = code != null
-     && code.length === lobbyLength
-     && lobbyRegex.test(code);
+  var isValidCode = code != null
+     && code.length === gameLength
+     && gameRegex.test(code);
 
-  if (isValidUsername) {
+  if (isValidCode) {
     codeButton.prop('disabled', false);
   } else {
     codeButton.prop('disabled', true);
