@@ -1,6 +1,6 @@
 package actors
 
-import akka.actor.{Actor, ActorRef, Props}
+import akka.actor.{Actor, ActorRef, Cancellable, PoisonPill, Props}
 import common.{Resources, UniqueIdProvider, UniqueValueManager, Util}
 import controllers._
 import game.GameState
@@ -11,6 +11,9 @@ import play.api.Logger
 
 import scala.collection.immutable.HashSet
 import scala.collection.mutable
+import scala.concurrent.duration._
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.language.postfixOps
 
 object Game extends UniqueIdProvider {
   // Methods for UniqueIdProvider
@@ -31,7 +34,7 @@ object Game extends UniqueIdProvider {
 /**
   * Game actor that supervises a collection of connected clients that
   * may or may not have actually joined
-  * @param gameMode The current game mode of the game app
+  * @param gameMode The current game mode of the game lobby
   * @param id The unique game Id
   * @param hostInfo The PlayerSettings of the host
   */
@@ -50,9 +53,16 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
   // List of clients who have joined the game
   val players: mutable.LinkedHashMap[String, PlayerWithActor] =
     mutable.LinkedHashMap[String, PlayerWithActor]()
-  // List of clients who have established a ws connection, but not in app)
+  // List of clients who have established a ws connection, but not in lobby)
   val connected: mutable.LinkedHashMap[String, PlayerWithActor] =
     mutable.LinkedHashMap[String, PlayerWithActor]()
+
+  //Optional object here stores the scheduler that checks ping times; needs to
+  //be here so cancelling it is an option when all players have disconnected
+  //Hashmap maps PlayerWithActor to millis time of last ping
+  var pingCheckingTask: Option[Cancellable] = None
+  val currentResponseTimes: mutable.LinkedHashMap[PlayerWithActor, Long] =
+    mutable.LinkedHashMap[PlayerWithActor, Long]()
   // Always a member of players
   var host: Option[PlayerWithActor] = None
   // Current state of the game
@@ -85,10 +95,25 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
   def receiveGlobal(globalPacket: GlobalPacket) {
     globalPacket match {
       case PlayerDisconnect(_, id: String) => clientDisconnect(id)
+      case PingResponse(_, clientId: String) =>
+        //Update the player's last ping to current time
+        logger.error("got a response!")
+        val player = players.getOrElse(clientId, connected(clientId))
+        if (currentResponseTimes.get(player).isDefined) {
+          currentResponseTimes += player -> System.currentTimeMillis()
+        } else {
+          logger.error("we killed him (up top)")
+          currentResponseTimes -= player
+          player.actor ! PoisonPill
+        }
+        this.context.system.scheduler.scheduleOnce(500 milliseconds) {
+          player.actor ! PingClient()
+        }
+      case p => badPacket(p)
     }
   }
 
-  // Handle incoming packets in the app state
+  // Handle incoming packets in the lobby state
   def receiveLobby(lobbyPacket: LobbyPacket) {
     lobbyPacket match {
       case PlayerConnect(_, id: String, actor: ActorRef) =>
@@ -111,17 +136,47 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
   }
 
   def clientConnect(clientId: String, actor: ActorRef) {
-    if (!hasInitialHostJoined) {
-      // Add the initial host to the list of players
-      val client = PlayerWithActor(Player(clientId, initialHostSettings), actor)
-      players += clientId -> client
-      host = Some(client)
-      initialHostSettings = None
-      notifyGame(constructGameUpdate)
-    } else {
-      // Send current app information
-      connected += clientId -> PlayerWithActor(Player(clientId), actor)
-      actor ! constructGameUpdate
+    if (players.get(clientId).isEmpty && connected.get(clientId).isEmpty) {
+      if (!hasInitialHostJoined) {
+        // Add the initial host to the list of players
+        val client = PlayerWithActor(Player(clientId, initialHostSettings), actor)
+        players += clientId -> client
+        host = Some(client)
+        initialHostSettings = None
+
+        //NOTE: This not only starts the scheduler that checks to see
+        // if clients haven't pinged in a while, it also assigns
+        // that scheduler to a variable, enabling the task to be cancelled
+        //in the future.
+        pingCheckingTask = Some[Cancellable](
+          this.context.system.scheduler.schedule(
+            initialDelay = 2 seconds, interval = 1 second) {
+            logger.error("checking shit...")
+            currentResponseTimes.foreach(
+              pair => {
+                logger.error((pair._2 - System.currentTimeMillis()).toString)
+                if (Math.abs(pair._2 - System.currentTimeMillis()) > 2000l) {
+                  logger.error("we killed em!")
+                  pair._1.actor ! PoisonPill
+                  currentResponseTimes -= pair._1
+                }
+              }
+            )
+          }
+        )
+
+        currentResponseTimes += players(clientId) -> System.currentTimeMillis()
+
+        notifyGame(constructGameUpdate)
+      } else {
+        // Send current lobby information
+        connected += clientId -> PlayerWithActor(Player(clientId), actor)
+        currentResponseTimes += connected(clientId) -> System.currentTimeMillis()
+        actor ! constructGameUpdate
+      }
+      this.context.system.scheduler.scheduleOnce(100 milliseconds) {
+        actor ! PingClient()
+      }
     }
   }
 
@@ -142,7 +197,7 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
         players += clientId -> PlayerWithActor(Player(clientId, Some(withSettings)), client.actor)
         // Approve with response
         client.actor ! RequestReply(RequestResponse.Accepted)
-        // Broadcast app update to all other players
+        // Broadcast lobby update to all other players
         notifyGame(constructGameUpdate, Some(client.actor))
       }
     }
@@ -169,11 +224,12 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
       // Reject with response
       connected.getOrElse(clientId, players(clientId)).actor !
         RequestReply(RequestResponse.Rejected, "Must be the host " +
-          "of the game app to start it (invalid privileges)")
+          "of the game lobby to start it (invalid privileges)")
     }
   }
 
   def clientDisconnect(clientId: String) {
+    currentResponseTimes -= players.getOrElse(clientId, connected(clientId))
     this.state match {
       case GameLobbyState.Lobby =>
         if (connected.isDefinedAt(clientId)) {
@@ -208,12 +264,14 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
       .foreach(_.actor ! packet)
   }
 
-  def constructGameUpdate: OutPacket =
-    GameLobbyUpdate(players.valuesIterator
+  def constructGameUpdate: OutPacket = {
+    val playerList = players.valuesIterator
       .map(_.player.settings)
       .filter(_.isDefined)
-      .map(_.get).toList,
-      host.fold("")(_.player.settings.fold("")(_.name)))
+      .map(_.get).toList
+    GameLobbyUpdate(playerList,
+      host.fold(-1)(_.player.settings.fold(-1)(playerList.indexOf(_))))
+  }
 
 
   def packetInvalidState(p: InPacket) {
