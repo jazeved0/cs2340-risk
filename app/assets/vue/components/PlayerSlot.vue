@@ -5,7 +5,7 @@
 			</div>
 		</div>
 		<div v-else class="player-slot-outer" v-bind:class="{ current: isCurrent }">
-			<div class="player-slot-inner">
+			<div>
 				<i class="fas fa-circle" v-bind:style="{color: color}"></i>
 				<p class="d-inline">{{ name }}</p>
 				<i v-if="isHost" class="fas fa-crown"></i>
@@ -16,9 +16,17 @@
 
 <script>
 	export default {
-		props: [
-			'isEmpty', 'isHost', 'color', 'name', 'isCurrent'
-		]
+		props: {
+			'isHost': Boolean,
+			'color': String,
+			'name': String,
+			'isCurrent': Boolean
+		},
+		computed: {
+			isEmpty: function() {
+				return this.name === ""
+			}
+		}
 	}
 </script>
 
