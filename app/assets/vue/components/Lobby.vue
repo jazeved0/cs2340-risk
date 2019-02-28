@@ -9,7 +9,7 @@
 					<p class="nav-title">Lobby</p>
 				</div>
 				<div class="height-fix"></div>
-				<button v-if="this.$store.state.isHost" id="search_button" class="btn btn-primary my-2 my-sm-0 mr-2 white dark_accent">Start Game</button>
+				<button v-if="this.$store.state.isHost" id="search_button" v-on:click="beginGame" class="btn btn-primary my-2 my-sm-0 mr-2 white dark_accent">Start Game</button>
 			</nav>
 		</header>
 		<main>
@@ -38,7 +38,6 @@
 			<center>
 				<new-player-form v-if="!created && !this.$store.state.isHost" v-on:add-slot="addSlot"></new-player-form>
 			</center>
-
 		</main>
 	</div>
 </template>
@@ -71,12 +70,15 @@
         document.execCommand('copy');
         document.body.removeChild(el);
       },
+			beginGame: function() {
+        this.$root.startGame();
+			},
       addSlot: function(name, color) {
       	var list = this.$store.state.players.slice(0);
       	list.push({"name": name, "color":"#" + store.state.colors[parseInt(color)]});
 				this.$store.commit('updateList', list);
-        this.created = true;
-        this.$root.join(name, color);
+				this.created = true;
+				this.$root.join(name, color);
       }
     },
     computed: {

@@ -68,6 +68,9 @@
         "gameId": gameId,
         "clientId": playerId}));
     }
+    else if (parsed._type == "controllers.RequestReply") {
+      console.log(parsed);
+    }
     else if (parsed._type == "controllers.GameLobbyUpdate") {
       //console.log(parsed.seq);
       //console.log(parsed.host);
@@ -84,10 +87,14 @@
       }
       store.commit('updateList', players);
     }
+    else if (parsed._type == "controllers.StartGame") {
+      console.log("STARTING GAME!");
+    }
     else {
       console.log(parsed._type);
     }
   };
+
   ws.onclose = function() {
     console.log("Connection is closed...");
   };
@@ -109,6 +116,13 @@
           }
         }));
         store.commit('updateCurrent', name);
+      },
+      startGame: function() {
+        console.log("STARTING GAME");
+        ws.send(JSON.stringify({
+          "_type": "controllers.RequestStartGame",
+          "gameId": gameId,
+          "clientId": playerId}));
       }
     },
     store
