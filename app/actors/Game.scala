@@ -210,7 +210,7 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
       if (players.size >= Resources.MinimumPlayers) {
         // Request is coming from the host, start game
         (players.values.iterator ++ connected.values.iterator)
-          .foreach(_.actor ! StartLobby)
+          .foreach(_.actor ! StartGame)
         connected.empty
         this.state = GameLobbyState.InGame
         startGame()

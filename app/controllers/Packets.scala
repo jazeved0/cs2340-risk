@@ -35,7 +35,7 @@ sealed trait OutPacket
 case class GameLobbyUpdate(seq: Seq[PlayerSettings], host: Int) extends OutPacket
 case class RequestReply(response: Response, message: String = "") extends OutPacket
 case class BadPacket(message: String = "") extends OutPacket
-case class StartLobby(identity: String = "start") extends OutPacket
+case class StartGame(identity: String = "start") extends OutPacket
 case class UpdatePlayerState(seq: Seq[PlayerState]) extends OutPacket
 //Ping client
 case class PingClient(identity: String = "ping") extends OutPacket
@@ -60,20 +60,20 @@ object JsonMarshallers {
   implicit val playerStateW: Writes[PlayerState] = Json.writes[PlayerState]
 
   // Deserializers
-  implicit val requestClientJoin: Reads[RequestPlayerJoin] = Json.reads[RequestPlayerJoin]
-  implicit val requestStartLobby: Reads[RequestStartGame] = Json.reads[RequestStartGame]
+  implicit val requestPlayerJoin: Reads[RequestPlayerJoin] = Json.reads[RequestPlayerJoin]
+  implicit val requestStartGame: Reads[RequestStartGame] = Json.reads[RequestStartGame]
   implicit val pingResponse: Reads[PingResponse] = Json.reads[PingResponse]
   implicit val unused: Reads[Unused] = Json.reads[Unused]
 
   // Unused Deserializers; necessary for macros to work
-  implicit val clientConnect: Reads[PlayerConnect] = new UnusedFormat[PlayerConnect]
-  implicit val clientDisconnect: Reads[PlayerDisconnect] = new UnusedFormat[PlayerDisconnect]
+  implicit val playerConnect: Reads[PlayerConnect] = new UnusedFormat[PlayerConnect]
+  implicit val playerDisconnect: Reads[PlayerDisconnect] = new UnusedFormat[PlayerDisconnect]
 
   // Serializers
-  implicit val lobbyUpdate: Writes[GameLobbyUpdate] = Json.writes[GameLobbyUpdate]
+  implicit val gameLobbyUpdate: Writes[GameLobbyUpdate] = Json.writes[GameLobbyUpdate]
   implicit val requestReply: Writes[RequestReply] = Json.writes[RequestReply]
   implicit val badPacket: Writes[BadPacket] = Json.writes[BadPacket]
-  implicit val startLobby: Writes[StartLobby] = Json.writes[StartLobby]
+  implicit val startGame: Writes[StartGame] = Json.writes[StartGame]
   implicit val updatePlayerState: Writes[UpdatePlayerState] = Json.writes[UpdatePlayerState]
   implicit val pingClient: Writes[PingClient] = Json.writes[PingClient]
 
