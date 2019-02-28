@@ -35,13 +35,18 @@
 				v-bind:players="this.players"
 				v-bind:host="this.host"
 				v-bind:current="this.current"></player-list>
+            <center>
+                <new-player-form v-if="!created" @addSlot="addSlot"></new-player-form>
+            </center>
+			
 		</main>
 	</div>
 </template>
 
 <script>
 	import PlayerList from './PlayerList.vue';
-  import Popper from 'vue-popperjs';
+    import Popper from 'vue-popperjs';
+    import NewPlayerForm from './NewPlayerForm';
 	export default {
 		data: function() {
 			return {
@@ -55,12 +60,14 @@
 			 	current: "Chafos",
 			 	host: "joazlazer",
 			 	lobbyId: "xbwe",
-			 	slots: 6
+                slots: 6,
+                created: false 
 			}
 		},
 		components: {
 			'player-list': PlayerList,
-		 	'popper' : Popper
+            'popper' : Popper,
+            'new-player-form': NewPlayerForm
 		},
 	 	methods: {
 			copyUrl: function () {
@@ -71,14 +78,20 @@
 				el.select();
 				document.execCommand('copy');
 				document.body.removeChild(el);
-			}
+            },
+            addSlot: function(name, color) {
+                console.log(name);
+                console.log(color);
+                this.players.push({name: name, color: color})
+                this.created = true
+            }
 		},
 	 	computed: {
 			url: function () {
 				return "localhost:9000/lobby/" +
 					 document.URL.substr(document.URL.lastIndexOf('/') + 1);
 			}
-	  }
+	    }
 	}
 </script>
 
@@ -130,5 +143,8 @@
 	font-weight: 100;
 	font-family: Roboto Slab, serif;
 	margin-top: -12px;
+}
+#player-form {
+    margin: auto
 }
 </style>
