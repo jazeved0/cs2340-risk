@@ -2,11 +2,12 @@
 	<div>
             <p class="prompt">Name:</p> <input type="text" id="name_input"><br>
             <p class="prompt">Color:</p>
-            <input type="radio" name="color" value='green' class="color_input"> <p class="color_label">Green</P>
-            <input type="radio" name="color" value='purple' class="color_input"> <p class="color_label">Purple</P>
-            <input type="radio" name="color" value='red' class="color_input"> <p class="color_label">Red</P>
-            <input type="radio" name="color" value='blue' class="color_input"> <p class="color_label">Blue</P>
-            <input type="radio" name="color" value='orange' class="color_input"> <p class="color_label">Orange</P>
+            <input type="radio" name="color" value='0' class="color_input"> <p class="color_label">0</P>
+            <input type="radio" name="color" value='1' class="color_input"> <p class="color_label">1</P>
+            <input type="radio" name="color" value='2' class="color_input"> <p class="color_label">2</P>
+            <input type="radio" name="color" value='3' class="color_input"> <p class="color_label">3</P>
+            <input type="radio" name="color" value='4' class="color_input"> <p class="color_label">4</P>
+						<input type="radio" name="color" value='5' class="color_input"> <p class="color_label">5</P>
             <button @click="onSubmit($event)">Submit</button>
 	</div>
 </template>
@@ -21,9 +22,9 @@
 		},
         methods: {
             onSubmit: function(event) {
-                this.playerName = document.querySelector("#name_input").value
-                this.playerColor = document.querySelector('input[name = "color"]:checked').value
-                this.$emit("addSlot", this.playerName, this.playerColor)
+                this.playerName = document.querySelector("#name_input").value;
+                this.playerColor = document.querySelector('input[name = "color"]:checked').value;
+                this.$emit("add-slot", this.playerName, this.playerColor);
             }
         }
 	}

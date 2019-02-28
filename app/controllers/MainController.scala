@@ -1,6 +1,6 @@
 package controllers
 
-import actors.GameSupervisor.{GameExists, MakeGame}
+import actors.GameSupervisor.{CanHost, GameExists, MakeGame}
 import actors._
 import akka.actor.{ActorRef, ActorSystem}
 import akka.pattern.ask
@@ -12,7 +12,6 @@ import javax.inject.{Inject, Named}
 import models._
 import play.api.cache.Cached
 import play.api.data.Form
-import play.api.libs.json.Json
 import play.api.mvc.WebSocket.MessageFlowTransformer
 import play.api.mvc._
 import play.api.{Configuration, Logger}
@@ -27,7 +26,7 @@ import scala.concurrent.{ExecutionContext, Future}
   * @param cc Implicit component helper
   * @param config The application's configuration
   * @param actorSystem The application's single actor system for managing state
-  * @param lobbySupervisor The application's root actor, used to manage lobbies
+  * @param lobbySupervisor The application's root actor, used to manage games
   * @param ec Implicit context
   */
 class MainController @Inject()(cached: Cached,
@@ -73,17 +72,14 @@ class MainController @Inject()(cached: Cached,
     )
   }
 
-  // TODO validate
   // Obtains the corresponding main page after a host has created
   // GET /lobby/host/:id
   def host(id: String): Action[AnyContent] = Action.async { implicit request =>
-    (lobbySupervisor ? GameExists(id)).mapTo[Boolean].map {
+    (lobbySupervisor ? CanHost(id)).mapTo[Boolean].map {
       case true =>
-        val playersRaw = """[{"name":"saxon_dr", "color": "green"}, {"name": "joazlazer", "color": "red"},
-            {"name": "iphish", "color": "purple"}, {"name": "bopas2", "color": "blue"}, {"name": "chafos", "color": "pink"}]"""
-        Ok(views.html.app(id, Resources.BaseUrl, isHost = true, Json.parse(playersRaw)))
+        Ok(views.html.app(id, Resources.BaseUrl, isHost = true))
         .withCookies(makeClientIdCookie)
-      case false => BadRequest(s"Invalid app id $id")
+      case false => BadRequest(s"Cannot host lobby $id")
     }
   }
 
@@ -99,9 +95,7 @@ class MainController @Inject()(cached: Cached,
     Action.async { implicit request =>
       (lobbySupervisor ? GameExists(id)).mapTo[Boolean].map {
         case true =>
-          val playersRaw = """[{"name":"saxon_dr", "color": "green"}, {"name": "joazlazer", "color": "red"},
-            {"name": "iphish", "color": "purple"}, {"name": "bopas2", "color": "blue"}, {"name": "chafos", "color": "pink"}]"""
-          Ok(views.html.app(id, Resources.BaseUrl, isHost = false, Json.parse(playersRaw)))
+          Ok(views.html.app(id, Resources.BaseUrl, isHost = false))
           .withCookies(makeClientIdCookie)
         case false => BadRequest(s"Invalid app id $id")
       }

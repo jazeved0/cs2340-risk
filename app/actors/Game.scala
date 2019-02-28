@@ -1,5 +1,6 @@
 package actors
 
+import actors.Game.CanBeHosted
 import akka.actor.{Actor, ActorRef, Cancellable, PoisonPill, Props}
 import common.{Resources, UniqueIdProvider, UniqueValueManager, Util}
 import controllers._
@@ -29,6 +30,8 @@ object Game extends UniqueIdProvider {
     Props({
       new Game(Resources.GameMode, id, hostInfo)
     })
+
+  case class CanBeHosted()
 }
 
 /**
@@ -83,6 +86,8 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
   // Receive incoming packets and turn them into internal state
   // changes and/or outgoing packets (returns partial function)
   override def receive: Receive = {
+    case _: CanBeHosted =>
+      sender() ! !hasInitialHostJoined
     case p: GlobalPacket =>
       receiveGlobal(p)
     case p: LobbyPacket =>
@@ -97,12 +102,10 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
       case PlayerDisconnect(_, id: String) => clientDisconnect(id)
       case PingResponse(_, clientId: String) =>
         //Update the player's last ping to current time
-        logger.error("got a response!")
         val player = players.getOrElse(clientId, connected(clientId))
         if (currentResponseTimes.get(player).isDefined) {
           currentResponseTimes += player -> System.currentTimeMillis()
         } else {
-          logger.error("we killed him (up top)")
           currentResponseTimes -= player
           player.actor ! PoisonPill
         }
@@ -151,12 +154,9 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
         pingCheckingTask = Some[Cancellable](
           this.context.system.scheduler.schedule(
             initialDelay = 2 seconds, interval = 1 second) {
-            logger.error("checking status...")
             currentResponseTimes.foreach(
               pair => {
-                logger.error((pair._2 - System.currentTimeMillis()).toString)
                 if (Math.abs(pair._2 - System.currentTimeMillis()) > 2000l) {
-                  logger.error("we killed em!")
                   pair._1.actor ! PoisonPill
                   currentResponseTimes -= pair._1
                 }
@@ -196,6 +196,7 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
         val client = connected(clientId)
         connected -= clientId
         players += clientId -> PlayerWithActor(Player(clientId, Some(withSettings)), client.actor)
+        logger.error(s"${withSettings.name} joined: $players")
         // Approve with response
         client.actor ! RequestReply(RequestResponse.Accepted)
         // Broadcast lobby update to all other players

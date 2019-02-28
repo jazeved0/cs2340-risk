@@ -1,4 +1,4 @@
-@(lobbyId: String, baseUrl: String, isHost: Boolean, players: play.api.libs.json.JsValue)(implicit request: MessagesRequestHeader)
+@(gameId: String, baseUrl: String, isHost: Boolean)(implicit request: MessagesRequestHeader)
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.16/vue.js"></script>
 <script src="https://unpkg.com/vuex@@3.1.0/dist/vuex.js"></script>
@@ -7,6 +7,7 @@
 @base("Risk: The Game of Global Domination", "<link rel=\"stylesheet\" media=\"screen\" href=\"" + routes.Assets.versioned("stylesheets/app.css") + "\">") {
   <!-- vue js tag-->
   <div id="app">
+    <lobby v-on:join-lobby="join"></lobby>
   </div>
 }
 <script>
@@ -25,24 +26,46 @@
     }
     return "";
   }
-  var gameID = document.URL.substr(document.URL.lastIndexOf('/') + 1);
-  var playerId = document.cookie.substring(9);
-  var ws = new WebSocket("ws://localhost:9000/ws/" + gameID + "/" + playerId);
+
+  var gameId = '@gameId';
+  var playerId = getCookie('playerId');
+  var ws = new WebSocket("ws://localhost:9000/ws/" + gameId + "/" + playerId);
+
+  const store = new Vuex.Store({
+    state: {
+      players: [],
+      colors: [ "2980b9", "27ae60", "8e44ad", "f39c12", "c0392b", "95a5a6" ],
+      current: "",
+      host: "",
+      slots: 6,
+      isHost: @isHost
+    },
+    mutations: {
+      updateList: function (state, newPlayers) {
+        state.players = newPlayers;
+      },
+      updateCurrent: function (state, newCurrent) {
+        state.current = newCurrent;
+      },
+      updateHost: function (state, newHost) {
+        state.host = newHost;
+      },
+      updateIsHost: function (state, newIsHost) {
+        state.isHost = newIsHost;
+      }
+    }
+  });
+
   ws.onopen = function() {
     console.log("Message is sent...");
   };
   ws.onmessage = function (evt) {
     var received_msg = evt.data;
-    var colors = [ "2980b9", "27ae60", "8e44ad", "f39c12", "c0392b", "95a5a6" ];
-    console.log(received_msg);
-    //TODO: parse recieved_msg, which is a String in json format
-    //TODO: create a bunch of ifs and elseifs based on the _type of the response we received, imbed the
-    //following line in one of those
     var parsed = JSON.parse(received_msg);
     if (parsed._type == "controllers.PingClient") {
       ws.send(JSON.stringify({
         "_type": "controllers.PingResponse",
-        "gameId": gameID,
+        "gameId": gameId,
         "clientId": playerId}));
     }
     else if (parsed._type == "controllers.GameLobbyUpdate") {
@@ -50,9 +73,15 @@
       //console.log(parsed.host);
       var players = [];
       for (var i = 0; i < parsed.seq.length; i++) {
-        players.push({"name": parsed.seq[i].name, "color":"#" + colors[parsed.seq[i].ordinal]});
+        players.push({"name": parsed.seq[i].name, "color":"#" + store.state.colors[parsed.seq[i].ordinal]});
       }
-      //app.host = parsed.seq[parsed.host].name;
+      store.commit('updateHost', parsed.seq[parsed.host].name);
+      if (store.state.current === "" && store.state.isHost) {
+        store.commit('updateCurrent', store.state.host);
+      }
+      if (store.state.isHost ^ (store.state.current === parsed.seq[parsed.host].name)) {
+      	store.commit('updateIsHost', (store.state.current === parsed.seq[parsed.host].name));
+      }
       store.commit('updateList', players);
     }
     else {
@@ -63,21 +92,24 @@
     console.log("Connection is closed...");
   };
 
-  const store = new Vuex.Store({
-    state: {
-      players: []
-    },
-    mutations: {
-      updateList: function (state, newPlayers) {
-        state.players = newPlayers;
-      }
-    }
-  });
-
   var app = new Vue({
     el: '#app',
     render: function(html) {
       return html(Lobby.default);
+    },
+    methods: {
+      join: function(name, color) {
+        ws.send(JSON.stringify({
+          "_type": "controllers.RequestPlayerJoin",
+          "clientId": playerId,
+          "gameId": gameId,
+          "withSettings": {
+            "name": name,
+            "ordinal": parseInt(color)
+          }
+        }));
+        store.commit('updateCurrent', name);
+      }
     },
     store
   })

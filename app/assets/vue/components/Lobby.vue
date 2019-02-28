@@ -9,7 +9,7 @@
 					<p class="nav-title">Lobby</p>
 				</div>
 				<div class="height-fix"></div>
-				<button id="search_button" class="btn btn-primary my-2 my-sm-0 mr-2 white dark_accent">Start Game</button>
+				<button v-if="this.$store.state.isHost" id="search_button" class="btn btn-primary my-2 my-sm-0 mr-2 white dark_accent">Start Game</button>
 			</nav>
 		</header>
 		<main>
@@ -36,7 +36,7 @@
 									 v-bind:host="this.host"
 									 v-bind:current="this.current"></player-list>
 			<center>
-				<new-player-form v-if="!created" @addSlot="addSlot"></new-player-form>
+				<new-player-form v-if="!created && !this.$store.state.isHost" v-on:add-slot="addSlot"></new-player-form>
 			</center>
 
 		</main>
@@ -52,10 +52,7 @@
       return {
         isReady: false,
         isHost: false,
-        current: "Chafos",
-        host: "joazlazer",
         lobbyId: "xbwe",
-        slots: 6,
         created: false
       }
     },
@@ -74,15 +71,12 @@
         document.execCommand('copy');
         document.body.removeChild(el);
       },
-      changePlayerData: function(playerArray) {
-        console.log("HI");
-        this.players = playerArray;
-      },
       addSlot: function(name, color) {
-        console.log(name);
-        console.log(color);
-        this.players.push({name: name, color: color})
-        this.created = true
+      	var list = this.$store.state.players.slice(0);
+      	list.push({"name": name, "color":"#" + store.state.colors[parseInt(color)]});
+				this.$store.commit('updateList', list);
+        this.created = true;
+        this.$root.join(name, color);
       }
     },
     computed: {
@@ -94,6 +88,15 @@
 		 // dependent on $store.state.players
 		 players: function() {
 				return this.$store.state.players;
+		 },
+			 current: function() {
+				return this.$store.state.current;
+			 },
+			 host: function() {
+				return this.$store.state.host;
+			 },
+		 slots: function() {
+			 return this.$store.state.slots;
 		 }
     }
   }
