@@ -1,6 +1,7 @@
 {
   "dependencies": {
-    "npm": "^6.8.0"
+    "npm": "^6.8.0",
+    "vue-native-websocket": "^2.0.12"
   },
   "browserslist": [
     "> 1%",
