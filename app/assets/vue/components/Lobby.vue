@@ -51,11 +51,6 @@
     data: function() {
       return {
         isReady: false,
-        players: [
-          { name: "joazlazer", color: "#27AE60" },
-          { name: "taco", color: "#C0392B" },
-          { name: "Chafos", color: "#2980B9" }
-        ],
         isHost: false,
         current: "Chafos",
         host: "joazlazer",
@@ -91,10 +86,15 @@
       }
     },
     computed: {
-      url: function () {
-        return "localhost:9000/lobby/" +
-            document.URL.substr(document.URL.lastIndexOf('/') + 1);
-      }
+			url: function () {
+				return "localhost:9000/lobby/" +
+						document.URL.substr(document.URL.lastIndexOf('/') + 1);
+			},
+		 // promote players to a bound getter as a computed property
+		 // dependent on $store.state.players
+		 players: function() {
+				return this.$store.state.players;
+		 }
     }
   }
 </script>

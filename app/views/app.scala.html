@@ -1,6 +1,7 @@
 @(lobbyId: String, baseUrl: String, isHost: Boolean, players: play.api.libs.json.JsValue)(implicit request: MessagesRequestHeader)
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.16/vue.js"></script>
+<script src="https://unpkg.com/vuex@@3.1.0/dist/vuex.js"></script>
 <script src='@routes.Assets.versioned("vue/components/Lobby.js")'></script>
 
 @base("Risk: The Game of Global Domination", "<link rel=\"stylesheet\" media=\"screen\" href=\"" + routes.Assets.versioned("stylesheets/app.css") + "\">") {
@@ -52,6 +53,7 @@
         players.push({"name": parsed.seq[i].name, "color":"#" + colors[parsed.seq[i].ordinal]});
       }
       //app.host = parsed.seq[parsed.host].name;
+      store.commit('updateList', players);
     }
     else {
       console.log(parsed._type);
@@ -60,26 +62,23 @@
   ws.onclose = function() {
     console.log("Connection is closed...");
   };
+
+  const store = new Vuex.Store({
+    state: {
+      players: []
+    },
+    mutations: {
+      updateList: function (state, newPlayers) {
+        state.players = newPlayers;
+      }
+    }
+  });
+
   var app = new Vue({
     el: '#app',
     render: function(html) {
-      return html(Lobby.default, {
-        props: {
-          players: document.querySelector("#app").dataset.players,
-          baseUrl: document.querySelector("#app").dataset.domainLink,
-          gameId: document.querySelector("#app").dataset.gameId,
-          isHost: document.querySelector("#app").dataset.isHost
-        }
-      });
+      return html(Lobby.default);
     },
-    data: {
-      json: []
-    },
-    methods: {
-      // setJson: function(payload) {
-      //   this.json = payload;
-      //   console.log('hello');
-      // }
-    }
+    store
   })
 </script>
