@@ -48,7 +48,7 @@
 				isReady: false,
 			 	players: [
 					{ name: "joazlazer", color: "#27AE60" },
-			  	{ name: "iPhish", color: "#C0392B" },
+			  	{ name: "taco", color: "#C0392B" },
 			  	{ name: "Chafos", color: "#2980B9" }
 				],
 			 	isHost: false,
@@ -71,6 +71,10 @@
 				el.select();
 				document.execCommand('copy');
 				document.body.removeChild(el);
+			},
+			changePlayerData: function(playerArray) {
+			  console.log("HI");
+				this.players = playerArray;
 			}
 		},
 	 	computed: {

@@ -9,6 +9,57 @@
   </div>
 }
 <script>
+  function getCookie(cname) {
+    var name = cname + "=";
+    var decodedCookie = decodeURIComponent(document.cookie);
+    var ca = decodedCookie.split(';');
+    for(var i = 0; i <ca.length; i++) {
+      var c = ca[i];
+      while (c.charAt(0) == ' ') {
+        c = c.substring(1);
+      }
+      if (c.indexOf(name) == 0) {
+        return c.substring(name.length, c.length);
+      }
+    }
+    return "";
+  }
+  var gameID = document.URL.substr(document.URL.lastIndexOf('/') + 1);
+  var playerId = document.cookie.substring(9);
+  var ws = new WebSocket("ws://localhost:9000/ws/" + gameID + "/" + playerId);
+  ws.onopen = function() {
+    console.log("Message is sent...");
+  };
+  ws.onmessage = function (evt) {
+    var received_msg = evt.data;
+    var colors = [ "2980b9", "27ae60", "8e44ad", "f39c12", "c0392b", "95a5a6" ];
+    console.log(received_msg);
+    //TODO: parse recieved_msg, which is a String in json format
+    //TODO: create a bunch of ifs and elseifs based on the _type of the response we received, imbed the
+    //following line in one of those
+    var parsed = JSON.parse(received_msg);
+    if (parsed._type == "controllers.PingClient") {
+      ws.send(JSON.stringify({
+        "_type": "controllers.PingResponse",
+        "gameId": gameID,
+        "clientId": playerId}));
+    }
+    else if (parsed._type == "controllers.GameLobbyUpdate") {
+      //console.log(parsed.seq);
+      //console.log(parsed.host);
+      var players = [];
+      for (var i = 0; i < parsed.seq.length; i++) {
+        players.push({"name": parsed.seq[i].name, "color":"#" + colors[parsed.seq[i].ordinal]});
+      }
+      //app.host = parsed.seq[parsed.host].name;
+    }
+    else {
+      console.log(parsed._type);
+    }
+  };
+  ws.onclose = function() {
+    console.log("Connection is closed...");
+  };
   var app = new Vue({
     el: '#app',
     render: function(html) {

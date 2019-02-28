@@ -151,7 +151,7 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
         pingCheckingTask = Some[Cancellable](
           this.context.system.scheduler.schedule(
             initialDelay = 2 seconds, interval = 1 second) {
-            logger.error("checking shit...")
+            logger.error("checking status...")
             currentResponseTimes.foreach(
               pair => {
                 logger.error((pair._2 - System.currentTimeMillis()).toString)
