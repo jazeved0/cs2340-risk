@@ -167,7 +167,8 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
 
         currentResponseTimes += players(clientId) -> System.currentTimeMillis()
 
-        notifyGame(constructGameUpdate)
+        notifyGame(constructGameUpdate, Some(actor))
+        actor ! constructGameUpdate
       } else {
         // Send current lobby information
         connected += clientId -> PlayerWithActor(Player(clientId), actor)
