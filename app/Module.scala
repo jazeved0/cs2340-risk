@@ -22,7 +22,7 @@ class Module @Inject()(environment: Environment, configuration: Configuration) e
       Resources.GameMode = environment.classLoader.loadClass(
           config.get[String](Resources.ConfigKeys.GameMode))
             .asSubclass(classOf[GameMode])
-            .newInstance()
+            .getDeclaredConstructor().newInstance()
       Resources.IncomingPacketBufferSize = config.get[Int](Resources.ConfigKeys.IncomingPacketBufferSize)
       Resources.GameIdLength = config.get[Int](Resources.ConfigKeys.GameIdLength)
       Resources.PlayerIdLength = config.get[Int](Resources.ConfigKeys.PlayerIdLength)
