@@ -102,15 +102,17 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
       case PlayerDisconnect(_, id: String) => playerDisconnect(id)
       case PingResponse(_, playerId: String) =>
         //Update the player's last ping to current time
-        val player = players.getOrElse(playerId, connected(playerId))
-        if (currentResponseTimes.get(player).isDefined) {
-          currentResponseTimes += player -> System.currentTimeMillis()
-        } else {
-          currentResponseTimes -= player
-          player.actor ! PoisonPill
-        }
-        this.context.system.scheduler.scheduleOnce(Resources.PingDelay) {
-          player.actor ! PingPlayer()
+        val playerOption = players.get(playerId) orElse connected.get(playerId)
+        playerOption.foreach { player =>
+          if (currentResponseTimes.get(player).isDefined) {
+            currentResponseTimes += player -> System.currentTimeMillis()
+          } else {
+            currentResponseTimes -= player
+            player.actor ! PoisonPill
+          }
+          this.context.system.scheduler.scheduleOnce(Resources.PingDelay) {
+            player.actor ! PingPlayer()
+          }
         }
       case p => badPacket(p)
     }
@@ -145,6 +147,7 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
         val player = PlayerWithActor(Player(playerId, initialHostSettings), actor)
         players += playerId -> player
         host = Some(player)
+        add(initialHostSettings.get)
         initialHostSettings = None
 
         // NOTE: This not only starts the scheduler that checks to see
@@ -202,7 +205,12 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
         val player = connected(playerId)
         connected -= playerId
         players += playerId -> PlayerWithActor(Player(playerId, Some(withSettings)), player.actor)
-        logger.error(s"${withSettings.name} joined: $players")
+        add(withSettings)
+        logger.error(s"${withSettings.name} joined: ${
+          (for (p <- players.iterator) yield s"${p._1} -> ${
+            p._2.player.settings.getOrElse("")
+          }").toList
+        }")
         // Approve with response
         player.actor ! RequestReply(RequestResponse.Accepted)
         // Broadcast lobby update to all other players
@@ -237,7 +245,10 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
   }
 
   def playerDisconnect(playerId: String) {
-    currentResponseTimes -= players.getOrElse(playerId, connected(playerId))
+    val playerOption = players.get(playerId) orElse connected.get(playerId)
+    playerOption.foreach { player =>
+      currentResponseTimes -= player
+    }
     this.state match {
       case GameLobbyState.Lobby =>
         if (connected.isDefinedAt(playerId)) {

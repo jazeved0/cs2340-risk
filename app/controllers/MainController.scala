@@ -79,9 +79,9 @@ class MainController @Inject()(cached: Cached,
   def host(id: String): Action[AnyContent] = Action.async { implicit request =>
     (gameSupervisor ? CanHost(id)).mapTo[Boolean].map {
       case true =>
-        Ok(views.html.app(id, Resources.BaseUrl, isHost = true))
+        Ok(views.html.app())
         .withCookies(makePlayerIdCookie)
-      case false => BadRequest(s"Cannot host lobby $id")
+      case false => Redirect("/")
     }
   }
 
@@ -97,7 +97,7 @@ class MainController @Inject()(cached: Cached,
     Action.async { implicit request =>
       (gameSupervisor ? GameExists(id)).mapTo[Boolean].map {
         case true =>
-          Ok(views.html.app(id, Resources.BaseUrl, isHost = false))
+          Ok(views.html.app())
           .withCookies(makePlayerIdCookie)
         case false => BadRequest(s"Invalid app id $id")
       }
@@ -105,8 +105,9 @@ class MainController @Inject()(cached: Cached,
   }
 
   // generates player Id cookies for the frontend to consume
-  def makePlayerIdCookie: Cookie = {
+  def makePlayerIdCookie(implicit request: RequestHeader): Cookie = {
     val id = Player.generateAndIssueId
+    logger.error(s"generating Id $id for $request")
     Cookie(Resources.PlayerIdCookie,
       id, httpOnly = false)
   }
