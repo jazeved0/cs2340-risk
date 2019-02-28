@@ -7,6 +7,8 @@ import play.api.data.Form
 import play.api.data.Forms._
 import play.api.mvc.Call
 
+import scala.concurrent.duration.{Duration, FiniteDuration}
+
 /**
   * General resources for the application loaded from the configuration
   * file
@@ -26,7 +28,13 @@ object Resources {
     val OriginsConfig = "app.controllers.origins"
     val PlayerIdCookie = "app.controllers.playerIdCookie"
     val BaseUrl = "app.controllers.baseUrl"
-    val IncomingPacketBufferSize = "app.controller.incomingPacketBufferSize"
+    val IncomingPacketBufferSize = "app.controllers.incomingPacketBufferSize"
+    val InitialPingDelay = "app.controllers.initialPingDelay"
+    val PingDelay = "app.controllers.pingDelay"
+    val PingTimeout = "app.controllers.pingTimeout"
+    val PingTimeoutCheckDelay = "app.controllers.pingTimeoutCheckDelay"
+    val PingTimeoutCheckInterval = "app.controllers.pingTimeoutCheckInterval"
+    val PublicConfigPath = "app.controllers.publicConfigPath"
 
     val Colors = "app.settings.colors"
     val GameIdChars = "app.settings.gameIdChars"
@@ -50,6 +58,12 @@ object Resources {
   var PlayerIdCookie: String = _
   var BaseUrl: String = _
   var IncomingPacketBufferSize: Int = _
+  var InitialPingDelay: FiniteDuration = _
+  var PingDelay: FiniteDuration = _
+  var PingTimeout: FiniteDuration = _
+  var PingTimeoutCheckDelay: FiniteDuration = _
+  var PingTimeoutCheckInterval: FiniteDuration = _
+  var PublicConfigPath: String = _
 
   var Colors: Seq[Color] = _
   var GameIdChars: Seq[Char] = _

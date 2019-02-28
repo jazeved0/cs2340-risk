@@ -62,11 +62,11 @@
   ws.onmessage = function (evt) {
     var received_msg = evt.data;
     var parsed = JSON.parse(received_msg);
-    if (parsed._type == "controllers.PingClient") {
+    if (parsed._type == "controllers.PingPlayer") {
       ws.send(JSON.stringify({
         "_type": "controllers.PingResponse",
         "gameId": gameId,
-        "clientId": playerId}));
+        "playerId": playerId}));
     }
     else if (parsed._type == "controllers.GameLobbyUpdate") {
       //console.log(parsed.seq);
@@ -101,7 +101,7 @@
       join: function(name, color) {
         ws.send(JSON.stringify({
           "_type": "controllers.RequestPlayerJoin",
-          "clientId": playerId,
+          "playerId": playerId,
           "gameId": gameId,
           "withSettings": {
             "name": name,
