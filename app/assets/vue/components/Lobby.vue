@@ -32,107 +32,123 @@
 				</div>
 			</div>
 			<player-list class="player-list-container" v-bind:slots="this.slots"
-				v-bind:players="this.players"
-				v-bind:host="this.host"
-				v-bind:current="this.current"></player-list>
+									 v-bind:players="this.players"
+									 v-bind:host="this.host"
+									 v-bind:current="this.current"></player-list>
+			<center>
+				<new-player-form v-if="!created" @addSlot="addSlot"></new-player-form>
+			</center>
+
 		</main>
 	</div>
 </template>
 
 <script>
-	import PlayerList from './PlayerList.vue';
+  import PlayerList from './PlayerList.vue';
   import Popper from 'vue-popperjs';
-	export default {
-		data: function() {
-			return {
-				isReady: false,
-			 	players: [
-					{ name: "joazlazer", color: "#27AE60" },
-			  	{ name: "taco", color: "#C0392B" },
-			  	{ name: "Chafos", color: "#2980B9" }
-				],
-			 	isHost: false,
-			 	current: "Chafos",
-			 	host: "joazlazer",
-			 	lobbyId: "xbwe",
-			 	slots: 6
-			}
-		},
-		components: {
-			'player-list': PlayerList,
-		 	'popper' : Popper
-		},
-	 	methods: {
-			copyUrl: function () {
-				// append a temporary element to copy the text
-				const el = document.createElement('textarea');
-				el.value = this.url;
-				document.body.appendChild(el);
-				el.select();
-				document.execCommand('copy');
-				document.body.removeChild(el);
-			},
-			changePlayerData: function(playerArray) {
-			  console.log("HI");
-				this.players = playerArray;
-			}
-		},
-	 	computed: {
-			url: function () {
-				return "localhost:9000/lobby/" +
-					 document.URL.substr(document.URL.lastIndexOf('/') + 1);
-			}
-	  }
-	}
+  import NewPlayerForm from './NewPlayerForm';
+  export default {
+    data: function() {
+      return {
+        isReady: false,
+        players: [
+          { name: "joazlazer", color: "#27AE60" },
+          { name: "taco", color: "#C0392B" },
+          { name: "Chafos", color: "#2980B9" }
+        ],
+        isHost: false,
+        current: "Chafos",
+        host: "joazlazer",
+        lobbyId: "xbwe",
+        slots: 6,
+        created: false
+      }
+    },
+    components: {
+      'player-list': PlayerList,
+      'popper' : Popper,
+      'new-player-form': NewPlayerForm
+    },
+    methods: {
+      copyUrl: function () {
+        // append a temporary element to copy the text
+        const el = document.createElement('textarea');
+        el.value = this.url;
+        document.body.appendChild(el);
+        el.select();
+        document.execCommand('copy');
+        document.body.removeChild(el);
+      },
+      changePlayerData: function(playerArray) {
+        console.log("HI");
+        this.players = playerArray;
+      },
+      addSlot: function(name, color) {
+        console.log(name);
+        console.log(color);
+        this.players.push({name: name, color: color})
+        this.created = true
+      }
+    },
+    computed: {
+      url: function () {
+        return "localhost:9000/lobby/" +
+            document.URL.substr(document.URL.lastIndexOf('/') + 1);
+      }
+    }
+  }
 </script>
 
 <style lang="scss">
-#copy-button {
-	border-color: #362A4D;
-	background-color: #00000000;
-}
-#copy-button {
-	color: #362A4D;
-	font-size: 20px;
-	border-radius: 20px;
-	width: 40px;
-	height: 40px;
-	text-align: center;
-	opacity: 0.8;
-	position: relative;
-	top: 14px;
-	margin-left: 18px;
-}
-.height-fix {
-	min-height: 62px;
-	visibility: hidden;
-}
-.nav-title {
-	font-size: 28px;
-	font-weight: 200;
-	font-family: Roboto, sans-serif;
-	margin-left: 20px;
-	color: #F5F2F2;
-	display: inline;
-	position: relative;
-	top: -4px;
-}
-.url-container {
-	padding-top: 128px; /* +58.4 px for the nav */
-	padding-bottom: 45px;
-	color: #362A4D;
-}
-.player-list-container {
-	margin-top: 36px;
-}
-.url-label {
-	font-size: 20px;
-	font-family: Roboto, sans-serif;
-}
-.url {
-	font-size: 42px;
-	font-weight: 100;
-	font-family: Roboto Slab, serif;
-	margin-top: -12px;
-}
+	#copy-button {
+		border-color: #362A4D;
+		background-color: #00000000;
+	}
+	#copy-button {
+		color: #362A4D;
+		font-size: 20px;
+		border-radius: 20px;
+		width: 40px;
+		height: 40px;
+		text-align: center;
+		opacity: 0.8;
+		position: relative;
+		top: 14px;
+		margin-left: 18px;
+	}
+	.height-fix {
+		min-height: 62px;
+		visibility: hidden;
+	}
+	.nav-title {
+		font-size: 28px;
+		font-weight: 200;
+		font-family: Roboto, sans-serif;
+		margin-left: 20px;
+		color: #F5F2F2;
+		display: inline;
+		position: relative;
+		top: -4px;
+	}
+	.url-container {
+		padding-top: 128px; /* +58.4 px for the nav */
+		padding-bottom: 45px;
+		color: #362A4D;
+	}
+	.player-list-container {
+		margin-top: 36px;
+	}
+	.url-label {
+		font-size: 20px;
+		font-family: Roboto, sans-serif;
+	}
+	.url {
+		font-size: 42px;
+		font-weight: 100;
+		font-family: Roboto Slab, serif;
+		margin-top: -12px;
+	}
+	#player-form {
+		margin: auto
+	}
 </style>
