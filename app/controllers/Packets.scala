@@ -37,8 +37,8 @@ case class RequestReply(response: Response, message: String = "") extends OutPac
 case class BadPacket(message: String = "") extends OutPacket
 case class StartGame(identity: String = "start") extends OutPacket
 case class UpdatePlayerState(seq: Seq[PlayerState]) extends OutPacket
-// Ping player
-case class PingPlayer(identity: String = "ping") extends OutPacket
+case class PingPlayer(identity: String = "ping") extends OutPacket // Ping player
+case class SendConfig(config: String) extends OutPacket
 
 // Response type to the given Request
 object RequestResponse extends Enumeration {
@@ -76,6 +76,7 @@ object JsonMarshallers {
   implicit val startGame: Writes[StartGame] = Json.writes[StartGame]
   implicit val updatePlayerState: Writes[UpdatePlayerState] = Json.writes[UpdatePlayerState]
   implicit val pingPlayer: Writes[PingPlayer] = Json.writes[PingPlayer]
+  implicit val sendConfig: Writes[SendConfig] = Json.writes[SendConfig]
 
   // Trait marshallers
   implicit val globalPacket: Reads[GlobalPacket] = Json.reads[GlobalPacket]

@@ -1,5 +1,7 @@
 package actors
 
+import java.io.FileInputStream
+
 import actors.Game.CanBeHosted
 import akka.actor.{Actor, ActorRef, Cancellable, PoisonPill, Props}
 import common.{Resources, UniqueIdProvider, UniqueValueManager, Util}
@@ -9,10 +11,10 @@ import game.mode.GameMode
 import models.GameLobbyState.State
 import models.{GameLobbyState, Player, PlayerSettings}
 import play.api.Logger
+import play.api.libs.json.Json
 
 import scala.collection.immutable.HashSet
 import scala.collection.mutable
-import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.language.postfixOps
 
@@ -59,6 +61,9 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
   // List of players who have established a ws connection, but not in lobby)
   val connected: mutable.LinkedHashMap[String, PlayerWithActor] =
     mutable.LinkedHashMap[String, PlayerWithActor]()
+
+  val stream = new FileInputStream("conf/public.json")
+  val config: String = try { Json.parse(stream).toString} finally { stream.close() }
 
   // Optional object here stores the scheduler that checks ping times; needs to
   // be here so cancelling it is an option when all players have disconnected
@@ -183,6 +188,9 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
         currentResponseTimes += playerId -> System.currentTimeMillis()
         actor ! constructGameUpdate
       }
+
+      actor ! SendConfig(config)
+
       // Send initial ping delay
       this.context.system.scheduler.scheduleOnce(Resources.InitialPingDelay) {
         actor ! PingPlayer()
@@ -227,7 +235,8 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
     if (host.exists(_.player.id == playerId)) {
       if (players.size >= Resources.MinimumPlayers) {
         // Request is coming from the host, start game
-        notifyGame(StartGame())
+        (players.values.iterator ++ connected.values.iterator)
+          .foreach(_.actor ! StartGame)
         connected.empty
         this.state = GameLobbyState.InGame
         startGame()
@@ -256,18 +265,18 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
           connected -= playerId
         } else if (host.exists(_.player.id == playerId)) {
           // Host disconnecting
-          players -= playerId
+          players.remove(playerId)
           // Promote the first-joined player to host if there is one
           host = if (players.isEmpty) None else Some(players.head._2)
           notifyGame(constructGameUpdate)
         } else {
           // Normal player disconnecting
-          players -= playerId
+          players.remove(playerId)
           notifyGame(constructGameUpdate)
         }
 
       case GameLobbyState.InGame =>
-        // TODO Implement
+      // TODO Implement
     }
   }
 
