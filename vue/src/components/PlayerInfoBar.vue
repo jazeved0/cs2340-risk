@@ -50,8 +50,7 @@
                 #465298 20px
         );
         text-align: center;
-        border: 10px #d9b34f ;
-        border-style:double
+        border: 10px double #d9b34f;
     }
     .wrapper span {
         font-size: 1.5em;

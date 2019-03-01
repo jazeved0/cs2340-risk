@@ -27,7 +27,6 @@ class Module @Inject()(environment: Environment, configuration: Configuration)
       Resources.PingTimeoutCheckDelay = config.get[FiniteDuration](Resources.ConfigKeys.PingTimeoutCheckDelay)
       Resources.PingTimeoutCheckInterval = config.get[FiniteDuration](Resources.ConfigKeys.PingTimeoutCheckInterval)
       Resources.PublicConfigPath = config.get[String](Resources.ConfigKeys.PublicConfigPath)
-      Resources.GameInfoDelay = config.get[FiniteDuration](Resources.ConfigKeys.GameInfoDelay)
 
       Resources.Colors = config.get[Seq[String]](Resources.ConfigKeys.Colors).map(Color)
       Resources.GameIdChars = config.get[String](Resources.ConfigKeys.GameIdChars).toLowerCase.toList

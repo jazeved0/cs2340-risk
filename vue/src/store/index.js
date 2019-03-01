@@ -1,3 +1,4 @@
+// noinspection ES6UnusedImports
 import Vue from 'vue'
 import Vuex from 'vuex'
 import { SET_GAME_ID, SET_PLAYER_ID, UPDATE_IS_HOST,
@@ -6,7 +7,7 @@ import { SET_GAME_ID, SET_PLAYER_ID, UPDATE_IS_HOST,
 		ON_START_GAME, ON_UPDATE_PLAYER_STATE, ON_PING_PLAYER,
 		ON_SEND_CONFIG, SET_CURRENT } from './mutation-types'
 
-Vue.use(Vuex)
+Vue.use(Vuex);
 
 export default new Vuex.Store({
 	state: {
