@@ -3,6 +3,7 @@ package actors
 import java.io.FileInputStream
 
 import actors.Game.CanBeHosted
+import actors.GameSupervisor.CanHost
 import akka.actor.{Actor, ActorRef, Cancellable, PoisonPill, Props}
 import common.{Resources, UniqueIdProvider, UniqueValueManager, Util}
 import controllers._
@@ -92,7 +93,7 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
   // changes and/or outgoing packets (returns partial function)
   override def receive: Receive = {
     case _: CanBeHosted =>
-      sender() ! !hasInitialHostJoined
+      sender() ! (if (hasInitialHostJoined) CanHost.Hosted else CanHost.Yes)
     case p: GlobalPacket =>
       receiveGlobal(p)
     case p: LobbyPacket =>

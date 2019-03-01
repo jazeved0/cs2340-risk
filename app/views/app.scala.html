@@ -39,7 +39,19 @@
       current: "",
       host: "",
       isHost: false,
-      settings: {},
+      settings: {
+      	settings: {
+          colors: [ ],
+          nameRegex: "",
+          playerIdLength: 0,
+          minNameLength: 0,
+          maxNameLength: 0
+        },
+        gameplay: {
+          minPlayers: 0,
+          maxPlayers: 0
+        }
+      },
       settingsLoaded: false
     },
     mutations: {

@@ -16,6 +16,10 @@ object GameSupervisor {
   case class GameExists(id: String)
   case class MakeGame(hostInfo: PlayerSettings)
   case class CanHost(id: String)
+  object CanHost extends Enumeration {
+    type CanHost = Value
+    val Yes, InvalidId, Hosted = Value
+  }
 }
 
 /**
@@ -45,7 +49,7 @@ class GameSupervisor extends Actor {
       if (games.isDefinedAt(gameId)) {
         games(gameId) forward CanBeHosted()
       } else {
-        sender() ! false
+        sender() ! CanHost.InvalidId
       }
 
     // Any deserialized network packets getting sent to the game
