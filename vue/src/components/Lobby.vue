@@ -48,7 +48,7 @@
 	import PlayerList from './PlayerList.vue';
 	import Popper from 'vue-popperjs';
 	import NewPlayerForm from './NewPlayerForm';
-	
+
 	export default {
 		data: function() {
 			return {
