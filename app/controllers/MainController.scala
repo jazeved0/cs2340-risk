@@ -93,14 +93,12 @@ class MainController @Inject()(cached: Cached,
   // the page responsible for them setting their name & color
   // and then joining the existing game
   // GET /lobby/:id
-  def lobby(id: String): EssentialAction = cached(s"app-$id") {
-    Action.async { implicit request =>
-      (gameSupervisor ? GameExists(id)).mapTo[Boolean].map {
-        case true =>
-          Ok(views.html.app())
-          .withCookies(makePlayerIdCookie)
-        case false => BadRequest(s"Invalid app id $id")
-      }
+  def lobby(id: String): Action[AnyContent] = Action.async { implicit request =>
+    (gameSupervisor ? GameExists(id)).mapTo[Boolean].map {
+      case true =>
+        Ok(views.html.app())
+        .withCookies(makePlayerIdCookie)
+      case false => BadRequest(s"Invalid app id $id")
     }
   }
 
