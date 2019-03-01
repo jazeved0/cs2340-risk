@@ -10,7 +10,7 @@
 	import store from './store'
 	import {getCookie, pascalToUnderscore} from './util.js'
 	import VueNativeSock from 'vue-native-websocket'
-	import {SET_GAME_ID, UPDATE_IS_HOST, SET_PLAYER_ID} from './store/mutation-types'
+	import {SET_GAME_ID, SET_PLAYER_ID, UPDATE_IS_HOST} from './store/mutation-types'
 
 	// Initialize store
 	const slash = document.URL.lastIndexOf('/');
@@ -45,8 +45,9 @@
 				const packetType = msg._type.substring(msg._type.lastIndexOf('.') + 1);
 				target = "ON_" + pascalToUnderscore(packetType).toUpperCase();
 				// Attach a _callback to the message
-				const callback = (obj) => { event.target.sendObj(obj); };
-				msg._callback = callback;
+				msg._callback = (obj) => {
+					event.target.sendObj(obj);
+				};
 			}
 			this.store['commit'](target, msg);
 		}
@@ -63,5 +64,5 @@
 </script>
 
 <style lang="scss">
-	@import './assets/stylesheets/app.css';
+	@import 'assets/stylesheets/app';
 </style>
