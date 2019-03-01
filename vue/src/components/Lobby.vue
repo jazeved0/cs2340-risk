@@ -6,7 +6,9 @@
 					<a class="navbar-brand" href="https://github.gatech.edu/achafos3/CS2340Sp19Team10" target="_blank" rel="noopener">
 						<i class="fab fa-github repoImg pl-2"></i>
 					</a>
-					<p class="nav-title">Lobby</p>
+					<p class="nav-title">Lobby
+						<span>{{ this.$store.state.gameId }}</span>
+					</p>
 				</div>
 				<div class="height-fix"></div>
 				<button v-if="this.$store.state.isHost" id="search_button" v-on:click="beginGame" class="btn btn-primary my-2 my-sm-0 mr-2 white dark_accent">Start Game</button>
@@ -117,6 +119,10 @@
 		display: inline;
 		position: relative;
 		top: -4px;
+	}
+	.nav-title span {
+		font-weight: bold;
+		text-transform: uppercase;
 	}
 	.url-container {
 		padding-top: 128px; /* +58.4 px for the nav */
