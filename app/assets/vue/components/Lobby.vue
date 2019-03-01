@@ -75,7 +75,7 @@
 			},
       addSlot: function(name, color) {
       	var list = this.$store.state.players.slice(0);
-      	list.push({"name": name, "color":"#" + store.state.colors[parseInt(color)]});
+      	list.push({"name": name, "color":"#" + this.$store.state.settings.settings.colors[parseInt(color)]});
 				this.$store.commit('updateList', list);
 				this.created = true;
 				this.$root.join(name, color);
@@ -98,7 +98,7 @@
 				return this.$store.state.host;
 			 },
 		 slots: function() {
-			 return this.$store.state.slots;
+			 return this.$store.state.settings.gameplay.maxPlayers;
 		 }
     }
   }
