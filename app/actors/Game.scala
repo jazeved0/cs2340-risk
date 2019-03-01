@@ -162,9 +162,9 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
             currentResponseTimes.foreach(
               pair => {
                 val playerOption = players.get(playerId) orElse connected.get(playerId)
-                if (playerOption.isDefined) {
+                playerOption.foreach { p =>
                   if (Math.abs(pair._2 - System.currentTimeMillis()) > Resources.PingTimeout.toMillis) {
-                    playerOption.get.actor ! PoisonPill
+                    p.actor ! PoisonPill
                     currentResponseTimes -= pair._1
                   }
                 }
