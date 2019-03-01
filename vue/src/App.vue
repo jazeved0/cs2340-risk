@@ -36,10 +36,10 @@
 			if (!eventName.startsWith('SOCKET_')) { return }
 			let target = eventName.toUpperCase();
 			let msg = event;
-			if (event.data) {
+			if ('data' in event) {
 				// If this was a data, ensure it was JSON and has the '_type'
 				msg = JSON.parse(event.data);
-				if (!msg._type) { return; }
+				if (!('_type' in msg)) { return; }
 				// Transform the target to a packet-specific format
 				// ex. packet controllers.PingPlayer would become ON_PING_PLAYER
 				const packetType = msg._type.substring(msg._type.lastIndexOf('.') + 1);

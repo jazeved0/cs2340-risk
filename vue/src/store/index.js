@@ -80,15 +80,15 @@ export default new Vuex.Store({
 		// Packet handlers
 		[ON_GAME_LOBBY_UPDATE] (state, data) {
 			// Load players list
-			if (data.seq) {
+			if ('seq' in data) {
 				state.playersList = data.seq;
 			}
 			// Load current host
-			if (data.host) {
-				state.host = state.playersList[data.host].name;
+			if ('host' in data) {
+				state.host = data.seq[data.host].name;
 			}
 			// Set current if the host
-			if (state.isHost && state.playersList.length > 0) {
+			if (state.isHost && data.seq.length > 0) {
 				state.current = data.seq[0].name;
 			}
 		},
@@ -114,7 +114,7 @@ export default new Vuex.Store({
 		},
 		[ON_SEND_CONFIG] (state, data) {
 			// Load public config from the websocket
-			if (data.config) {
+			if ('config' in data) {
 				state.settings = JSON.parse(data.config);
 			}
 		}
