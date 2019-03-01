@@ -64,8 +64,8 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
   // be here so cancelling it is an option when all players have disconnected
   // HashMap maps PlayerWithActor to millis time of last ping
   var pingCheckingTask: Option[Cancellable] = None
-  val currentResponseTimes: mutable.LinkedHashMap[PlayerWithActor, Long] =
-    mutable.LinkedHashMap[PlayerWithActor, Long]()
+  val currentResponseTimes: mutable.LinkedHashMap[String, Long] =
+    mutable.LinkedHashMap[String, Long]()
   // Always a member of players
   var host: Option[PlayerWithActor] = None
   // Current state of the game
@@ -104,11 +104,12 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
         //Update the player's last ping to current time
         val playerOption = players.get(playerId) orElse connected.get(playerId)
         playerOption.foreach { player =>
-          if (currentResponseTimes.get(player).isDefined) {
-            currentResponseTimes += player -> System.currentTimeMillis()
+          if (currentResponseTimes.get(playerId).isDefined) {
+            currentResponseTimes += playerId -> System.currentTimeMillis()
           } else {
-            currentResponseTimes -= player
+            currentResponseTimes -= playerId
             player.actor ! PoisonPill
+            //PlayerDisconnect(_, playerId)
           }
           this.context.system.scheduler.scheduleOnce(Resources.PingDelay) {
             player.actor ! PingPlayer()
@@ -160,23 +161,26 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
             interval = Resources.PingTimeoutCheckInterval) {
             currentResponseTimes.foreach(
               pair => {
-                if (Math.abs(pair._2 - System.currentTimeMillis()) > Resources.PingTimeout.toMillis) {
-                  pair._1.actor ! PoisonPill
-                  currentResponseTimes -= pair._1
+                val playerOption = players.get(playerId) orElse connected.get(playerId)
+                if (playerOption.isDefined) {
+                  if (Math.abs(pair._2 - System.currentTimeMillis()) > Resources.PingTimeout.toMillis) {
+                    playerOption.get.actor ! PoisonPill
+                    currentResponseTimes -= pair._1
+                  }
                 }
               }
             )
           }
         )
 
-        currentResponseTimes += players(playerId) -> System.currentTimeMillis()
+        currentResponseTimes += playerId -> System.currentTimeMillis()
 
         notifyGame(constructGameUpdate, Some(actor))
         actor ! constructGameUpdate
       } else {
         // Send current lobby information
         connected += playerId -> PlayerWithActor(Player(playerId), actor)
-        currentResponseTimes += connected(playerId) -> System.currentTimeMillis()
+        currentResponseTimes += playerId -> System.currentTimeMillis()
         actor ! constructGameUpdate
       }
       // Send initial ping delay
@@ -245,10 +249,7 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
   }
 
   def playerDisconnect(playerId: String) {
-    val playerOption = players.get(playerId) orElse connected.get(playerId)
-    playerOption.foreach { player =>
-      currentResponseTimes -= player
-    }
+    currentResponseTimes -= playerId
     this.state match {
       case GameLobbyState.Lobby =>
         if (connected.isDefinedAt(playerId)) {
