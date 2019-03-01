@@ -8,13 +8,13 @@ England is my city
 
 ## Setup
 
-To compile the web application from its sources, make sure you have [Node.js](https://nodejs.org/en/) installed. To install dependencies, run the following command in the root directory of the project.
+To compile the web application from its sources, make sure you have [Node.js](https://nodejs.org/en/) installed. To install dependencies, run the following command in the `vue` directory:
 
 ```bash
 npm install
 ```
 
-Afterwards, the front-end code must be compiled using vue-cli. To build the front-end codebase for development mode, run the command:
+Afterwards, the front-end code must be compiled using vue-cli. To build the front-end codebase for development mode, run the command (also in the `vue` directory):
 
 ```bash
 npx vue-cli-service build --mode development
