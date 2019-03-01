@@ -85,7 +85,8 @@ export default new Vuex.Store({
 			}
 			// Load current host
 			if ('host' in data) {
-				state.host = data.seq[data.host].name;
+				if (data.host === -1) state.host = "";
+				else state.host = data.seq[data.host].name;
 			}
 			// Set current if the host
 			if (state.isHost && data.seq.length > 0) {
