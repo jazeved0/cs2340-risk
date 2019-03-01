@@ -14,6 +14,12 @@ To compile the web application from its sources, make sure you have [Node.js](ht
 npm install
 ```
 
+Afterwards, the front-end code must be compiled using vue-cli. To build the front-end codebase for development mode, run the command:
+
+```bash
+npx vue-cli-service build --mode development
+```
+
 ### Running
 
 To start up the server, simply run the following command from the project directory:

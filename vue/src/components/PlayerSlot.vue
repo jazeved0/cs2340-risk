@@ -56,6 +56,7 @@
 	top: 0;
 	left: 0;
 	width: 100%;
+	// noinspection CssUnknownTarget
 	background-image: url("/static/images/darkStripes.svg");
 	background-size: 250px;
 }
