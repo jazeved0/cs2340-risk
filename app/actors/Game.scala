@@ -223,8 +223,7 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
     if (host.exists(_.player.id == playerId)) {
       if (players.size >= Resources.MinimumPlayers) {
         // Request is coming from the host, start game
-        (players.values.iterator ++ connected.values.iterator)
-          .foreach(_.actor ! StartGame)
+        notifyGame(StartGame())
         connected.empty
         this.state = GameLobbyState.InGame
         startGame()
@@ -256,13 +255,13 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
           connected -= playerId
         } else if (host.exists(_.player.id == playerId)) {
           // Host disconnecting
-          players.remove(playerId)
+          players -= playerId
           // Promote the first-joined player to host if there is one
           host = if (players.isEmpty) None else Some(players.head._2)
           notifyGame(constructGameUpdate)
         } else {
           // Normal player disconnecting
-          players.remove(playerId)
+          players -= playerId
           notifyGame(constructGameUpdate)
         }
 

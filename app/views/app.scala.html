@@ -17,10 +17,10 @@
     var ca = decodedCookie.split(';');
     for(var i = 0; i <ca.length; i++) {
       var c = ca[i];
-      while (c.charAt(0) == ' ') {
+      while (c.charAt(0) === ' ') {
         c = c.substring(1);
       }
-      if (c.indexOf(name) == 0) {
+      if (c.indexOf(name) === 0) {
         return c.substring(name.length, c.length);
       }
     }
@@ -66,16 +66,16 @@
   ws.onmessage = function (evt) {
     var received_msg = evt.data;
     var parsed = JSON.parse(received_msg);
-    if (parsed._type == "controllers.PingPlayer") {
+    if (parsed._type === "controllers.PingPlayer") {
       ws.send(JSON.stringify({
         "_type": "controllers.PingResponse",
         "gameId": gameId,
         "playerId": playerId}));
     }
-    else if (parsed._type == "controllers.RequestReply") {
+    else if (parsed._type === "controllers.RequestReply") {
       console.log(parsed);
     }
-    else if (parsed._type == "controllers.GameLobbyUpdate") {
+    else if (parsed._type === "controllers.GameLobbyUpdate") {
       //console.log(parsed.seq);
       //console.log(parsed.host);
       var players = [];
@@ -91,7 +91,7 @@
       }
       store.commit('updateList', players);
     }
-    else if (parsed._type == "controllers.StartGame") {
+    else if (parsed._type === "controllers.StartGame") {
       console.log("STARTING GAME!");
     }
     else {
