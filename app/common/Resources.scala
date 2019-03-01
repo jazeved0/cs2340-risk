@@ -35,6 +35,7 @@ object Resources {
     val PingTimeoutCheckDelay = "app.controllers.pingTimeoutCheckDelay"
     val PingTimeoutCheckInterval = "app.controllers.pingTimeoutCheckInterval"
     val PublicConfigPath = "app.controllers.publicConfigPath"
+    val GameInfoDelay = "app.controllers.gameInfoDelay"
 
     val Colors = "app.settings.colors"
     val GameIdChars = "app.settings.gameIdChars"
@@ -64,6 +65,7 @@ object Resources {
   var PingTimeoutCheckDelay: FiniteDuration = _
   var PingTimeoutCheckInterval: FiniteDuration = _
   var PublicConfigPath: String = _
+  var GameInfoDelay: FiniteDuration = _
 
   var Colors: Seq[Color] = _
   var GameIdChars: Seq[Char] = _

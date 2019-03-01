@@ -5,28 +5,14 @@ scalaVersion := "2.12.8"
 
 crossScalaVersions := Seq("2.11.12", "2.12.7")
 
-lazy val root = (project in file(".")).enablePlugins(PlayScala, SbtWeb, SbtVuefy)
+lazy val root = (project in file(".")).enablePlugins(PlayScala, SbtWeb)
 
 libraryDependencies += guice
 libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "4.0.1" % Test
 libraryDependencies += caffeine
-libraryDependencies += "com.typesafe.akka" %% "akka-actor" % "2.5.21"
+libraryDependencies += "com.typesafe.akka" %% "akka-actor" % "2.5.19"
 scalacOptions ++= Seq(
     "-feature",
     "-deprecation",
     "-Xfatal-warnings"
 )
-
-Assets / VueKeys.vuefy / VueKeys.prodCommands := Set("stage")
-Assets / VueKeys.vuefy / VueKeys.webpackBinary := {
-  // Detect windows
-  if (sys.props.getOrElse("os.name", "").toLowerCase.contains("win")) {
-    (new File(".") / "node_modules" / ".bin" / "webpack.cmd").getAbsolutePath
-  } else {
-    (new File(".") / "node_modules" / ".bin" / "webpack").getAbsolutePath
-  }
-}
-Assets / VueKeys.vuefy / VueKeys.webpackConfig := (new File(".") / "webpack.config.js").getAbsolutePath
-// All non-entry-points components, which are not included directly in HTML, should have the prefix `_`.
-// Webpack shouldn't compile non-entry-components directly. It's wasteful.
-Assets / VueKeys.vuefy / excludeFilter := "_*"

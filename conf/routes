@@ -1,7 +1,3 @@
-# Routes
-# This file defines all application routes (Higher priority routes first)
-# ~~~~
-
 # HTTP Calls for Host
 GET     /                                 controllers.MainController.index
 POST    /lobby/make                       controllers.MainController.make
@@ -20,4 +16,4 @@ GET     /lobby                            controllers.MainController.redirectInd
 GET     /assets/public.json               controllers.MainController.publicConfig
 
 # Map static resources from the /public folder to the /assets URL path
-GET     /assets/*file                     controllers.Assets.versioned(path="/public", file: Asset)
+GET     /*file                            controllers.MainController.routeFiles(file: String)

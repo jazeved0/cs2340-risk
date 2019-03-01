@@ -2,7 +2,7 @@
 @import common.Resources
 @(userForm: Form[PlayerSettings], colorList: Seq[Color], postUrl: Call)(implicit request: MessagesRequestHeader)
 @{/* second parameter adds font awesome */}
-@base("Risk: The Game of Global Domination", "<link rel=\"stylesheet\" media=\"screen\" href=\"" + routes.Assets.versioned("stylesheets/index.css") + "\">") {
+@base("Risk: The Game of Global Domination", "<link rel=\"stylesheet\" media=\"screen\" href=\"static/stylesheets/index.css\">") {
   <header>
     <nav class="navbar fixed-top navbar-dark bg-dark">
       <a class="navbar-brand" href="https://github.gatech.edu/achafos3/CS2340Sp19Team10" target="_blank" rel="noopener">
@@ -56,5 +56,5 @@
     </div>
   </main>
 
-  <script type="text/javascript" src="@{routes.Assets.versioned("javascripts/index.js")}"></script>"
+  <script type="text/javascript" src="static/javascripts/index.js"></script>
 }

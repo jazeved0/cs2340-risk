@@ -5,7 +5,7 @@
 		</div>
 		<div v-else class="player-slot-outer" v-bind:class="{ current: isCurrent }">
 			<div>
-				<i class="fas fa-circle" v-bind:style="{color: color}"></i>
+				<i class="fas fa-circle" v-bind:style="{ color: color }"></i>
 				<p class="d-inline">{{ name }}</p>
 				<i v-if="isHost" class="fas fa-crown"></i>
 			</div>
@@ -56,7 +56,7 @@
 	top: 0;
 	left: 0;
 	width: 100%;
-	background-image: url("/assets/images/darkStripes.svg");
+	background-image: url("/static/images/darkStripes.svg");
 	background-size: 250px;
 }
 .player-slot-outer div {

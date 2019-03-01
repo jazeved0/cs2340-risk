@@ -31,10 +31,12 @@
 					</div>
 				</div>
 			</div>
-			<player-list class="player-list-container" v-bind:slots="this.slots"
-									 v-bind:players="this.players"
-									 v-bind:host="this.host"
-									 v-bind:current="this.current"></player-list>
+			<player-list class="player-list-container"
+					v-bind:slots="this.$store.state.settings.gameplay.maxPlayers"
+					v-bind:players="this.$store.getters.players"
+					v-bind:host="this.$store.state.host"
+					v-bind:current="this.$store.state.current">
+			</player-list>
 			<center>
 				<new-player-form v-if="!created && !this.$store.state.isHost" v-on:add-slot="addSlot"></new-player-form>
 			</center>
@@ -43,65 +45,46 @@
 </template>
 
 <script>
-  import PlayerList from './PlayerList.vue';
-  import Popper from 'vue-popperjs';
-  import NewPlayerForm from './NewPlayerForm';
-  export default {
-    data: function() {
-      return {
-        isReady: false,
-        isHost: false,
-        lobbyId: "xbwe",
-        created: false
-      }
-    },
-    components: {
-      'player-list': PlayerList,
-      'popper' : Popper,
-      'new-player-form': NewPlayerForm
-    },
-    methods: {
-      copyUrl: function () {
-        // append a temporary element to copy the text
-        const el = document.createElement('textarea');
-        el.value = this.url;
-        document.body.appendChild(el);
-        el.select();
-        document.execCommand('copy');
-        document.body.removeChild(el);
-      },
+	import PlayerList from './PlayerList.vue';
+	import Popper from 'vue-popperjs';
+	import NewPlayerForm from './NewPlayerForm';
+	
+	export default {
+		data: function() {
+			return {
+				isReady: false,
+				created: false
+			}
+		},
+		components: {
+			'player-list': PlayerList,
+			'popper' : Popper,
+			'new-player-form': NewPlayerForm
+		},
+		methods: {
+			copyUrl: function () {
+				// append a temporary element to copy the text
+				const el = document.createElement('textarea');
+				el.value = this.url;
+				document.body.appendChild(el);
+				el.select();
+				document.execCommand('copy');
+				document.body.removeChild(el);
+			},
+			addSlot: function() {
+				// TODO implement
+			},
 			beginGame: function() {
-        this.$root.startGame();
-			},
-      addSlot: function(name, color) {
-      	var list = this.$store.state.players.slice(0);
-      	list.push({"name": name, "color":"#" + this.$store.state.settings.settings.colors[parseInt(color)]});
-				this.$store.commit('updateList', list);
-				this.created = true;
-				this.$root.join(name, color);
-      }
-    },
-    computed: {
-			url: function () {
-				return "localhost:9000/lobby/" +
-						document.URL.substr(document.URL.lastIndexOf('/') + 1);
-			},
-		 // promote players to a bound getter as a computed property
-		 // dependent on $store.state.players
-		 players: function() {
-				return this.$store.state.players;
-		 },
-			 current: function() {
-				return this.$store.state.current;
-			 },
-			 host: function() {
-				return this.$store.state.host;
-			 },
-		 slots: function() {
-			 return this.$store.state.settings.gameplay.maxPlayers;
-		 }
-    }
-  }
+				// TODO implement
+			}
+		},
+		computed: {
+			url: function() {
+				// Appends the host to the gameId
+				return window.location.host + "/lobby/" + this.$store.state.gameId;
+			}
+		}
+	}
 </script>
 
 <style lang="scss">
@@ -118,8 +101,8 @@
 		text-align: center;
 		opacity: 0.8;
 		position: relative;
-		top: 14px;
-		margin-left: 18px;
+		top: -6px;
+		margin-left: 20px;
 	}
 	.height-fix {
 		min-height: 62px;

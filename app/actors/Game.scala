@@ -149,6 +149,8 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
 
   def playerConnect(playerId: String, actor: ActorRef) {
     if (players.get(playerId).isEmpty && connected.get(playerId).isEmpty) {
+      actor ! SendConfig(config)
+
       if (!hasInitialHostJoined) {
         // Add the initial host to the list of players
         val player = PlayerWithActor(Player(playerId, initialHostSettings), actor)
@@ -189,8 +191,6 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
         currentResponseTimes += playerId -> System.currentTimeMillis()
         actor ! constructGameUpdate
       }
-
-      actor ! SendConfig(config)
 
       // Send initial ping delay
       this.context.system.scheduler.scheduleOnce(Resources.InitialPingDelay) {

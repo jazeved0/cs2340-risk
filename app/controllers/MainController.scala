@@ -77,12 +77,12 @@ class MainController @Inject()(cached: Cached,
   // Obtains the corresponding main page after a host has created
   // GET /lobby/host/:id
   def host(id: String): Action[AnyContent] = Action.async { implicit request =>
-    (gameSupervisor ? CanHost(id)).mapTo[CanHost].map {
+    (gameSupervisor ? CanHost(id)).mapTo[CanHost.Value].map {
       case CanHost.Yes =>
-        Ok(views.html.app())
+        Ok.sendFile(new File("vue/dist/index.html"))
         .withCookies(makePlayerIdCookie)
-      case CanHost.Hosted => Redirect("/")
       case CanHost.InvalidId => BadRequest(s"Invalid app id $id")
+      case _ => Redirect("/")
     }
   }
 
@@ -97,7 +97,7 @@ class MainController @Inject()(cached: Cached,
   def lobby(id: String): Action[AnyContent] = Action.async { implicit request =>
     (gameSupervisor ? GameExists(id)).mapTo[Boolean].map {
       case true =>
-        Ok(views.html.app())
+        Ok.sendFile(new File("vue/dist/index.html"))
         .withCookies(makePlayerIdCookie)
       case false => BadRequest(s"Invalid app id $id")
     }
@@ -127,6 +127,14 @@ class MainController @Inject()(cached: Cached,
 
   def publicConfig: Action[AnyContent] = Action {
     Ok.sendFile(new File(Resources.PublicConfigPath))
+  }
+
+  def routeFiles(path: String): Action[AnyContent] = Action {
+    val file = path match {
+      case p if p.startsWith("static") => new File("public" + path.substring(path.indexOf('/')))
+      case _ => new File("vue/dist/" + path)
+    }
+    if (file.exists) Ok.sendFile(file) else NotFound(s"Can't find $path")
   }
 
   // TODO Add pages for error handling (404s, forbidden)

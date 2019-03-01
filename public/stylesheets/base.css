@@ -79,7 +79,7 @@ nav {
 
 /* Striped background */
 .light-background {
-	background-image: url("/assets/images/stripes.svg");
+	background-image: url("/static/images/stripes.svg");
 	background-size: 250px;
 }
 

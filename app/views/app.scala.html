@@ -2,9 +2,9 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.16/vue.js"></script>
 <script src="https://unpkg.com/vuex@@3.1.0/dist/vuex.js"></script>
-<script src='@routes.Assets.versioned("vue/components/Lobby.js")'></script>
+<script src='vue/components/Lobby.js'></script>
 
-@base("Risk: The Game of Global Domination", "<link rel=\"stylesheet\" media=\"screen\" href=\"" + routes.Assets.versioned("stylesheets/app.css") + "\">") {
+@base("Risk: The Game of Global Domination", "<link rel=\"stylesheet\" media=\"screen\" href=\"static/stylesheets/app.css\">") {
   <!-- vue js tag-->
   <div id="app">
     <lobby v-on:join-lobby="join"></lobby>
