@@ -77,11 +77,12 @@ class MainController @Inject()(cached: Cached,
   // Obtains the corresponding main page after a host has created
   // GET /lobby/host/:id
   def host(id: String): Action[AnyContent] = Action.async { implicit request =>
-    (gameSupervisor ? CanHost(id)).mapTo[Boolean].map {
-      case true =>
+    (gameSupervisor ? CanHost(id)).mapTo[CanHost].map {
+      case CanHost.Yes =>
         Ok(views.html.app())
         .withCookies(makePlayerIdCookie)
-      case false => Redirect("/")
+      case CanHost.Hosted => Redirect("/")
+      case CanHost.InvalidId => BadRequest(s"Invalid app id $id")
     }
   }
 
