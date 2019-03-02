@@ -26,73 +26,16 @@ export default {
   },
   getters: {
     playerStates(state, getters, rootState) {
-      const resolveMapping = (player) => {
+      const resolveMapping = (player, index) => {
         return {
           name: player.settings.name,
           color: '#' + rootState.settings.settings.colors[player.settings.ordinal],
           armies: player.units.size,
-          turnorder: player.settings.ordinal,
+          turnorder: index,
           currentTurn: player.settings.ordinal === 0
         }
       };
-      const temp = [
-        {
-          settings: {
-            name: "Andrew",
-            ordinal: 0
-          },
-          units: {
-            size: 5
-          }
-        },
-        {
-          settings: {
-            name: "Joseph",
-            ordinal: 1
-          },
-          units: {
-            size: 4
-          }
-        },
-        {
-          settings: {
-            name: "Tommy",
-            ordinal: 2
-          },
-          units: {
-            size: 3
-          }
-        },
-        {
-          settings: {
-            name: "Patrick",
-            ordinal: 3
-          },
-          units: {
-            size: 2
-          }
-        },
-        {
-          settings: {
-            name: "Julian",
-            ordinal: 4
-          },
-          units: {
-            size: 1
-          }
-        },
-        {
-          settings: {
-            name: "Ur Mom",
-            ordinal: 5
-          },
-          units: {
-            size: 0
-          }
-        },
-      ];
-      //return state.playerStateList.map(resolveMapping);
-      return temp.map(resolveMapping);
+      return state.playerStateList.map(resolveMapping);
     },
     getPlayerIndex (state, getters, rootState) {
       if (rootState.current !== "") {

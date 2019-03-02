@@ -147,7 +147,8 @@
 					});
 					// set timeout
 					setTimeout(() => {
-						if (this.$store.state.current === "") {
+						if (this.$store.state.responseTarget !== null &&
+								this.$store.state.current === "") {
 							// Wasn't committed properly
 							this.responseFailed('Request timed out');
 						}

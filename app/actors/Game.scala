@@ -82,9 +82,9 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
   def hasHost: Boolean = host.isEmpty
 
   def startGame() {
-    gameState = new GameState(players.values.map(_.player).toList)
     // Send each player a list of players in their turn order with starting
     // armies
+    gameState = Resources.GameMode.initializeGameState(players.values.map(_.player).toList)
     val packet = UpdatePlayerState(gameState.playerStates)
     notifyGame(packet)
   }
@@ -229,9 +229,13 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
     if (host.exists(_.player.id == playerId)) {
       if (players.size >= Resources.MinimumPlayers) {
         // Request is coming from the host, start game
-        (players.values.iterator ++ connected.values.iterator)
-          .foreach(_.actor ! StartGame)
+        connected.foreach(_._2.actor ! PoisonPill)
+        currentResponseTimes.iterator.filter{
+          case (s, _) => connected.keySet.contains(s)
+        }.foreach(t => currentResponseTimes.remove(t._1))
         connected.empty
+
+        notifyGame(StartGame())
         this.state = GameLobbyState.InGame
         startGame()
 
@@ -254,19 +258,21 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
     currentResponseTimes -= playerId
     this.state match {
       case GameLobbyState.Lobby =>
-        if (connected.isDefinedAt(playerId)) {
+        if (players.isDefinedAt(playerId)) {
+          if (host.exists(_.player.id == playerId)) {
+            // Host disconnecting
+            removePlayer(playerId)
+            // Promote the first-joined player to host if there is one
+            host = if (players.isEmpty) None else Some(players.head._2)
+            notifyGame(constructGameUpdate)
+          } else {
+            // Normal player disconnecting
+            removePlayer(playerId)
+            notifyGame(constructGameUpdate)
+          }
+        } else {
           // Player hadn't actually joined, silently remove them
           connected -= playerId
-        } else if (host.exists(_.player.id == playerId)) {
-          // Host disconnecting
-          removePlayer(playerId)
-          // Promote the first-joined player to host if there is one
-          host = if (players.isEmpty) None else Some(players.head._2)
-          notifyGame(constructGameUpdate)
-        } else {
-          // Normal player disconnecting
-          removePlayer(playerId)
-          notifyGame(constructGameUpdate)
         }
 
       case GameLobbyState.InGame =>
