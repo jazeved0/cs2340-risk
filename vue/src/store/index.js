@@ -1,11 +1,13 @@
 // noinspection ES6UnusedImports
 import Vue from 'vue'
 import Vuex from 'vuex'
-import { SET_GAME_ID, SET_PLAYER_ID, UPDATE_IS_HOST,
-		SOCKET_ONOPEN, SOCKET_ONCLOSE, SOCKET_ONERROR,
-		ON_GAME_LOBBY_UPDATE, ON_REQUEST_REPLY, ON_BAD_PACKET,
-		ON_START_GAME, ON_UPDATE_PLAYER_STATE, ON_PING_PLAYER,
-		ON_SEND_CONFIG, SET_CURRENT } from './mutation-types'
+import {
+	SET_GAME_ID, SET_PLAYER_ID, UPDATE_IS_HOST,
+	SOCKET_ONOPEN, SOCKET_ONCLOSE, SOCKET_ONERROR,
+	ON_GAME_LOBBY_UPDATE, ON_REQUEST_REPLY, ON_BAD_PACKET,
+	ON_START_GAME, ON_UPDATE_PLAYER_STATE, ON_PING_PLAYER,
+	ON_SEND_CONFIG, SET_CURRENT, START_RESPONSE_WAIT, STOP_RESPONSE_WAIT
+} from './mutation-types'
 
 Vue.use(Vuex);
 
@@ -20,6 +22,8 @@ export default new Vuex.Store({
 		playersList: [ ],
 		host: "",
 		current: "",
+		isWaitingResponse: false,
+		responseTargets: [ ],
 		settings: {
 			settings: {
 				colors: [ ],
@@ -64,6 +68,14 @@ export default new Vuex.Store({
 		},
 		[UPDATE_IS_HOST] (state, newIsHost) {
 			state.isHost = newIsHost;
+		},
+		[START_RESPONSE_WAIT] (state, target) {
+			state.isWaitingResponse = true;
+			state.responseTargets.push(target);
+		},
+		[STOP_RESPONSE_WAIT] (state, target) {
+			state.isWaitingResponse = false;
+			state.responseTargets = state.responseTargets.filter(t => t !== target);
 		},
 
 		// Socket handlers

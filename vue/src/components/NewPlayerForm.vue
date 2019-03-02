@@ -6,7 +6,8 @@
 					<p>Username:</p>
 				</div>
 				<div class="col-12 col-sm-9 d-flex form-fix">
-					<b-input v-bind="currentName" :maxlength="maxLength"></b-input>
+					<b-form-input type="text" v-model="currentName" :maxlength="maxLength" :disabled="hasSubmitted">
+					</b-form-input>
 				</div>
 			</div>
 			<div class="row">
@@ -19,8 +20,8 @@
 							<label v-for="color in colorList"
 										 :key="color.num"
 										 class="btn-circle btn btn-secondary colorButton"
-										 :class="[{ selected: (!initialSelected || effectiveSelectedColor === color.num) }, { taken: takenColors.includes(color.num) } ]"
-										 :style="{ backgroundColor: color.hex, borderColor: color.hex }"
+										 :class="[{ selected: (!initialSelected || effectiveSelectedColor === color.num) }, { taken: takenColors.includes(color.num)}, { locked: hasSubmitted } ]"
+										 :style="{ backgroundColor: color.hex }"
 										 v-on:click="onColorClick(color.num)">
 								<input type="radio" name = "colorButton" :value="color.num" autocomplete="off" style="display:none"/> &nbsp;
 							</label>
@@ -32,9 +33,15 @@
 		<hr style="opacity: 0.6;"/>
 		<div class="p-1 pb-0" style="margin-bottom: -8px;">
 			<div class="d-flex flex-row-reverse">
-				<b-button :style="{ backgroundColor: buttonColor }"
-									:disabled="canSubmit">
-					<div class="p-1">Join Lobby</div>
+				<b-button :style="{ backgroundColor: buttonColor, borderColor: buttonColor }"
+									:disabled="!canSubmit"
+									v-on:click="submitPlayer"
+									:class="{ locked: hasSubmitted, error: errorAnim }">
+					<div style="min-width: 80px; min-height: 34px;">
+						<!--suppress XmlUnboundNsPrefix -->
+						<div v-if="!$store.state.isWaitingResponse" class="p-1">Join Lobby</div>
+						<b-spinner v-else variant="light"/>
+					</div>
 				</b-button>
 			</div>
 		</div>
@@ -42,6 +49,8 @@
 </template>
 
 <script>
+	import {START_RESPONSE_WAIT, STOP_RESPONSE_WAIT} from './../store/mutation-types';
+
 	export default {
 		props: {
 			colors: Array,
@@ -49,13 +58,16 @@
 			takenNames: Array,
 			takenColors: Array,
 			minLength: Number,
-			maxLength: Number
+			maxLength: Number,
+			isWaiting: Boolean
 		},
 		data: function () {
 			return {
 				selectedColor: 0,
 				currentName: "",
-				initialSelected: false
+				initialSelected: false,
+				hasSubmitted: false,
+				errorAnim: false
 			}
 		},
 		computed: {
@@ -98,10 +110,40 @@
 			}
 		},
 		methods: {
-			onColorClick: function(index) {
-				if(!this.takenColors.includes(index)) {
+			onColorClick: function (index) {
+				if(!this.takenColors.includes(index) && !this.hasSubmitted) {
 					this.selectedColor = index;
 					this.initialSelected = true;
+				}
+			},
+			submitPlayer: function () {
+				// validate
+				if (this.canSubmit && !this.hasSubmitted) {
+					// send a packet to the websocket and wait for a response
+					this.$store.commit(START_RESPONSE_WAIT, 'submitPlayer');
+					this.hasSubmitted = true;
+					this.$socket.sendObj({
+						_type: 'controllers.RequestPlayerJoin',
+						playerId: this.$store.state.playerId,
+						gameId: this.$store.state.gameId,
+						withSettings: {
+							name: this.currentName,
+							ordinal: this.effectiveSelectedColor
+						}
+					});
+					// set timeout
+					setTimeout(() => {
+						if (this.$store.state.current === "") {
+							// Wasn't committed properly
+							this.hasSubmitted = false;
+							this.$store.commit(STOP_RESPONSE_WAIT, 'submitPlayer');
+							this.errorAnim = true;
+							setTimeout(() => {
+								this.errorAnim = false;
+							}, 900);
+							// TODO display error message
+						}
+					}, 2000);
 				}
 			}
 		}
@@ -125,6 +167,9 @@
 		opacity: 0.4;
 		-webkit-transition: opacity 0.2s;
 		transition: opacity 0.2s;
+	}
+	.locked {
+		cursor: default!important;
 	}
 	.colorButton.selected:not(.taken) {
 		opacity: 1.0;
@@ -154,5 +199,25 @@
 	}
 	#color-label {
 		margin-top: 8px;
+	}
+	.error {
+		 animation: shake 0.82s cubic-bezier(.36, .07, .19, .97) both;
+		 transform: translate3d(0, 0, 0);
+		 backface-visibility: hidden;
+		 perspective: 1000px;
+ 	}
+	@keyframes shake {
+		10%, 90% {
+			transform: translate3d(-1px, 0, 0);
+		}
+		20%, 80% {
+			transform: translate3d(2px, 0, 0);
+		}
+		30%, 50%, 70% {
+			transform: translate3d(-4px, 0, 0);
+		}
+		40%, 60% {
+			transform: translate3d(4px, 0, 0);
+		}
 	}
 </style>
