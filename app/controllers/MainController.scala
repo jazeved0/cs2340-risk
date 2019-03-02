@@ -106,7 +106,6 @@ class MainController @Inject()(cached: Cached,
   // generates player Id cookies for the frontend to consume
   def makePlayerIdCookie(implicit request: RequestHeader): Cookie = {
     val id = Player.generateAndIssueId
-    logger.error(s"generating Id $id for $request")
     Cookie(Resources.PlayerIdCookie,
       id, httpOnly = false)
   }

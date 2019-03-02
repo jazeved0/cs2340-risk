@@ -107,7 +107,7 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
     globalPacket match {
       case PlayerDisconnect(_, id: String) => playerDisconnect(id)
       case PingResponse(_, playerId: String) =>
-        //Update the player's last ping to current time
+        // Update the player's last ping to current time
         val playerOption = players.get(playerId) orElse connected.get(playerId)
         playerOption.foreach { player =>
           if (currentResponseTimes.get(playerId).isDefined) {
@@ -180,8 +180,7 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
 
         currentResponseTimes += playerId -> System.currentTimeMillis()
 
-        notifyGame(constructGameUpdate, Some(actor))
-        actor ! constructGameUpdate
+        notifyGame(constructGameUpdate)
       } else {
         // Send current lobby information
         connected += playerId -> PlayerWithActor(Player(playerId), actor)
@@ -214,17 +213,14 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
       } else {
         val player = connected(playerId)
         connected -= playerId
-        players += playerId -> PlayerWithActor(Player(playerId, Some(withSettings)), player.actor)
+        val newPlayer = PlayerWithActor(Player(playerId, Some(withSettings)), player.actor)
+        players += playerId -> newPlayer
         add(withSettings)
-        logger.error(s"${withSettings.name} joined: ${
-          (for (p <- players.iterator) yield s"${p._1} -> ${
-            p._2.player.settings.getOrElse("")
-          }").toList
-        }")
+        if (host.isEmpty) host = Some(newPlayer)
         // Approve with response
-        player.actor ! RequestReply(RequestResponse.Accepted)
+        newPlayer.actor ! RequestReply(RequestResponse.Accepted)
         // Broadcast lobby update to all other players
-        notifyGame(constructGameUpdate, Some(player.actor))
+        notifyGame(constructGameUpdate, Some(newPlayer.actor))
       }
     }
   }
@@ -263,13 +259,13 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
           connected -= playerId
         } else if (host.exists(_.player.id == playerId)) {
           // Host disconnecting
-          players.remove(playerId)
+          removePlayer(playerId)
           // Promote the first-joined player to host if there is one
           host = if (players.isEmpty) None else Some(players.head._2)
           notifyGame(constructGameUpdate)
         } else {
           // Normal player disconnecting
-          players.remove(playerId)
+          removePlayer(playerId)
           notifyGame(constructGameUpdate)
         }
 
@@ -286,7 +282,7 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
     */
   def notifyGame(packet: OutPacket, exclude: Option[ActorRef] = None) {
     (players.valuesIterator ++ connected.valuesIterator)
-      .filter(exclude.isDefined && _.actor != exclude.get)
+      .filter(exclude.isEmpty || _.actor != exclude.get)
       .foreach(_.actor ! packet)
   }
 
@@ -300,15 +296,20 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
   }
 
 
-  def packetInvalidState(p: InPacket) {
+  def packetInvalidState(p: InPacket): Unit = {
     connected.get(p.playerId).orElse(players.get(p.playerId)).foreach(
       actor => actor.actor ! BadPacket(s"Bad/unknown InPacket received: $p")
     )
   }
 
-  def badPacket(p: InPacket) {
+  def badPacket(p: InPacket): Unit = {
     connected.get(p.playerId).orElse(players.get(p.playerId)).foreach(
       actor => actor.actor ! BadPacket(s"Bad/unknown InPacket received: $p")
     )
+  }
+
+  def removePlayer(id: String): Unit = {
+    players.get(id).foreach(_.player.settings.foreach(remove))
+    players -= id
   }
 }

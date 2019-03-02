@@ -32,6 +32,12 @@ trait UniqueValueManager[T <: Product] {
         .foreach { case (set, v) => set += v }
     }
   }
+  def remove(t: T) {
+    if (Values.isDefined) {
+      (Values.get.iterator zip t.productIterator)
+        .foreach { case (set, v) => set -= v}
+    }
+  }
   def nonUniqueElements(t: T): Seq[Any] = {
     if (Values.isEmpty)  {
       Nil

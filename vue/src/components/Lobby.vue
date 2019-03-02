@@ -104,7 +104,7 @@
 			copyUrl: function () {
 				// append a temporary element to copy the text
 				const el = document.createElement('textarea');
-				el.value = this.url;
+				el.value = this.fullUrl;
 				document.body.appendChild(el);
 				el.select();
 				document.execCommand('copy');
@@ -131,6 +131,9 @@
 			url: function () {
 				// Appends the host to the gameId
 				return window.location.host + "/lobby/" + this.$store.state.gameId;
+			},
+			fullUrl: function () {
+				return window.location.protocol + "//" + this.url;
 			},
 			canStart: function() {
 				// Whether or not there are enough players in the lobby to start
