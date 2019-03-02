@@ -113,6 +113,9 @@ export default new Vuex.Store({
 			if ('host' in data) {
 				if (data.host === -1) state.host = "";
 				else state.host = data.seq[data.host].name;
+                if (state.host === state.current) {
+                    this.commit(UPDATE_IS_HOST, true);
+                }
 			}
 			// Set current if the host
 			if (state.isHost && data.seq.length > 0 && state.current === "") {
