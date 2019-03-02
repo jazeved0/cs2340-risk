@@ -14,12 +14,9 @@ export default {
     [ON_UPDATE_PLAYER_STATE] (state, data) {
       if ('seq' in data) {
         state.playerStateList = data.seq;
-        console.log(data.seq);
         const index = state.getPlayerIndex();
-        console.log(index);
         if (index >= 0) {
           state.armyAmount = data.seq[index].units.size;
-          console.log(state.armyAmount);
         }
       }
     },

@@ -50,33 +50,16 @@
 					v-bind:host="this.$store.state.host"
 					v-bind:current="this.$store.state.current">
 			</player-list>
-			<b-modal id="playerFormModal"
-							 no-close-on-esc
-							 no-close-on-backdrop
-							 hide-header-close
-							 centered
-							 v-bind:visible="showPlayerForm"
-							 v-if="!this.$store.state.isHost">
-				<!--suppress HtmlUnknownBooleanAttribute, XmlUnboundNsPrefix -->
-				<template v-slot:modal-title>
-					<p id="settingsTitle">
-						Select Settings
-					</p>
-				</template>
-				<!--suppress HtmlUnknownBooleanAttribute, XmlUnboundNsPrefix -->
-				<template v-slot:modal-footer>
-					<p class="d-none">y</p>
-					<!-- empty -->
-				</template>
-				<new-player-form v-bind:colors="this.$store.state.settings.settings.colors"
-												 v-bind:name-regex="this.$store.state.settings.settings.nameRegex"
-												 v-bind:taken-colors="this.takenColors"
-												 v-bind:taken-names="this.takenNames"
-												 v-bind:min-length="this.$store.state.settings.settings.minNameLength"
-												 v-bind:max-length="this.$store.state.settings.settings.maxNameLength"
-												 v-on:add-player="addPlayer($event)">
-				</new-player-form>
-			</b-modal>
+			<new-player-form v-if="!this.$store.state.isHost"
+											 v-bind:colors="this.$store.state.settings.settings.colors"
+											 v-bind:name-regex="this.$store.state.settings.settings.nameRegex"
+											 v-bind:taken-colors="this.takenColors"
+											 v-bind:taken-names="this.takenNames"
+											 v-bind:min-length="this.$store.state.settings.settings.minNameLength"
+											 v-bind:max-length="this.$store.state.settings.settings.maxNameLength"
+											 v-bind:visible="showPlayerForm"
+											 v-on:add-player="addPlayer($event)">
+			</new-player-form>
 		</main>
 	</div>
 </template>
@@ -213,24 +196,5 @@
 		font-weight: 100;
 		font-family: Roboto Slab, serif;
 		margin-top: -12px;
-	}
-	#player-form {
-		margin: auto
-	}
-	.modal-content {
-		background-color: #F5F2F2!important;
-		color: #362A4D;
-	}
-	.modal-footer {
-		padding: 4px!important;
-	}
-	#settingsTitle {
-		font-size: 32px;
-		line-height: 30px;
-		font-weight: 200;
-		font-family: Roboto, sans-serif;
-		margin-top: 6px;
-		margin-left: 2px;
-		margin-bottom: -6px;
 	}
 </style>
