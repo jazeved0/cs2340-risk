@@ -11,7 +11,18 @@
 					</p>
 				</div>
 				<div class="height-fix"></div>
-				<button v-if="this.$store.state.isHost" id="search_button" v-on:click="beginGame" class="btn btn-primary my-2 my-sm-0 mr-2 white dark_accent">Start Game</button>
+				<popper v-if="this.$store.state.isHost" trigger="hover" :options="{placement: 'bottom'}">
+					<div class="popper">
+						{{ startTooltip }}
+					</div>
+					<button slot="reference"
+									:disabled="!canStart"
+									id="search_button"
+									v-on:click="beginGame"
+									class="btn btn-primary my-2 my-sm-0 mr-2 white dark_accent">
+						Start Game
+					</button>
+				</popper>
 			</nav>
 		</header>
 		<main>
@@ -39,9 +50,32 @@
 					v-bind:host="this.$store.state.host"
 					v-bind:current="this.$store.state.current">
 			</player-list>
-			<center>
-				<new-player-form v-if="!created && !this.$store.state.isHost" v-on:add-slot="addSlot"></new-player-form>
-			</center>
+			<b-modal id="playerFormModal"
+							 no-close-on-esc
+							 no-close-on-backdrop
+							 hide-header-close
+							 centered
+							 v-bind:visible="showPlayerForm"
+							 v-if="!this.$store.state.isHost">
+				<!--suppress HtmlUnknownBooleanAttribute, XmlUnboundNsPrefix -->
+				<template v-slot:modal-title>
+					<p id="settingsTitle">
+						Select Settings
+					</p>
+				</template>
+				<!--suppress HtmlUnknownBooleanAttribute, XmlUnboundNsPrefix -->
+				<template v-slot:modal-footer>
+					<p class="d-none">y</p>
+					<!-- empty -->
+				</template>
+				<new-player-form v-bind:colors="this.$store.state.settings.settings.colors"
+												 v-bind:name-regex="this.$store.state.settings.settings.nameRegex"
+												 v-bind:taken-colors="this.takenColors"
+												 v-bind:taken-names="this.takenNames"
+												 v-bind:min-length="this.$store.state.settings.settings.minNameLength"
+												 v-bind:max-length="this.$store.state.settings.settings.maxNameLength">
+				</new-player-form>
+			</b-modal>
 		</main>
 	</div>
 </template>
@@ -84,6 +118,28 @@
 			url: function() {
 				// Appends the host to the gameId
 				return window.location.host + "/lobby/" + this.$store.state.gameId;
+			},
+			canStart: function() {
+				// Whether or not there are enough players in the lobby to start
+				return this.$store.state.playersList.length >= this.$store.state.settings.gameplay.minPlayers;
+			},
+			startTooltip: function() {
+				// The tooltip to display on Start Game
+				return this.canStart ?
+						"Ready to start game" :
+						"Not enough players: minimum " + this.$store.state.settings.gameplay.minPlayers;
+			},
+			showPlayerForm: function() {
+				// Current is set when the request is accepted, so show the form until then
+				return this.$store.state.current === "" && !this.$store.state.isHost;
+			},
+			takenColors: function() {
+				// List of taken colors
+				return this.$store.state.playersList.map((player) => player.ordinal);
+			},
+			takenNames: function() {
+				// List of taken names
+				return this.$store.state.playersList.map((player) => player.name);
 			}
 		}
 	}
@@ -144,5 +200,21 @@
 	}
 	#player-form {
 		margin: auto
+	}
+	.modal-content {
+		background-color: #F5F2F2!important;
+		color: #362A4D;
+	}
+	.modal-footer {
+		padding: 4px!important;
+	}
+	#settingsTitle {
+		font-size: 32px;
+		line-height: 30px;
+		font-weight: 200;
+		font-family: Roboto, sans-serif;
+		margin-top: 6px;
+		margin-left: 2px;
+		margin-bottom: -6px;
 	}
 </style>

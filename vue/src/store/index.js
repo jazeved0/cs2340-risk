@@ -68,10 +68,10 @@ export default new Vuex.Store({
 
 		// Socket handlers
 		[SOCKET_ONOPEN] (state)  {
-			state.socket.isConnected = true
+			state.socket.isConnected = true;
 		},
 		[SOCKET_ONCLOSE] (state)  {
-			state.socket.isConnected = false
+			state.socket.isConnected = false;
 			console.log("websocket closed")
 		},
 		[SOCKET_ONERROR] (state, event)  {
