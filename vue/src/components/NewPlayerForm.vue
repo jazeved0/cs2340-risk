@@ -50,6 +50,7 @@
 
 <script>
 	import {START_RESPONSE_WAIT, STOP_RESPONSE_WAIT} from './../store/mutation-types';
+	import {SET_ERROR_MESSAGE} from "../store/mutation-types";
 
 	export default {
 		props: {
@@ -120,7 +121,20 @@
 				// validate
 				if (this.canSubmit && !this.hasSubmitted) {
 					// send a packet to the websocket and wait for a response
-					this.$store.commit(START_RESPONSE_WAIT, 'submitPlayer');
+					const store = this.$store;
+					const name = this.currentName;
+					const color = this.effectiveSelectedColor;
+					const thisRef = this;
+					this.$store.commit(START_RESPONSE_WAIT, function (data) {
+						if ('response' in data) {
+							if (data.response === "Accepted") {
+								store.commit(STOP_RESPONSE_WAIT);
+								thisRef.$emit('add-player', { name: name, ordinal: color });
+							} else {
+								thisRef.responseFailed(data.message);
+							}
+						}
+					});
 					this.hasSubmitted = true;
 					this.$socket.sendObj({
 						_type: 'controllers.RequestPlayerJoin',
@@ -135,16 +149,19 @@
 					setTimeout(() => {
 						if (this.$store.state.current === "") {
 							// Wasn't committed properly
-							this.hasSubmitted = false;
-							this.$store.commit(STOP_RESPONSE_WAIT, 'submitPlayer');
-							this.errorAnim = true;
-							setTimeout(() => {
-								this.errorAnim = false;
-							}, 900);
-							// TODO display error message
+							this.responseFailed('Request timed out');
 						}
 					}, 2000);
 				}
+			},
+			responseFailed: function (message) {
+				this.hasSubmitted = false;
+				this.$store.commit(STOP_RESPONSE_WAIT);
+				this.errorAnim = true;
+				this.$store.commit(SET_ERROR_MESSAGE, message);
+				setTimeout(() => {
+					this.errorAnim = false;
+				}, 900);
 			}
 		}
 	}

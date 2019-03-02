@@ -18,7 +18,7 @@
 					<button slot="reference"
 									:disabled="!canStart"
 									id="search_button"
-									v-on:click="beginGame"
+									v-on:click="startGame"
 									class="btn btn-primary my-2 my-sm-0 mr-2 white dark_accent">
 						Start Game
 					</button>
@@ -73,7 +73,8 @@
 												 v-bind:taken-colors="this.takenColors"
 												 v-bind:taken-names="this.takenNames"
 												 v-bind:min-length="this.$store.state.settings.settings.minNameLength"
-												 v-bind:max-length="this.$store.state.settings.settings.maxNameLength">
+												 v-bind:max-length="this.$store.state.settings.settings.maxNameLength"
+												 v-on:add-player="addPlayer($event)">
 				</new-player-form>
 			</b-modal>
 		</main>
@@ -84,6 +85,8 @@
 	import PlayerList from './PlayerList.vue';
 	import Popper from 'vue-popperjs';
 	import NewPlayerForm from './NewPlayerForm';
+	import {ADD_PLAYER, SET_CURRENT,
+		UPDATE_HOST, UPDATE_IS_HOST} from "../store/mutation-types";
 
 	export default {
 		data: function() {
@@ -107,15 +110,25 @@
 				document.execCommand('copy');
 				document.body.removeChild(el);
 			},
-			addSlot: function() {
-				// TODO implement
+			addPlayer: function (event) {
+				this.$store.commit(ADD_PLAYER, event);
+				this.$store.commit(SET_CURRENT, event.name);
+				if (this.$store.state.playersList.length === 1) {
+					this.$store.commit(UPDATE_HOST, event.name);
+					this.$store.commit(UPDATE_IS_HOST, true);
+				}
 			},
-			beginGame: function() {
-				// TODO implement
+			startGame: function () {
+				this.$socket.sendObj( {
+						_type: "controllers.RequestStartGame",
+						gameId: this.$store.state.gameId,
+						playerId: this.$store.state.playerId
+					}
+				);
 			}
 		},
 		computed: {
-			url: function() {
+			url: function () {
 				// Appends the host to the gameId
 				return window.location.host + "/lobby/" + this.$store.state.gameId;
 			},

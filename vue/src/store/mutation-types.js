@@ -5,6 +5,11 @@ export const SET_CURRENT = 'SET_CURRENT';
 export const UPDATE_IS_HOST = 'UPDATE_IS_HOST';
 export const START_RESPONSE_WAIT = 'START_RESPONSE_WAIT';
 export const STOP_RESPONSE_WAIT = 'STOP_RESPONSE_WAIT';
+export const TRANSITION_TO_GAME = 'TRANSITION_TO_GAME';
+export const SET_ERROR_MESSAGE = 'SET_ERROR_MESSAGE';
+export const CLEAR_ERROR_MESSAGE = 'CLEAR_ERROR_MESSAGE';
+export const ADD_PLAYER = 'ADD_PLAYER';
+export const UPDATE_HOST = 'UPDATE_HOST';
 
 // Websocket handling
 export const SOCKET_ONOPEN = 'SOCKET_ONOPEN';

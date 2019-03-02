@@ -115,7 +115,7 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
           } else {
             currentResponseTimes -= playerId
             player.actor ! PoisonPill
-            //PlayerDisconnect(_, playerId)
+            playerDisconnect(playerId)
           }
           this.context.system.scheduler.scheduleOnce(Resources.PingDelay) {
             player.actor ! PingPlayer()
@@ -159,10 +159,6 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
         add(initialHostSettings.get)
         initialHostSettings = None
 
-        // NOTE: This not only starts the scheduler that checks to see
-        // if players haven't pinged in a while, it also assigns
-        // that scheduler to a variable, enabling the task to be cancelled
-        // in the future.
         pingCheckingTask = Some[Cancellable](
           this.context.system.scheduler.schedule(
             initialDelay = Resources.PingTimeoutCheckDelay,
@@ -173,6 +169,7 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
                 playerOption.foreach { p =>
                   if (Math.abs(pair._2 - System.currentTimeMillis()) > Resources.PingTimeout.toMillis) {
                     p.actor ! PoisonPill
+                    playerDisconnect(p.player.id)
                     currentResponseTimes -= pair._1
                   }
                 }

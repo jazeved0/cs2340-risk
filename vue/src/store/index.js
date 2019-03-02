@@ -5,32 +5,41 @@ import {
 	SET_GAME_ID, SET_PLAYER_ID, UPDATE_IS_HOST,
 	SOCKET_ONOPEN, SOCKET_ONCLOSE, SOCKET_ONERROR,
 	ON_GAME_LOBBY_UPDATE, ON_REQUEST_REPLY, ON_BAD_PACKET,
-	ON_START_GAME, ON_UPDATE_PLAYER_STATE, ON_PING_PLAYER,
-	ON_SEND_CONFIG, SET_CURRENT, START_RESPONSE_WAIT, STOP_RESPONSE_WAIT
+	ON_START_GAME, ON_PING_PLAYER, ON_SEND_CONFIG,
+	SET_CURRENT, START_RESPONSE_WAIT, STOP_RESPONSE_WAIT,
+	TRANSITION_TO_GAME, SET_ERROR_MESSAGE, CLEAR_ERROR_MESSAGE, UPDATE_HOST, ADD_PLAYER
 } from './mutation-types'
+import game from './modules/game'
 
 Vue.use(Vuex);
 
 export default new Vuex.Store({
+	modules: {
+		game
+	},
 	state: {
 		gameId: "",
 		playerId: "",
+		errorMessage: "",
+		errorMessageDisappearing: false,
 		isHost: false,
 		socket: {
 			isConnected: false
 		},
 		playersList: [ ],
+		playerIndex: -1,
 		host: "",
 		current: "",
-		isWaitingResponse: false,
-		responseTargets: [ ],
+		inGameState: false,
+		responseTarget: null,
 		settings: {
 			settings: {
 				colors: [ ],
 				nameRegex: "",
 				playerIdLength: 0,
 				minNameLength: 0,
-				maxNameLength: 0
+				maxNameLength: 0,
+				errorMessageTimeout: 0
 			},
 			gameplay: {
 				minPlayers: 0,
@@ -69,13 +78,17 @@ export default new Vuex.Store({
 		[UPDATE_IS_HOST] (state, newIsHost) {
 			state.isHost = newIsHost;
 		},
-		[START_RESPONSE_WAIT] (state, target) {
-			state.isWaitingResponse = true;
-			state.responseTargets.push(target);
+		[START_RESPONSE_WAIT] (state, callback) {
+			state.responseTarget = callback;
 		},
-		[STOP_RESPONSE_WAIT] (state, target) {
-			state.isWaitingResponse = false;
-			state.responseTargets = state.responseTargets.filter(t => t !== target);
+		[STOP_RESPONSE_WAIT] (state) {
+			state.responseTarget = null;
+		},
+		[ADD_PLAYER] (state, player) {
+			state.playersList.push({ name: player.name, ordinal: player.ordinal })
+		},
+		[UPDATE_HOST] (state, newHost) {
+			state.host = newHost;
 		},
 
 		// Socket handlers
@@ -84,7 +97,7 @@ export default new Vuex.Store({
 		},
 		[SOCKET_ONCLOSE] (state)  {
 			state.socket.isConnected = false;
-			console.log("websocket closed")
+			console.log("websocket closed");
 		},
 		[SOCKET_ONERROR] (state, event)  {
 			console.error(state, event)
@@ -102,21 +115,23 @@ export default new Vuex.Store({
 				else state.host = data.seq[data.host].name;
 			}
 			// Set current if the host
-			if (state.isHost && data.seq.length > 0) {
+			if (state.isHost && data.seq.length > 0 && state.current === "") {
 				state.current = data.seq[0].name;
 			}
 		},
 		[ON_REQUEST_REPLY] (state, data) {
-			// TODO implement
+			if (state.responseTarget !== null) {
+				state.responseTarget(data);
+			} else {
+				// Invalid reply
+				this.commit(SET_ERROR_MESSAGE, ('message' in data) ? data.message : "Unknown Request Reply");
+			}
 		},
 		[ON_BAD_PACKET] (state, data) {
-			// TODO implement
+			this.commit(SET_ERROR_MESSAGE, ('message' in data) ? data.message : "Unknown Bad Packet");
 		},
-		[ON_START_GAME] (state, data) {
-			// TODO implement
-		},
-		[ON_UPDATE_PLAYER_STATE] (state, data) {
-			// TODO implement
+		[ON_START_GAME] () {
+			this.commit(TRANSITION_TO_GAME);
 		},
 		[ON_PING_PLAYER] (state, data) {
 			// Send back a ping response
@@ -130,6 +145,23 @@ export default new Vuex.Store({
 			// Load public config from the websocket
 			if ('config' in data) {
 				state.settings = JSON.parse(data.config);
+			}
+		},
+		[TRANSITION_TO_GAME] (state) {
+			state.inGameState = true;
+		},
+		[SET_ERROR_MESSAGE] (state, message) {
+			state.errorMessage = message;
+			if (!state.errorMessageDisappearing) {
+				setTimeout(() => this.commit(CLEAR_ERROR_MESSAGE),
+					state.settings.settings.errorMessageTimeout);
+			}
+			state.errorMessageDisappearing = true;
+		},
+		[CLEAR_ERROR_MESSAGE] (state) {
+			if (state.errorMessage.length > 0) {
+				state.errorMessage = "";
+				state.errorMessageDisappearing = false;
 			}
 		}
 	},
