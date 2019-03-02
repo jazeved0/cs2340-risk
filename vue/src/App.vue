@@ -1,12 +1,22 @@
 <template>
 	<div id="app">
-		<Lobby></Lobby>
+			<component v-bind:is="dynamicComponent">
+			</component>
+			<div id="error-wrapper">
+				<b-alert v-if="this.$store.state.errorMessage.length > 0" class="mx-auto" show variant="danger" id="error-button">
+					<h6 class="alert-heading">Error!</h6>
+					<p>
+						{{this.$store.state.errorMessage}}
+					</p>
+				</b-alert>
+			</div>
 	</div>
 </template>
 
 <script>
 	import Vue from 'vue'
 	import Lobby from './components/Lobby.vue'
+	import Gameboard from './components/Gameboard.vue'
 	import store from './store'
 	import {getCookie, pascalToUnderscore} from './util.js'
 	import VueNativeSock from 'vue-native-websocket'
@@ -52,17 +62,33 @@
 			this.store['commit'](target, msg);
 		}
 	});
-				
+
 	export default {
-		name: 'app',
-		components: {
-			Lobby
-		},
+      name: 'app',
+      components: {
+          Lobby, Gameboard
+      },
+			computed: {
+          dynamicComponent() {
+              return this.$store.state.inGameState ? Gameboard : Lobby;
+					}
+			},
 		// Pass the store down the virtual DOM tree
 		store
 	}
 </script>
 
 <style lang="scss">
-	@import 'assets/stylesheets/app';
+	#error-wrapper {
+		position: absolute;
+		top: 2%;
+		width: 100%;
+		z-index: 10000;
+	}
+	#error-button {
+		width: 35%;
+		background-color: #D9534F;
+		border-color: #D9534F;
+		color: white;
+	}
 </style>

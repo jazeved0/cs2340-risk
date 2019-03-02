@@ -11,7 +11,7 @@
 					</p>
 				</div>
 				<div class="height-fix"></div>
-				<button v-if="this.$store.state.isHost" id="search_button" v-on:click="beginGame" class="btn btn-primary my-2 my-sm-0 mr-2 white dark_accent">Start Game</button>
+				<button v-if="this.$store.state.isHost" id="search_button" v-on:click="startGame" class="btn btn-primary my-2 my-sm-0 mr-2 white dark_accent">Start Game</button>
 			</nav>
 		</header>
 		<main>
@@ -76,8 +76,14 @@
 			addSlot: function() {
 				// TODO implement
 			},
-			beginGame: function() {
-				// TODO implement
+			startGame: function() {
+			    this.$socket.sendObj(
+			        {
+									_type: "controllers.RequestStartGame",
+									gameId: this.$store.state.gameId,
+									playerId: this.$store.state.playerId
+			        }
+					);
 			}
 		},
 		computed: {

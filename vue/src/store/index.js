@@ -1,25 +1,33 @@
 // noinspection ES6UnusedImports
 import Vue from 'vue'
 import Vuex from 'vuex'
+import game from './modules/game'
 import { SET_GAME_ID, SET_PLAYER_ID, UPDATE_IS_HOST,
 		SOCKET_ONOPEN, SOCKET_ONCLOSE, SOCKET_ONERROR,
 		ON_GAME_LOBBY_UPDATE, ON_REQUEST_REPLY, ON_BAD_PACKET,
-		ON_START_GAME, ON_UPDATE_PLAYER_STATE, ON_PING_PLAYER,
+		ON_START_GAME, ON_PING_PLAYER,
 		ON_SEND_CONFIG, SET_CURRENT } from './mutation-types'
 
 Vue.use(Vuex);
 
 export default new Vuex.Store({
+	modules: {
+		game
+	},
 	state: {
 		gameId: "",
 		playerId: "",
+		errorMessage: "",
+		errorMessageDisappearing: false,
 		isHost: false,
 		socket: {
 			isConnected: false
 		},
 		playersList: [ ],
+		playerIndex: -1,
 		host: "",
 		current: "",
+		inGameState: false,
 		settings: {
 			settings: {
 				colors: [ ],
@@ -68,11 +76,11 @@ export default new Vuex.Store({
 
 		// Socket handlers
 		[SOCKET_ONOPEN] (state)  {
-			state.socket.isConnected = true
+			state.socket.isConnected = true;
 		},
 		[SOCKET_ONCLOSE] (state)  {
-			state.socket.isConnected = false
-			console.log("websocket closed")
+			state.socket.isConnected = false;
+			console.log("websocket closed");
 		},
 		[SOCKET_ONERROR] (state, event)  {
 			console.error(state, event)
@@ -90,22 +98,30 @@ export default new Vuex.Store({
 				else state.host = data.seq[data.host].name;
 			}
 			// Set current if the host
-			if (state.isHost && data.seq.length > 0) {
+			if (state.isHost && data.seq.length > 0 && state.current === "") {
 				state.current = data.seq[0].name;
 			}
 		},
 		[ON_REQUEST_REPLY] (state, data) {
-			// TODO implement
+            if (!state.errorMessageDisappearing) {
+                setTimeout(() => this.commit('clearErrorMessage'), state.settings.settings.errorMessageTimeout);
+            }
+            this.commit('setErrorMessage', ('message' in data) ? data.message : "Unknown Request Reply");
 		},
 		[ON_BAD_PACKET] (state, data) {
-			// TODO implement
+            if (!state.errorMessageDisappearing) {
+                setTimeout(() => this.commit('clearErrorMessage'), state.settings.settings.errorMessageTimeout);
+            }
+            this.commit('setErrorMessage', ('message' in data) ? data.message : "Unknown Bad Packet");
 		},
-		[ON_START_GAME] (state, data) {
-			// TODO implement
+		[ON_START_GAME] () {
+			this.commit('transitionToGame');
 		},
-		[ON_UPDATE_PLAYER_STATE] (state, data) {
-			// TODO implement
-		},
+		/*[ON_UPDATE_PLAYER_STATE] (state, data) {
+			if ('seq' in data) {
+				state.playerStateList = data.seq;
+			}
+		},*/
 		[ON_PING_PLAYER] (state, data) {
 			// Send back a ping response
 			data._callback({
@@ -118,6 +134,19 @@ export default new Vuex.Store({
 			// Load public config from the websocket
 			if ('config' in data) {
 				state.settings = JSON.parse(data.config);
+			}
+		},
+        transitionToGame (state) {
+            state.inGameState = true;
+        },
+		setErrorMessage (state, message) {
+			state.errorMessage = message;
+            state.errorMessageDisappearing = true;
+		},
+		clearErrorMessage(state) {
+			if (state.errorMessage.length > 0) {
+				state.errorMessage = "";
+				state.errorMessageDisappearing = false;
 			}
 		}
 	},

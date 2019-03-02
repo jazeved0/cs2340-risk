@@ -1,35 +1,22 @@
 <template>
-    <body>
-    <div class = "gameboard">
-        <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
-        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+    <div class="gameboard">
         <nav class="navbar fixed-top navbar-dark bg-dark">
             <h1 style = "color:white">RISK</h1>
             <a class="navbar-brand" href="https://github.gatech.edu/achafos3/CS2340Sp19Team10" target="_blank" rel="noopener">
                 <i class="fab fa-github repoImg pl-2"></i>
             </a>
-            <form class="form-inline mr-2">
-                <div class = "content mr-3 mt-3">
-                    <p class="p1" style = "color: white">Join Existing Lobby</p>
-                </div>
-                <input id="search_field" class="form-control mr-sm-2" type="search" maxlength="4" placeholder="Lobby Code" Roboto-label="Search">
-                <input id="search_button" class="btn btn-primary my-2 my-sm-0 white dark_accent"
-                       type="submit" value="Join" disabled/>
-            </form>
         </nav>
         <img src = "https://derekmeetsworld.files.wordpress.com/2016/12/world-domination-game-board-2-1-1.jpg" >
+        <player-info-bar>
+        </player-info-bar>
     </div>
-    <PlayerInfoBar> </PlayerInfoBar>
-    <footer>
-    </footer>
-    </body>
 </template>
 
 <script>
     import PlayerInfoBar from './PlayerInfoBar.vue'
     export default {
         components: {
-            PlayerInfoBar
+            'player-info-bar': PlayerInfoBar
         }
     }
 </script>
