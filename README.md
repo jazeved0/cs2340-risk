@@ -6,15 +6,35 @@ England is my city
 
 [![Build Status](https://api.travis-ci.org/playframework/play-scala-forms-example.svg?branch=2.6.x)](https://www.youtube.com/watch?v=hSlb1ezRqfA)
 
-## How to run
+## Setup
 
-Start the Risk game:
+To compile the web application from its sources, make sure you have [Node.js](https://nodejs.org/en/) installed. To install dependencies, run the following command in the `vue` directory:
+
+```bash
+npm install
+```
+
+Afterwards, the front-end code must be compiled using vue-cli. To build the front-end codebase for development mode, run the command (also in the `vue` directory):
+
+```bash
+npx vue-cli-service build --mode development
+```
+
+### Running
+
+To start up the server, simply run the following command from the project directory:
 
 ```bash
 sbt run
 ```
 
 And open [http://localhost:9000/](http://localhost:9000/)
+
+Alternatively, for development mode, you can enable the file watcher and start the risk game simultaneously:
+
+```bash
+sbt ~run
+```
 
 ## Credits
 

@@ -1,13 +1,19 @@
-# Routes
-# This file defines all application routes (Higher priority routes first)
-# ~~~~
+# HTTP Calls for Host
+GET     /                                 controllers.MainController.index
+POST    /lobby/make                       controllers.MainController.make
+GET     /lobby/host/:id                   controllers.MainController.host(id: String)
 
-# Home page
-GET     /                           controllers.WidgetController.index
+# HTTP Calls for Non-Hosts
+GET     /lobby/:id                        controllers.MainController.lobby(id: String)
 
-# Widgets
-GET     /widgets                    controllers.WidgetController.listWidgets
-POST    /widgets                    controllers.WidgetController.createWidget
+# WebSocket route for the main game
+GET     /ws/:gameId/:playerId             controllers.MainController.webSocket(gameId: String, playerId: String)
+
+# Deafult Redirect (in case you accidentally type /lobby instead of /lobby/:id
+GET     /lobby                            controllers.MainController.redirectIndex
+
+# Expose public configuration for consumption on the frontend
+GET     /assets/public.json               controllers.MainController.publicConfig
 
 # Map static resources from the /public folder to the /assets URL path
-GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)
+GET     /*file                            controllers.MainController.routeFiles(file: String)

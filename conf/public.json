@@ -1,0 +1,14 @@
+{
+	"settings": {
+		"colors": [ "2980b9", "27ae60", "8e44ad", "f39c12", "c0392b", "95a5a6" ],
+		"nameRegex": "^[a-zA-Z0-9]+$",
+		"playerIdLength": 16,
+		"minNameLength": 2,
+		"maxNameLength": 16,
+		"errorMessageTimeout": 4000
+	},
+	"gameplay": {
+		"minPlayers": 3,
+		"maxPlayers": 6
+	}
+}
