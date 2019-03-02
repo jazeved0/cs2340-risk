@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
-import ON_UPDATE_PLAYER_STATE from '.././mutation-types'
+import {ON_UPDATE_PLAYER_STATE} from '.././mutation-types'
 
 Vue.use(Vuex);
 
