@@ -9,8 +9,11 @@
     <div :style="{ paddingTop: navHeight + 'px' }">
       <v-stage :config="configKonva">
         <v-layer>
-          <v-circle :config="configCircle">
-          </v-circle>
+          <v-path v-for="pathConfig in pathConfigs"
+              :key="pathConfig.num"
+              :config="pathConfig"
+              @mouseover="territoryMouseOver(pathConfig.num)"
+              @mouseout="territoryMouseOut(pathConfig.num)"></v-path>
         </v-layer>
       </v-stage>
     </div>
@@ -31,20 +34,39 @@
     components: {
       'player-info-bar': PlayerInfoBar
     },
+    computed: {
+      pathConfigs: function () {
+        const mouseOver = this.mouseOver;
+        return this.$store.state.game.territoryPathData.map(function(item, index) {
+          return {
+            x: 40,
+            y: 40,
+            data: item,
+            fill: mouseOver === index ? 'white' : 'lightgray',
+            scale: {
+              x: 1,
+              y: 1
+            },
+            num: index
+          };
+        });
+      }
+    },
+    methods: {
+      territoryMouseOver: function (num) {
+        this.mouseOver = num;
+      },
+      territoryMouseOut: function (num) {
+        if (this.mouseOver === num) this.mouseOver = -1;
+      }
+    },
     data() {
       return {
         configKonva: {
-          width: 200,
-          height: 200
+          width: 400,
+          height: 500
         },
-        configCircle: {
-          x: 100,
-          y: 100,
-          radius: 70,
-          fill: "red",
-          stroke: "black",
-          strokeWidth: 4
-        },
+        mouseOver: -1,
         navHeight: 62
       };
     }
