@@ -72,8 +72,7 @@
 </template>
 
 <script>
-  import {START_RESPONSE_WAIT, STOP_RESPONSE_WAIT} from './../store/mutation-types';
-  import {SET_ERROR_MESSAGE} from "../store/mutation-types";
+  import {START_RESPONSE_WAIT, STOP_RESPONSE_WAIT, SET_ERROR_MESSAGE} from '../../store/mutation-types';
 
   export default {
     props: {

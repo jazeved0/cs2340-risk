@@ -98,7 +98,8 @@ export default new Vuex.Store({
     [SOCKET_ONCLOSE](state) {
       state.socket.isConnected = false;
       this.commit(SET_ERROR_MESSAGE,
-        'The connection with the server has been terminated');
+        { message: 'The connection with the server has been terminated',
+          hold: true });
     },
     [SOCKET_ONERROR](state, event) {
       this.commit(SET_ERROR_MESSAGE,
@@ -129,11 +130,13 @@ export default new Vuex.Store({
         state.responseTarget(data);
       } else {
         // Invalid reply
-        this.commit(SET_ERROR_MESSAGE, ('message' in data) ? data.message : "Unknown Request Reply");
+        this.commit(SET_ERROR_MESSAGE,
+          ('message' in data) ? data.message : "Unknown Request Reply");
       }
     },
     [ON_BAD_PACKET](state, data) {
-      this.commit(SET_ERROR_MESSAGE, ('message' in data) ? data.message : "Unknown Bad Packet");
+      this.commit(SET_ERROR_MESSAGE,
+        ('message' in data) ? data.message : "Unknown Bad Packet");
     },
     [ON_START_GAME]() {
       this.commit(TRANSITION_TO_GAME);
@@ -156,12 +159,18 @@ export default new Vuex.Store({
       state.inGameState = true;
     },
     [SET_ERROR_MESSAGE](state, message) {
-      state.errorMessage = message;
-      if (!state.errorMessageDisappearing) {
+      let hold = false;
+      let text = message;
+      if (typeof(message) === 'object') {
+        if ('message' in message) text = message.message;
+        if ('hold' in message) hold = message.hold;
+      }
+      state.errorMessage = text;
+      if (!state.errorMessageDisappearing && !hold) {
         setTimeout(() => this.commit(CLEAR_ERROR_MESSAGE),
           state.settings.settings.errorMessageTimeout);
+        state.errorMessageDisappearing = true;
       }
-      state.errorMessageDisappearing = true;
     },
     [CLEAR_ERROR_MESSAGE](state) {
       if (state.errorMessage.length > 0) {

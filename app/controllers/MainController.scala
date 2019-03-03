@@ -2,7 +2,7 @@ package controllers
 
 import java.io.File
 
-import actors.GameSupervisor.{CanHost, GameExists, MakeGame}
+import actors.GameSupervisor.{CanHost, CanJoin, GameExists, MakeGame}
 import actors._
 import akka.actor.{ActorRef, ActorSystem}
 import akka.pattern.ask
@@ -79,9 +79,9 @@ class MainController @Inject()(cached: Cached,
   // GET /lobby/host/:id
   def host(id: String): Action[AnyContent] = Action.async { implicit request =>
     (gameSupervisor ? CanHost(id)).mapTo[CanHost.Value].map {
-      case CanHost.Yes =>
-        Ok.sendFile(new File("vue/dist/index.html"))
-          .withCookies(makePlayerIdCookie)
+      case CanHost.Yes => spaEntryPoint
+      case CanHost.Started => Unauthorized("Game has already started")
+      case CanHost.Hosted => Redirect(s"/lobby/$id")
       case CanHost.InvalidId => BadRequest(s"Invalid app id $id")
       case _ => Redirect("/")
     }
@@ -96,16 +96,25 @@ class MainController @Inject()(cached: Cached,
   // and then joining the existing game
   // GET /lobby/:id
   def lobby(id: String): Action[AnyContent] = Action.async { implicit request =>
-    (gameSupervisor ? GameExists(id)).mapTo[Boolean].map {
-      case true =>
-        Ok.sendFile(new File("vue/dist/index.html"))
-          .withCookies(makePlayerIdCookie)
-      case false => BadRequest(s"Invalid app id $id")
+    (gameSupervisor ? CanJoin(id)).mapTo[CanJoin.Value].map {
+      case CanJoin.Yes => spaEntryPoint
+      case CanJoin.Started => Unauthorized("Game has already started")
+      case CanJoin.InvalidId => BadRequest(s"Invalid app id $id")
+      case _ => Redirect("/")
+    }
+  }
+
+  // Creates a response for the spa entry point, or an error if it doesn't exist
+  def spaEntryPoint()(implicit header: RequestHeader): Result = {
+    val f = new File(Resources.SpaEntryPoint)
+    f match {
+      case file if file.exists => Ok.sendFile(file).withCookies(makePlayerIdCookie)
+      case _ => NotFound("Game application not found")
     }
   }
 
   // generates player Id cookies for the frontend to consume
-  def makePlayerIdCookie(implicit request: RequestHeader): Cookie = {
+  def makePlayerIdCookie()(implicit request: RequestHeader): Cookie = {
     val id = Player.generateAndIssueId
     Cookie(Resources.PlayerIdCookie,
       id, httpOnly = false)

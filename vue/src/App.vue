@@ -1,9 +1,14 @@
 <template>
   <div id="app">
-    <component v-bind:is="dynamicComponent">
-    </component>
+    <lobby v-if="showLobby"></lobby>
+    <gameboard v-else></gameboard>
     <div id="error-wrapper">
-      <b-alert v-if="this.$store.state.errorMessage.length > 0" class="mx-auto" show variant="danger" id="error-button">
+      <b-alert v-if="this.$store.state.errorMessage.length > 0"
+          class="mx-3 mx-md-auto"
+          show
+          variant="danger"
+          id="error-button"
+          fade>
         <h6 class="alert-heading">Error!</h6>
         <p>
           {{this.$store.state.errorMessage}}
@@ -14,9 +19,9 @@
 </template>
 
 <script>
+  // noinspection ES6UnusedImports
   import Vue from 'vue'
-  import Lobby from './components/Lobby.vue'
-  import Gameboard from './components/Gameboard.vue'
+  import Lobby from './components/lobby/Lobby.vue'
   import store from './store'
   import {getCookie, pascalToUnderscore} from './util.js'
   import VueNativeSock from 'vue-native-websocket'
@@ -67,14 +72,35 @@
     }
   });
 
+  const gameboardFactory = () => ({
+    // Use a dynamic import to flag webpack to compile into separate modules
+    component: import('./components/game/Gameboard.vue'),
+    loading: {
+      template: `
+        <b-spinner class="loading-circle" variant="light"></b-spinner>
+      `
+    },
+    error: {
+      template: `
+        <b-alert class="mx-3 mx-auto" show variant="danger" fade>
+          <h6 class="alert-heading">Error!</h6>
+          <p>The game couldn't be loaded properly</p>
+        </b-alert>
+      `
+    },
+    delay: 200,
+    timeout: 3000
+  });
+
   export default {
     name: 'app',
     components: {
-      Lobby, Gameboard
+      'lobby': Lobby,
+      'gameboard': gameboardFactory
     },
     computed: {
-      dynamicComponent() {
-        return this.$store.state.inGameState ? Gameboard : Lobby;
+      showLobby() {
+        return !this.$store.state.inGameState;
       }
     },
     // Pass the store down the virtual DOM tree
@@ -95,5 +121,15 @@
     background-color: #D9534F;
     border-color: #D9534F;
     color: white;
+  }
+
+  .loading-circle {
+    position:absolute;
+    top:50%;
+    left:50%;
+    padding:15px;
+    -ms-transform: translateX(-50%) translateY(-50%);
+    -webkit-transform: translate(-50%,-50%);
+    transform: translate(-50%,-50%);
   }
 </style>

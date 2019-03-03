@@ -101,7 +101,7 @@
   import {
     ADD_PLAYER, SET_CURRENT,
     UPDATE_HOST, UPDATE_IS_HOST
-  } from "../store/mutation-types";
+  } from "../../store/mutation-types";
 
   export default {
     data: function () {

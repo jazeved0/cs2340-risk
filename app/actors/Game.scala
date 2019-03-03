@@ -2,8 +2,8 @@ package actors
 
 import java.io.FileInputStream
 
-import actors.Game.CanBeHosted
-import actors.GameSupervisor.CanHost
+import actors.Game.{CanBeHosted, CanBeJoined}
+import actors.GameSupervisor.{CanHost, CanJoin}
 import akka.actor.{Actor, ActorRef, Cancellable, PoisonPill, Props}
 import common.{Resources, UniqueIdProvider, UniqueValueManager, Util}
 import controllers._
@@ -22,24 +22,20 @@ import scala.language.postfixOps
 object Game extends UniqueIdProvider {
   // Methods for UniqueIdProvider
   override def idLength: Int = Resources.GameIdLength
-
   private val IdCharsSet: Set[Char] = HashSet() ++ Resources.GameIdChars
-
   override protected def generateId(len: Int): String =
     Util.randomString(len, Resources.GameIdChars)
-
   override protected def isIdChar(c: Char): Boolean = IdCharsSet.contains(c)
 
   // Actor factory methods
   def props: Props = Props[Game]
-
   def apply(id: String, hostInfo: PlayerSettings): Props =
     Props({
       new Game(Resources.GameMode, id, hostInfo)
     })
 
   case class CanBeHosted()
-
+  case class CanBeJoined()
 }
 
 /**
@@ -89,12 +85,12 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
   var gameState: GameState = _
 
   def hasInitialHostJoined: Boolean = initialHostSettings.isEmpty
-
   def hasHost: Boolean = host.isEmpty
 
   def startGame() {
     // Send each player a list of players in their turn order with starting
     // armies
+    this.state = GameLobbyState.InGame
     gameState = Resources.GameMode.initializeGameState(players.values.map(_.player).toList)
     val packet = UpdatePlayerState(gameState.playerStates)
     notifyGame(packet)
@@ -104,7 +100,19 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
   // changes and/or outgoing packets (returns partial function)
   override def receive: Receive = {
     case _: CanBeHosted =>
-      sender() ! (if (hasInitialHostJoined) CanHost.Hosted else CanHost.Yes)
+      if (this.state == GameLobbyState.InGame) {
+        sender() ! CanHost.Started
+      } else if (hasInitialHostJoined) {
+        sender() ! CanHost.Hosted
+      } else {
+        sender() ! CanHost.Yes
+      }
+    case _: CanBeJoined =>
+      if (this.state == GameLobbyState.InGame) {
+        sender() ! CanJoin.Started
+      } else {
+        sender() ! CanJoin.Yes
+      }
     case p: GlobalPacket =>
       receiveGlobal(p)
     case p: LobbyPacket =>
@@ -247,7 +255,6 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
         connected.empty
 
         notifyGame(StartGame())
-        this.state = GameLobbyState.InGame
         startGame()
 
       } else {
