@@ -61,10 +61,12 @@ class MainController @Inject()(cached: Cached,
   def make: Action[AnyContent] = Action.async { implicit request =>
     val formValidationResult: Form[PlayerSettings] = Resources.UserForm.bindFromRequest
     formValidationResult.fold(
-      _ => Future[Result](BadRequest("Form submission failed")),
+      _ => Future[Result](ErrorHandler.renderErrorPage(Results.BadRequest,
+        "Form submission failed")),
       userData => {
         if (!PlayerSettings.isValid(userData)) {
-          Future[Result](BadRequest(PlayerSettings.formatInvalid(userData)))
+          Future[Result](ErrorHandler.renderErrorPage(Results.BadRequest,
+            PlayerSettings.formatInvalid(userData)))
         } else {
           val hostInfo = PlayerSettings(userData.name, userData.ordinal)
           (gameSupervisor ? MakeGame(hostInfo)).mapTo[String].map { id =>
@@ -80,9 +82,11 @@ class MainController @Inject()(cached: Cached,
   def host(id: String): Action[AnyContent] = Action.async { implicit request =>
     (gameSupervisor ? CanHost(id)).mapTo[CanHost.Value].map {
       case CanHost.Yes => spaEntryPoint
-      case CanHost.Started => Unauthorized("Game has already started")
+      case CanHost.Started => ErrorHandler.renderErrorPage(Results.Unauthorized,
+        "Game has already started")
       case CanHost.Hosted => Redirect(s"/lobby/$id")
-      case CanHost.InvalidId => BadRequest(s"Invalid app id $id")
+      case CanHost.InvalidId => ErrorHandler.renderErrorPage(Results.NotFound,
+        s"Invalid game id $id")
       case _ => Redirect("/")
     }
   }
@@ -98,8 +102,10 @@ class MainController @Inject()(cached: Cached,
   def lobby(id: String): Action[AnyContent] = Action.async { implicit request =>
     (gameSupervisor ? CanJoin(id)).mapTo[CanJoin.Value].map {
       case CanJoin.Yes => spaEntryPoint
-      case CanJoin.Started => Unauthorized("Game has already started")
-      case CanJoin.InvalidId => BadRequest(s"Invalid app id $id")
+      case CanJoin.Started => ErrorHandler.renderErrorPage(Results.Unauthorized,
+        "Game has already started")
+      case CanJoin.InvalidId => ErrorHandler.renderErrorPage(Results.NotFound,
+        s"Invalid game id $id")
       case _ => Redirect("/")
     }
   }
@@ -109,7 +115,8 @@ class MainController @Inject()(cached: Cached,
     val f = new File(Resources.SpaEntryPoint)
     f match {
       case file if file.exists => Ok.sendFile(file).withCookies(makePlayerIdCookie)
-      case _ => NotFound("Game application not found")
+      case _ => ErrorHandler.renderErrorPage(Results.NotFound,
+        "Game application not found")
     }
   }
 
@@ -124,7 +131,7 @@ class MainController @Inject()(cached: Cached,
   // ERROR HANDLING
   // **************
 
-  //Redirects user to host index page if they do /main by mistake
+  //Redirects user to host index page if they do /lobby by mistake
   def redirectIndex: Action[AnyContent] = Action {
     // redirect to landing page
     Redirect("/")
@@ -140,14 +147,13 @@ class MainController @Inject()(cached: Cached,
 
   def routeFiles(path: String): Action[AnyContent] = Action {
     val file = path match {
-      case p if p.startsWith("static") => new File("public" + path.substring(path.indexOf('/')))
+      case p if p.startsWith("static") =>
+        new File("public" + path.substring(path.indexOf('/')))
       case _ => new File("vue/dist/" + path)
     }
-    if (file.exists) Ok.sendFile(file) else NotFound(s"Can't find $path")
+    if (file.exists) Ok.sendFile(file) else ErrorHandler.renderErrorPage(Results.NotFound,
+      s"Can't find $path")
   }
-
-  // TODO Add pages for error handling (404s, forbidden)
-  // TODO Add page for invalid ID (either POST or GET)
 
   // ***********
   // WEB SOCKETS
@@ -214,5 +220,6 @@ class MainController @Inject()(cached: Cached,
     })
   }
 
-  override def validOrigin(path: String): Boolean = Resources.Origins.exists(path.contains(_))
+  override def validOrigin(path: String): Boolean =
+    Resources.Origins.exists(path.contains(_))
 }

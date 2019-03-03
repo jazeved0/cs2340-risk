@@ -14,7 +14,7 @@
     </template>
     <!--suppress HtmlUnknownBooleanAttribute, XmlUnboundNsPrefix -->
     <template v-slot:modal-footer>
-      <p class="d-none">y</p>
+      <p class="d-none">&nbsp;</p>
       <!-- empty -->
     </template>
     <div>
@@ -159,15 +159,17 @@
             }
           });
           this.hasSubmitted = true;
-          this.$socket.sendObj({
-            _type: 'controllers.RequestPlayerJoin',
-            playerId: this.$store.state.playerId,
-            gameId: this.$store.state.gameId,
-            withSettings: {
-              name: this.currentName,
-              ordinal: this.effectiveSelectedColor
-            }
-          });
+          if (this.$store.state.socket.isConnected) {
+            this.$socket.sendObj({
+              _type: 'controllers.RequestPlayerJoin',
+              playerId: this.$store.state.playerId,
+              gameId: this.$store.state.gameId,
+              withSettings: {
+                name: this.currentName,
+                ordinal: this.effectiveSelectedColor
+              }
+            });
+          }
           // set timeout
           setTimeout(() => {
             if (this.$store.state.responseTarget !== null &&

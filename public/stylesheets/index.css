@@ -1,175 +1,185 @@
 /* Reduced emphasis label for app field */
 .subtext {
-	color: #F5F2F2;
-	font-size: 20px;
-	font-family: Roboto, sans-serif;
-	opacity: 0.88;
+  color: #F5F2F2;
+  font-size: 20px;
+  font-family: Roboto, sans-serif;
+  opacity: 0.88;
 }
 
 /* Font settings for Create game text */
 #heading {
-	color: #362A4D;
-	font-size: 44px;
-	line-height: 42px;
-	font-weight: 200;
-	font-family: Roboto, sans-serif;
-	margin-bottom: 0.8em;
+  color: #362A4D;
+  font-size: 44px;
+  line-height: 42px;
+  font-weight: 200;
+  font-family: Roboto, sans-serif;
+  margin-bottom: 0.8em;
 }
 
 
 /* Primary 'Risk' title font styles */
 .title {
-	color: #F5F2F2;
-	font-size: 90px;
-	font-family: Roboto Slab, serif;
-	font-weight: bold;
-	margin-bottom: 30px;
+  color: #F5F2F2;
+  font-size: 90px;
+  font-family: Roboto Slab, serif;
+  font-weight: bold;
+  margin-bottom: 30px;
 }
 
 /* Main title's subtitle text */
 .subtitle {
-	color: #F5F2F2;
-	font-size: 30px;
-	font-family: Roboto, sans-serif;
-	margin-top: -50px;
-	line-height: 30px;
+  color: #F5F2F2;
+  font-size: 30px;
+  font-family: Roboto, sans-serif;
+  margin-top: -50px;
+  line-height: 30px;
 }
 
 /* Flavor text in the center jumbotron */
 .paragraph1 {
-	color: #F5F2F2;
-	font-size: 17px;
-	font-family: Roboto, sans-serif;
-	opacity: 0.85;
-	margin-bottom: 20px;
+  color: #F5F2F2;
+  font-size: 17px;
+  font-family: Roboto, sans-serif;
+  opacity: 0.85;
+  margin-bottom: 20px;
 }
 
 /* Base whitespace on small screens */
 .background_padding {
-	padding-top: 98px; /* +58.4 px for the nav */
-	padding-bottom: 40px;
+  padding-top: 98px; /* +58.4 px for the nav */
+  padding-bottom: 40px;
 }
 
 /* Base whitespace on small screens */
 .create_game_padding {
-	padding-top: 60px;
-	padding-bottom: 60px;
+  padding-top: 60px;
+  padding-bottom: 60px;
 }
 
 /* Form label font settings */
 .form-label-container p {
-	font-size: 24px;
-	font-family: Roboto, sans-serif;
-	color: #362A4D;
-	margin-bottom: 0;
-	margin-top: 4px;
-	margin-right: -10px;
-	display: inline;
+  font-size: 24px;
+  font-family: Roboto, sans-serif;
+  color: #362A4D;
+  margin-bottom: 0;
+  margin-top: 4px;
+  margin-right: -10px;
+  display: inline;
 }
 
 /* Scale for lg/large(992px wide) devices and larger */
-@media(min-width: 992px) {
-	/* Larger font larger screens */
-	.title {
-		font-size: 108px;
-		margin-bottom: 20px;
-	}
-	/* Larger font larger screens */
-	#heading {
-		font-size: 52px;
-	}
-	/* More whitespace on larger screens */
-	#start_game_window {
-		padding-left: 140px;
-		padding-right: 140px;
-	}
-	/* More whitespace on larger screens */
-	.background_padding {
-		padding-top: 148px; /* +58.4 px for the nav */
-		padding-bottom: 90px;
-	}
-	/* More whitespace on larger screens */
-	.create_game_padding {
-		padding-top: 120px;
-		padding-bottom: 120px;
-	}
-	/* Wider on larger screens */
-	#username_field {
-		width: 360px;
-	}
+@media (min-width: 992px) {
+  /* Larger font larger screens */
+  .title {
+    font-size: 108px;
+    margin-bottom: 20px;
+  }
+
+  /* Larger font larger screens */
+  #heading {
+    font-size: 52px;
+  }
+
+  /* More whitespace on larger screens */
+  #start_game_window {
+    padding-left: 140px;
+    padding-right: 140px;
+  }
+
+  /* More whitespace on larger screens */
+  .background_padding {
+    padding-top: 148px; /* +58.4 px for the nav */
+    padding-bottom: 90px;
+  }
+
+  /* More whitespace on larger screens */
+  .create_game_padding {
+    padding-top: 120px;
+    padding-bottom: 120px;
+  }
+
+  /* Wider on larger screens */
+  #username_field {
+    width: 360px;
+  }
 }
 
 /* Scale for md/medium(768px wide) devices and larger */
-@media(min-width: 768px) {
-	/* More whitespace on larger screens */
-	.create_game_padding {
-		padding-top: 80px;
-		padding-bottom: 80px;
-	}
+@media (min-width: 768px) {
+  /* More whitespace on larger screens */
+  .create_game_padding {
+    padding-top: 80px;
+    padding-bottom: 80px;
+  }
 }
 
 /* Scale for sm/small(576px wide) devices and larger */
-@media(min-width: 576px) {
-	/* Right align form labels */
-	.form-label-container {
-		-webkit-box-orient: horizontal!important;
-		-webkit-box-direction: reverse!important;
-		-ms-flex-direction: row-reverse!important;
-		flex-direction: row-reverse!important;
-	}
-	/* Change alignment of start header */
-	#heading {
-		padding-left: 30px;
-		padding-right: 15px;
-		margin-bottom: 0.4em;
-	}
+@media (min-width: 576px) {
+  /* Right align form labels */
+  .form-label-container {
+    -webkit-box-orient: horizontal !important;
+    -webkit-box-direction: reverse !important;
+    -ms-flex-direction: row-reverse !important;
+    flex-direction: row-reverse !important;
+  }
+
+  /* Change alignment of start header */
+  #heading {
+    padding-left: 30px;
+    padding-right: 15px;
+    margin-bottom: 0.4em;
+  }
 }
 
 /* Modify styling of app field */
 #search_field {
-	text-transform: uppercase;
-	font-weight: 500;
-	background-color: #FFFFFF1A;
-	border-style: none;
-	color: #EEEEEE;
+  text-transform: uppercase;
+  font-weight: 500;
+  background-color: #FFFFFF1A;
+  border-style: none;
+  color: #EEEEEE;
 }
 
 /* Modify placeholder text (esp. in app code box) */
 :-ms-input-placeholder {
-	text-transform: initial;
-	font-weight: initial;
-	color: #BBBBBB!important;
+  text-transform: initial;
+  font-weight: initial;
+  color: #BBBBBB !important;
 }
+
 ::-moz-placeholder {
-	text-transform: initial;
-	font-weight: initial;
-	color: #BBBBBB!important;
+  text-transform: initial;
+  font-weight: initial;
+  color: #BBBBBB !important;
 }
+
 :-moz-placeholder {
-	text-transform: initial;
-	font-weight: initial;
-	color: #BBBBBB!important;
+  text-transform: initial;
+  font-weight: initial;
+  color: #BBBBBB !important;
 }
+
 ::-webkit-input-placeholder {
-	text-transform: initial;
-	font-weight: initial;
-	color: #BBBBBB!important;
+  text-transform: initial;
+  font-weight: initial;
+  color: #BBBBBB !important;
 }
 
 /* Ensure the row divs within the start game forms are 100% wide */
 #start_game_window form div.row {
-	width: 100%;
+  width: 100%;
 }
 
 .form-fix dl, .form-fix dd {
-	margin-bottom: 0;
+  margin-bottom: 0;
 }
+
 .form-fix dl dd.info, .form-fix dl dt label {
-	display: none
+  display: none
 }
 
 /* transition jitter fix */
 .repoImg {
-	position: relative;
-	top: 1px;
+  position: relative;
+  top: 1px;
 }

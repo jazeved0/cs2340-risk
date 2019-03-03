@@ -4,7 +4,7 @@
     <gameboard v-else></gameboard>
     <div id="error-wrapper">
       <b-alert v-if="this.$store.state.errorMessage.length > 0"
-          class="mx-3 mx-md-auto"
+          class="mx-2 mx-sm-auto"
           show
           variant="danger"
           id="error-button"
@@ -117,10 +117,27 @@
   }
 
   #error-button {
-    width: 35%;
     background-color: #D9534F;
     border-color: #D9534F;
     color: white;
+  }
+
+  @media(min-width: 576px) {
+    #error-button {
+      width: 80%;
+    }
+  }
+
+  @media(min-width: 768px) {
+    #error-button {
+      width: 60%;
+    }
+  }
+
+  @media(min-width: 992px) {
+    #error-button {
+      width: 35%;
+    }
   }
 
   .loading-circle {

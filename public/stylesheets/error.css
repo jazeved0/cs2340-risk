@@ -1,0 +1,46 @@
+h1, p, .error-icon {
+  color: #362A4D;
+}
+
+h1 {
+  font-size: 36px;
+  font-family: Roboto Slab, serif;
+}
+
+p {
+  font-size: 18px;
+  font-family: Roboto, sans-serif;
+  opacity: 0.9;
+}
+
+.error-icon {
+  font-size: 40px;
+  margin-right: 8px;
+  position: relative;
+  top: 2px;
+}
+
+@media (max-width: 399px) {
+  h1 {
+    font-size: 28px;
+  }
+
+  p {
+    font-size: 14px;
+  }
+}
+
+.error-container {
+  padding-top: 120px;
+  padding-bottom: 65px;
+}
+
+.nav-title {
+  font-size: 28px;
+  font-family: Roboto, sans-serif;
+  margin-left: 0;
+  color: #F5F2F2;
+  display: inline;
+  position: relative;
+  top: -4px;
+}
