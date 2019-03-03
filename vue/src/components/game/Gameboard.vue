@@ -2,8 +2,8 @@
   <div class="gameboard">
     <nav class="navbar fixed-top navbar-dark bg-dark">
       <h1 style="color:white">RISK</h1>
-      <a class="navbar-brand" href="https://github.gatech.edu/achafos3/CS2340Sp19Team10" target="_blank" rel="noopener">
-        <i class="fab fa-github repoImg pl-2"></i>
+      <a class="navbar-brand" href="https://github.gatech.edu/achafos3/CS2340Sp19Team10" name="github" target="_blank" rel="noopener">
+        <fa-icon :icon="['fab', 'github']" size="lg" class="repoImg pl-2"></fa-icon>
       </a>
     </nav>
     <div :style="{ paddingTop: navHeight + 'px' }">

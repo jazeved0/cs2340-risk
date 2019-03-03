@@ -3,8 +3,8 @@
     <header>
       <nav class="navbar fixed-top navbar-dark bg-dark">
         <div>
-          <a class="navbar-brand" href="https://github.gatech.edu/achafos3/CS2340Sp19Team10" target="_blank" rel="noopener">
-            <i class="fab fa-github repoImg pl-2"></i>
+          <a class="navbar-brand" href="https://github.gatech.edu/achafos3/CS2340Sp19Team10" name="github" target="_blank" rel="noopener">
+            <fa-icon :icon="['fab', 'github']" size="lg" class="repoImg pl-2"></fa-icon>
           </a>
           <p class="nav-title">
             <span class="lobby-label">Lobby </span>
@@ -64,7 +64,7 @@
                 Copied to clipboard
               </div>
               <button slot="reference" v-on:click="copyUrl" id="copy-button">
-                <i class="far fa-copy"></i>
+                <fa-icon :icon="['far', 'copy']"></fa-icon>
               </button>
             </popper>
           </div>
@@ -205,6 +205,7 @@
     font-weight: 200;
     font-family: Roboto, sans-serif;
     margin-left: 0;
+    margin-top: 4px;
     color: #F5F2F2;
     display: inline;
     position: relative;
@@ -263,7 +264,7 @@
       display: inline;
     }
     .nav-title {
-      margin-left: 20px;
+      margin-left: 12px;
     }
 
     .url {

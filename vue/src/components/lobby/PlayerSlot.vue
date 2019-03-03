@@ -5,7 +5,7 @@
     </div>
     <div v-else class="player-slot-outer" v-bind:class="{ current: isCurrent }">
       <div class="d-flex slot">
-        <i class="fas fa-circle" v-bind:style="{ color: color }"></i>
+        <fa-icon class="color-indicator" icon="circle" v-bind:style="{ color: color }"></fa-icon>
         <p>{{ name }}</p>
         <popper class="crown-icon"
             v-if="isHost" trigger="hover"
@@ -17,7 +17,7 @@
             leave-active-class='fade-leave-active'>
           <div class="popper">Lobby host</div>
           <div slot="reference">
-            <i class="fas fa-crown"></i>
+            <fa-icon class="host-indicator shadow" icon="crown"></fa-icon>
           </div>
         </popper>
       </div>
@@ -99,14 +99,20 @@
     overflow-x: hidden;
   }
 
-  .slot i.fa-circle {
+  .color-indicator {
     margin-top: 15px;
     margin-right: 12px;
   }
 
-  .slot .crown-icon {
-    text-shadow: 0 0 5px #FFFFFF30;
-    margin-left: 8px;
+  .host-indicator {
+    margin-top: 12px;
+    margin-left: 12px;
     color: #D9B34F;
+  }
+
+  .shadow {
+    -webkit-filter: drop-shadow(0 0 7px #FFFFFF30);
+    filter: drop-shadow(0 0 7px #FFFFFF30);
+    /* Similar syntax to box-shadow */
   }
 </style>
