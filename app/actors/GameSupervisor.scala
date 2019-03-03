@@ -12,14 +12,19 @@ import scala.collection.mutable
 import scala.concurrent.duration._
 
 object GameSupervisor {
+
   // internal messages from MainController
   case class GameExists(id: String)
+
   case class MakeGame(hostInfo: PlayerSettings)
+
   case class CanHost(id: String)
+
   object CanHost extends Enumeration {
     type CanHost = Value
     val Yes, InvalidId, Hosted = Value
   }
+
 }
 
 /**

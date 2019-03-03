@@ -11,6 +11,7 @@ import scala.util.Random
   */
 class SkirmishGameMode extends GameMode {
   override def assignTurnOrder(players: Seq[Player]): Seq[Player] = Random.shuffle(players)
+
   override def assignInitialArmies(gameState: GameState): Seq[Army] = {
     val armySize = Resources.InitialArmies.getOrElse(gameState.gameSize, 0)
     gameState.turnOrder.map(_ => Army(armySize))

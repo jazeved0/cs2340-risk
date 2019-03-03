@@ -12,9 +12,13 @@ import scala.collection.mutable
   */
 trait UniqueIdProvider {
   def idLength: Int
+
   protected def generateId(len: Int): String
+
   protected def isIdChar(c: Char): Boolean
+
   protected val Ids: mutable.HashSet[String] = new mutable.HashSet()
+
   protected def issueId(id: String) {
     Ids += id
   }
@@ -22,6 +26,7 @@ trait UniqueIdProvider {
   def returnId(id: String) {
     Ids -= id
   }
+
   def generateAndIssueId: String = {
     var id = ""
     do id = generateId(idLength)
@@ -29,10 +34,12 @@ trait UniqueIdProvider {
     issueId(id)
     id
   }
+
   def isValidId(id: String): Boolean =
     id.length == idLength &&
-    id.forall(isIdChar) &&
-    this.contains(id)
+      id.forall(isIdChar) &&
+      this.contains(id)
+
   def contains(id: String): Boolean =
     Ids.contains(id)
 }

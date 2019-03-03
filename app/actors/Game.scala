@@ -22,26 +22,32 @@ import scala.language.postfixOps
 object Game extends UniqueIdProvider {
   // Methods for UniqueIdProvider
   override def idLength: Int = Resources.GameIdLength
+
   private val IdCharsSet: Set[Char] = HashSet() ++ Resources.GameIdChars
+
   override protected def generateId(len: Int): String =
     Util.randomString(len, Resources.GameIdChars)
+
   override protected def isIdChar(c: Char): Boolean = IdCharsSet.contains(c)
 
   // Actor factory methods
   def props: Props = Props[Game]
+
   def apply(id: String, hostInfo: PlayerSettings): Props =
     Props({
       new Game(Resources.GameMode, id, hostInfo)
     })
 
   case class CanBeHosted()
+
 }
 
 /**
   * Game actor that supervises a collection of connected players that
   * may or may not have actually joined
+  *
   * @param gameMode The current game mode of the game lobby
-  * @param id The unique game Id
+  * @param id       The unique game Id
   * @param hostInfo The PlayerSettings of the host
   */
 class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
@@ -64,7 +70,11 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
     mutable.LinkedHashMap[String, PlayerWithActor]()
 
   val stream = new FileInputStream("conf/public.json")
-  val config: String = try { Json.parse(stream).toString} finally { stream.close() }
+  val config: String = try {
+    Json.parse(stream).toString
+  } finally {
+    stream.close()
+  }
 
   // Optional object here stores the scheduler that checks ping times; needs to
   // be here so cancelling it is an option when all players have disconnected
@@ -79,6 +89,7 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
   var gameState: GameState = _
 
   def hasInitialHostJoined: Boolean = initialHostSettings.isEmpty
+
   def hasHost: Boolean = host.isEmpty
 
   def startGame() {
@@ -230,7 +241,7 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
       if (players.size >= Resources.MinimumPlayers) {
         // Request is coming from the host, start game
         connected.foreach(_._2.actor ! PoisonPill)
-        currentResponseTimes.iterator.filter{
+        currentResponseTimes.iterator.filter {
           case (s, _) => connected.keySet.contains(s)
         }.foreach(t => currentResponseTimes.remove(t._1))
         connected.empty
@@ -283,6 +294,7 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
   /**
     * Sends a message to all players connected to the game (connected
     * AND players)
+    *
     * @param exclude Optional player ActorRef to exclude sending the
     *                message to (used when accepting RequestPlayerJoins)
     */

@@ -14,7 +14,7 @@ trait GameMode {
     gameState.playerStates = mutable.Seq[PlayerState](
       (turnOrder zip assignInitialArmies(gameState)).map {
         case (p: Player, a: Army) => PlayerState(p.settings.get, a)
-      }.toList:_*)
+      }.toList: _*)
     gameState
   }
 }

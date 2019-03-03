@@ -24,12 +24,13 @@ import scala.concurrent.{ExecutionContext, Future}
 /**
   * Is the primary router for incoming network messages, whether they be over
   * HTTP or through the WebSocket protocol
-  * @param cached The caching API endpoint
-  * @param cc Implicit component helper
-  * @param config The application's configuration
-  * @param actorSystem The application's single actor system for managing state
+  *
+  * @param cached         The caching API endpoint
+  * @param cc             Implicit component helper
+  * @param config         The application's configuration
+  * @param actorSystem    The application's single actor system for managing state
   * @param gameSupervisor The application's root actor, used to manage games
-  * @param ec Implicit context
+  * @param ec             Implicit context
   */
 class MainController @Inject()(cached: Cached,
                                cc: MessagesControllerComponents,
@@ -37,7 +38,7 @@ class MainController @Inject()(cached: Cached,
                                actorSystem: ActorSystem,
                                @Named("game-supervisor") gameSupervisor: ActorRef)
                               (implicit ec: ExecutionContext)
-    extends MessagesAbstractController(cc) with SameOriginCheck {
+  extends MessagesAbstractController(cc) with SameOriginCheck {
   val logger: Logger = Logger(this.getClass)
   implicit val timeout: Timeout = 5.seconds
 
@@ -80,7 +81,7 @@ class MainController @Inject()(cached: Cached,
     (gameSupervisor ? CanHost(id)).mapTo[CanHost.Value].map {
       case CanHost.Yes =>
         Ok.sendFile(new File("vue/dist/index.html"))
-        .withCookies(makePlayerIdCookie)
+          .withCookies(makePlayerIdCookie)
       case CanHost.InvalidId => BadRequest(s"Invalid app id $id")
       case _ => Redirect("/")
     }
@@ -98,7 +99,7 @@ class MainController @Inject()(cached: Cached,
     (gameSupervisor ? GameExists(id)).mapTo[Boolean].map {
       case true =>
         Ok.sendFile(new File("vue/dist/index.html"))
-        .withCookies(makePlayerIdCookie)
+          .withCookies(makePlayerIdCookie)
       case false => BadRequest(s"Invalid app id $id")
     }
   }
@@ -170,6 +171,7 @@ class MainController @Inject()(cached: Cached,
   }
 
   import controllers.JsonMarshallers._
+
   implicit val messageFlowTransformer: MessageFlowTransformer[InPacket, OutPacket] =
     MessageFlowTransformer.jsonMessageFlowTransformer[InPacket, OutPacket]
   val playerActorSource: Source[OutPacket, ActorRef] =
@@ -178,27 +180,28 @@ class MainController @Inject()(cached: Cached,
   // Builds a flow for each WebSocket connection
   def flow(gameId: String, playerId: String): Flow[InPacket, OutPacket, ActorRef] = {
     Flow.fromGraph(GraphDSL.create(playerActorSource) {
-      implicit builder => playerActor =>
-        import akka.stream.scaladsl.GraphDSL.Implicits._
+      implicit builder =>
+        playerActor =>
+          import akka.stream.scaladsl.GraphDSL.Implicits._
 
-        // Join & Network entry points for InPackets
-        val materialization = builder.materializedValue.map(playerActor =>
-          PlayerConnect(gameId, playerId, playerActor))
-        val incomingRouter: FlowShape[InPacket, InPacket] = builder.add(Flow[InPacket])
+          // Join & Network entry points for InPackets
+          val materialization = builder.materializedValue.map(playerActor =>
+            PlayerConnect(gameId, playerId, playerActor))
+          val incomingRouter: FlowShape[InPacket, InPacket] = builder.add(Flow[InPacket])
 
-        // Merge Join & Network sources
-        val merge = builder.add(Merge[InPacket](2))
-        materialization ~> merge
-        incomingRouter ~> merge
+          // Merge Join & Network sources
+          val merge = builder.add(Merge[InPacket](2))
+          materialization ~> merge
+          incomingRouter ~> merge
 
-        // Output for messages (with default for ones that don't get processed
-        // (dead connection))
-        val gameSupervisorSink = Sink.actorRef[InPacket](gameSupervisor,
-          PlayerDisconnect(gameId, playerId))
-        merge ~> gameSupervisorSink
+          // Output for messages (with default for ones that don't get processed
+          // (dead connection))
+          val gameSupervisorSink = Sink.actorRef[InPacket](gameSupervisor,
+            PlayerDisconnect(gameId, playerId))
+          merge ~> gameSupervisorSink
 
-        // Set the WebSocket points of ingress and egress
-        FlowShape(incomingRouter.in, playerActor.out)
+          // Set the WebSocket points of ingress and egress
+          FlowShape(incomingRouter.in, playerActor.out)
     })
   }
 

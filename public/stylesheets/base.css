@@ -30,17 +30,17 @@ body {
 }
 
 /* Adds translucent 'pane' behind the group */
-#colorButtonGroup {
+.color-button-group {
 	background-color: #362A4D20;
 	border-radius: 4px;
 }
 
 /* Modify spacing of group and then its children */
-#colorButtonGroup div {
+.color-button-group div {
 	padding-left: 10px;
 	padding-right: 10px;
 }
-#colorButtonGroup div label {
+.color-button-group div label {
 	margin: 10px 6px 10px 6px;
 	border-style: none;
 }

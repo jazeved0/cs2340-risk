@@ -12,7 +12,7 @@
         'class -> "form-control md form-control-lg flex-fill mr-3 mb-0",
         'type -> "search", 'maxlength -> Resources.MaxNameLength.toString, 'placeholder -> "",
         'autocapitalize -> "off", 'spellcheck -> "false")
-      <button id="username_button" class="btn btn-primary btn-lg white dark_accent" disabled><span class="d-inline">Start<span class="d-none d-sm-inline"> Lobby</span></span></button>
+      <button id="username_button" class="btn btn-primary btn-lg white dark_accent ml-3 ml-sm-0" disabled><span class="d-inline">Start<span class="d-none d-sm-inline"> Lobby</span></span></button>
     </div>
   </div>
   <div class="row">
@@ -23,7 +23,7 @@
       <dl class=" " id="ordinal_field">
         <dt><label for="ordinal">ordinal</label></dt>
         <dd>
-          <div id="colorButtonGroup" class="btn-group-lg btn-group-toggle" data-toggle="buttons" id="ordinal">
+          <div id="ordinal" class="btn-group-lg btn-group-toggle color-button-group" data-toggle="buttons">
             <div class="d-flex">
             @for(i <- Resources.Colors.indices) {
               <label class="btn-circle btn btn-secondary" onclick="onColorButtonClick('colorButton@i')" id="colorButton@i" style="background-color:#@Resources.Colors(i).hex.toString" for="ordinal_@i">

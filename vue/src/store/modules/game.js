@@ -6,12 +6,12 @@ Vue.use(Vuex);
 
 export default {
   state: {
-    playerStateList: [ ],
+    playerStateList: [],
     hasCurrentTurn: false, //TODO decide whether or not this is needed
     armyAmount: 0 //this one too
   },
   mutations: {
-    [ON_UPDATE_PLAYER_STATE] (state, data) {
+    [ON_UPDATE_PLAYER_STATE](state, data) {
       if ('seq' in data) {
         state.playerStateList = data.seq;
         const index = state.getPlayerIndex();
@@ -34,7 +34,7 @@ export default {
       };
       return state.playerStateList.map(resolveMapping);
     },
-    getPlayerIndex (state, getters, rootState) {
+    getPlayerIndex(state, getters, rootState) {
       if (rootState.current !== "") {
         for (var i = 0; i < rootState.playersList.length; i++) {
           if (rootState.playersList[i].name === rootState.current) {

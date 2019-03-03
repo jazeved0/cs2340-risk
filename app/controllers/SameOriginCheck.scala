@@ -5,12 +5,13 @@ import play.api.mvc.RequestHeader
 
 /**
   * Sourced from https://github.com/playframework/play-scala-websocket-example/
-  *     blob/2.7.x/app/controllers/HomeController.scala
+  * blob/2.7.x/app/controllers/HomeController.scala
   *
   * @author Will Sargent
   */
-trait SameOriginCheck{
+trait SameOriginCheck {
   def logger: Logger
+
   def sameOriginCheck(rh: RequestHeader): Boolean = {
     rh.headers.get("Origin") match {
       case Some(originValue) if validOrigin(originValue) =>
@@ -26,5 +27,6 @@ trait SameOriginCheck{
         false
     }
   }
+
   def validOrigin(origin: String): Boolean
 }
