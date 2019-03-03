@@ -108,7 +108,10 @@
           if (this.takenColors.length === this.colors.length) return -1;
           else {
             const taken = this.takenColors;
-            const available = this.colors.filter(c => !taken.includes(c));
+            let available = [];
+            for (let i = 0; i < this.colors.length; i++) {
+              if (!taken.includes(i)) available.push(i)
+            }
             if (available.length === 0) return -1;
             else return available[0];
           }
