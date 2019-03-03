@@ -1,7 +1,7 @@
 <template>
 	<div class="container">
 		<div class="d-flex flex-wrap">
-			<player-slot class="player-slot" v-for="player in playerList" :key="player.num" v-bind="player"></player-slot>
+			<player-slot class="col-12 col-md-6 col-lg-4 player-slot" v-for="player in playerList" :key="player.num" v-bind="player"></player-slot>
 		</div>
 	</div>
 </template>
@@ -46,11 +46,7 @@
 </script>
 
 <style lang="scss">
-	// aligns each box to take up 1/3 of the flex parent
 	.player-slot {
-		-webkit-box-flex: 0;
-		-ms-flex: 0 0 33.333333%;
-		flex: 0 0 33.333333%;
-		max-width: 33.333333%;
+		padding: 0!important;
 	}
 </style>
