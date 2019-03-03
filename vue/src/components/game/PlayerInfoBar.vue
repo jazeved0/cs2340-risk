@@ -1,8 +1,8 @@
 <template>
   <div class="wrapper">
-    <div v-for="player in this.$store.getters.playerStates" :key='player.name' :style='{color: player.color, opacity: player.currentTurn ? 1 : 0.7, flex: player.currentTurn ? 2 : 1, order: player.turnorder}'>
+    <div v-for="player in this.$store.getters.playerStates" :key='player.name' :style='{color: player.color, opacity: player.currentTurn ? 1 : 0.7, flex: player.currentTurn ? 2 : 1, order: player.turnOrder}'>
       <span v-if="player.currentTurn"> It is {{player.name}}'s turn</span> <br>
-      {{player.turnorder}} <br>
+      {{player.turnOrder}} <br>
       {{player.name}} <br>
       Number of Armies: {{player.armies}} <br>
     </div>

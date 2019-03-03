@@ -2,7 +2,7 @@ package controllers
 
 import akka.actor.ActorRef
 import controllers.RequestResponse.Response
-import game.{Army, PlayerState}
+import game.{Army, Gameboard, PlayerState}
 import models.PlayerSettings
 import play.api.libs.json._
 
@@ -39,6 +39,7 @@ case class StartGame(identity: String = "start") extends OutPacket
 case class UpdatePlayerState(seq: Seq[PlayerState]) extends OutPacket
 case class PingPlayer(identity: String = "ping") extends OutPacket
 case class SendConfig(config: String) extends OutPacket
+case class SendGameboard(gameboard: Gameboard) extends OutPacket
 
 // Response type to the given Request
 object RequestResponse extends Enumeration {
@@ -58,6 +59,7 @@ object JsonMarshallers {
   implicit val playerSettingsW: Writes[PlayerSettings] = Json.writes[PlayerSettings]
   implicit val armyW: Writes[Army] = Json.writes[Army]
   implicit val playerStateW: Writes[PlayerState] = Json.writes[PlayerState]
+  implicit val gameboardW: Writes[Gameboard] = Json.writes[Gameboard]
 
   // Deserializers
   implicit val requestPlayerJoin: Reads[RequestPlayerJoin] = Json.reads[RequestPlayerJoin]
@@ -77,6 +79,7 @@ object JsonMarshallers {
   implicit val updatePlayerState: Writes[UpdatePlayerState] = Json.writes[UpdatePlayerState]
   implicit val pingPlayer: Writes[PingPlayer] = Json.writes[PingPlayer]
   implicit val sendConfig: Writes[SendConfig] = Json.writes[SendConfig]
+  implicit val sendGameboard: Writes[SendGameboard] = Json.writes[SendGameboard]
 
   // Trait marshallers
   implicit val globalPacket: Reads[GlobalPacket] = Json.reads[GlobalPacket]

@@ -1,19 +1,14 @@
 // noinspection ES6UnusedImports
 import Vue from 'vue'
 import Vuex from 'vuex'
-import {ON_UPDATE_PLAYER_STATE} from '.././mutation-types'
+import { ON_UPDATE_PLAYER_STATE, ON_SEND_GAMEBOARD } from '.././mutation-types'
 
 Vue.use(Vuex);
 
 export default {
   state: {
-    playerStateList: [],
-    // TODO sample data, load from websocket
-    territoryPathData: [
-      'M74.49 81.63 46.93 325.63 290.49 338.96 284.71 123.41 122.93 239.85z',
-      'M42.04 117.19 60.27 37.63 83.38 37.63 136.27 198.52 192.71 162.07 131.82 1.19 0.71 10.96z',
-      'm209.6 152.3l-58.22-151.11s111.56-8 81.78 30.67 21.33 44.55 21.33 44.55l22.22 27.9-67.11 47.99z'
-    ],
+    playerStateList: [ ],
+    territoryPathData: [ ],
     hasCurrentTurn: false, //TODO decide whether or not this is needed
     armyAmount: 0 //this one too
   },
@@ -27,6 +22,14 @@ export default {
         }
       }
     },
+    [ON_SEND_GAMEBOARD](state, data) {
+      // TODO load connections
+      if ('gameboard' in data) {
+        if ('pathData' in data.gameboard) {
+          state.territoryPathData = data.gameboard.pathData;
+        }
+      }
+    }
   },
   getters: {
     playerStates(state, getters, rootState) {
@@ -35,7 +38,7 @@ export default {
           name: player.settings.name,
           color: '#' + rootState.settings.settings.colors[player.settings.ordinal],
           armies: player.units.size,
-          turnorder: index,
+          turnOrder: index,
           currentTurn: player.settings.ordinal === 0
         }
       };

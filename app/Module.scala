@@ -43,12 +43,13 @@ class Module @Inject()(environment: Environment, configuration: Configuration)
         config.get[String](Resources.ConfigKeys.GameMode))
         .asSubclass(classOf[GameMode])
         .getDeclaredConstructor().newInstance()
-      val initialArmiesSubConfig: Configuration = configuration.getOptional[Configuration](Resources.ConfigKeys.InitialArmies)
+      val initialArmiesSubConfig: Configuration = configuration.getOptional[Configuration](Resources.ConfigKeys.SkirmishInitialArmies)
         .getOrElse(Configuration.empty)
-      Resources.InitialArmies = initialArmiesSubConfig
+      Resources.SkirmishInitialArmies = initialArmiesSubConfig
         .subKeys
         .map(s => Integer.parseInt(s) -> initialArmiesSubConfig.get[Int](s))
         .toMap
+      Resources.SkirmishTerritories = config.get[Seq[String]](Resources.ConfigKeys.SkirmishTerritories)
     }
   }
 }

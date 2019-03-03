@@ -1,6 +1,6 @@
 package game.mode
 
-import game.{Army, GameState, PlayerState}
+import game.{Army, GameState, Gameboard, PlayerState}
 import models.Player
 
 import scala.collection.mutable
@@ -17,4 +17,6 @@ trait GameMode {
       }.toList: _*)
     gameState
   }
+  // noinspection AbstractValueInTrait
+  val gameboard: Gameboard
 }

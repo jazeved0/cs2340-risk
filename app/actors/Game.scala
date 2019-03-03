@@ -87,13 +87,15 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
   def hasInitialHostJoined: Boolean = initialHostSettings.isEmpty
   def hasHost: Boolean = host.isEmpty
 
-  def startGame() {
+  def startGame(): Unit = {
     // Send each player a list of players in their turn order with starting
     // armies
     this.state = GameLobbyState.InGame
     gameState = Resources.GameMode.initializeGameState(players.values.map(_.player).toList)
-    val packet = UpdatePlayerState(gameState.playerStates)
-    notifyGame(packet)
+    val gameboardPacket = SendGameboard(Resources.GameMode.gameboard)
+    notifyGame(gameboardPacket)
+    val statePacket = UpdatePlayerState(gameState.playerStates)
+    notifyGame(statePacket)
   }
 
   // Receive incoming packets and turn them into internal state
@@ -122,7 +124,7 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
   }
 
   // Handle incoming packets in either state
-  def receiveGlobal(globalPacket: GlobalPacket) {
+  def receiveGlobal(globalPacket: GlobalPacket): Unit = {
     globalPacket match {
       case PlayerDisconnect(_, id: String) => playerDisconnect(id)
       case PingResponse(_, playerId: String) =>
@@ -145,7 +147,7 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
   }
 
   // Handle incoming packets in the lobby state
-  def receiveLobby(lobbyPacket: LobbyPacket) {
+  def receiveLobby(lobbyPacket: LobbyPacket): Unit = {
     lobbyPacket match {
       case PlayerConnect(_, id: String, actor: ActorRef) =>
         playerConnect(id, actor)
@@ -159,20 +161,20 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
   }
 
   // Handle incoming packets during the InGame state
-  def receiveInGame(inGamePacket: InGamePacket) {
+  def receiveInGame(inGamePacket: InGamePacket): Unit = {
     inGamePacket match {
       case p =>
         badPacket(p)
     }
   }
 
-  def playerConnect(playerId: String, actor: ActorRef) {
+  def playerConnect(playerId: String, actor: ActorRef): Unit = {
     if (players.get(playerId).isEmpty && connected.get(playerId).isEmpty) {
       actor ! SendConfig(config)
 
       if (!hasInitialHostJoined) {
         // Add the initial host to the list of players
-        val player = PlayerWithActor(Player(playerId, initialHostSettings), actor)
+        val player = PlayerWithActor(playerId, Player(initialHostSettings), actor)
         players += playerId -> player
         host = Some(player)
         add(initialHostSettings.get)
@@ -188,7 +190,7 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
                 playerOption.foreach { p =>
                   if (Math.abs(pair._2 - System.currentTimeMillis()) > Resources.PingTimeout.toMillis) {
                     p.actor ! PoisonPill
-                    playerDisconnect(p.player.id)
+                    playerDisconnect(p.id)
                     currentResponseTimes -= pair._1
                   }
                 }
@@ -202,7 +204,7 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
         notifyGame(constructGameUpdate)
       } else {
         // Send current lobby information
-        connected += playerId -> PlayerWithActor(Player(playerId), actor)
+        connected += playerId -> PlayerWithActor(playerId, Player.apply, actor)
         currentResponseTimes += playerId -> System.currentTimeMillis()
         actor ! constructGameUpdate
       }
@@ -214,7 +216,7 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
     }
   }
 
-  def requestPlayerJoin(playerId: String, withSettings: PlayerSettings) {
+  def requestPlayerJoin(playerId: String, withSettings: PlayerSettings): Unit = {
     if (connected.isDefinedAt(playerId)) {
       if (!PlayerSettings.isValid(withSettings)) {
         // Reject with response
@@ -232,7 +234,7 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
       } else {
         val player = connected(playerId)
         connected -= playerId
-        val newPlayer = PlayerWithActor(Player(playerId, Some(withSettings)), player.actor)
+        val newPlayer = PlayerWithActor(playerId, Player(Some(withSettings)), player.actor)
         players += playerId -> newPlayer
         add(withSettings)
         if (host.isEmpty) host = Some(newPlayer)
@@ -244,8 +246,8 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
     }
   }
 
-  def requestStartGame(playerId: String) {
-    if (host.exists(_.player.id == playerId)) {
+  def requestStartGame(playerId: String): Unit = {
+    if (host.exists(_.id == playerId)) {
       if (players.size >= Resources.MinimumPlayers) {
         // Request is coming from the host, start game
         connected.foreach(_._2.actor ! PoisonPill)
@@ -272,12 +274,12 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
     }
   }
 
-  def playerDisconnect(playerId: String) {
+  def playerDisconnect(playerId: String): Unit = {
     currentResponseTimes -= playerId
     this.state match {
       case GameLobbyState.Lobby =>
         if (players.isDefinedAt(playerId)) {
-          if (host.exists(_.player.id == playerId)) {
+          if (host.exists(_.id == playerId)) {
             // Host disconnecting
             removePlayer(playerId)
             // Promote the first-joined player to host if there is one
@@ -305,7 +307,7 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
     * @param exclude Optional player ActorRef to exclude sending the
     *                message to (used when accepting RequestPlayerJoins)
     */
-  def notifyGame(packet: OutPacket, exclude: Option[ActorRef] = None) {
+  def notifyGame(packet: OutPacket, exclude: Option[ActorRef] = None): Unit = {
     (players.valuesIterator ++ connected.valuesIterator)
       .filter(exclude.isEmpty || _.actor != exclude.get)
       .foreach(_.actor ! packet)
