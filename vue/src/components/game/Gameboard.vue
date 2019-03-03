@@ -6,7 +6,14 @@
         <i class="fab fa-github repoImg pl-2"></i>
       </a>
     </nav>
-    <img src="https://derekmeetsworld.files.wordpress.com/2016/12/world-domination-game-board-2-1-1.jpg">
+    <div :style="{ paddingTop: navHeight + 'px' }">
+      <v-stage :config="configKonva">
+        <v-layer>
+          <v-circle :config="configCircle">
+          </v-circle>
+        </v-layer>
+      </v-stage>
+    </div>
     <player-info-bar>
     </player-info-bar>
   </div>
@@ -14,10 +21,32 @@
 
 <script>
   import PlayerInfoBar from './PlayerInfoBar.vue'
+  import VueKonva from 'vue-konva';
+  // noinspection ES6UnusedImports
+  import Vue from "vue";
+
+  Vue.use(VueKonva);
 
   export default {
     components: {
       'player-info-bar': PlayerInfoBar
+    },
+    data() {
+      return {
+        configKonva: {
+          width: 200,
+          height: 200
+        },
+        configCircle: {
+          x: 100,
+          y: 100,
+          radius: 70,
+          fill: "red",
+          stroke: "black",
+          strokeWidth: 4
+        },
+        navHeight: 62
+      };
     }
   }
 </script>
