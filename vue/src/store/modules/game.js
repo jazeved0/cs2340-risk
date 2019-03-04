@@ -1,14 +1,21 @@
 // noinspection ES6UnusedImports
 import Vue from 'vue'
 import Vuex from 'vuex'
-import { ON_UPDATE_PLAYER_STATE, ON_SEND_GAMEBOARD } from '.././mutation-types'
+import {ON_SEND_GAMEBOARD, ON_UPDATE_PLAYER_STATE} from '.././mutation-types'
 
 Vue.use(Vuex);
 
 export default {
   state: {
-    playerStateList: [ ],
-    territoryPathData: [ ],
+    playerStateList: [],
+    gameboard: {
+      nodeCount: 0,
+      pathData: [],
+      waterConnections: [],
+      centers: [],
+      regions: [],
+      territories: []
+    },
     hasCurrentTurn: false, //TODO decide whether or not this is needed
     armyAmount: 0 //this one too
   },
@@ -23,11 +30,13 @@ export default {
       }
     },
     [ON_SEND_GAMEBOARD](state, data) {
-      // TODO load connections
       if ('gameboard' in data) {
-        if ('pathData' in data.gameboard) {
-          state.territoryPathData = data.gameboard.pathData;
-        }
+        state.gameboard.nodeCount = data.gameboard.nodeCount;
+        state.gameboard.pathData = data.gameboard.pathData;
+        state.gameboard.centers = data.gameboard.centers;
+        state.gameboard.regions = data.gameboard.regions;
+        state.gameboard.waterConnections = data.gameboard.waterConnections;
+        state.gameboard.territories = data.gameboard.territories;
       }
     }
   },

@@ -12,23 +12,6 @@
           </p>
         </div>
         <div class="height-fix"></div>
-        <popper v-if="this.$store.state.isHost"
-            trigger="hover"
-            :options="{placement: 'bottom'}"
-            transition="fade"
-            enter-active-class='fade-enter-active'
-            leave-active-class='fade-leave-active'>
-          <div class="popper">
-            {{ startTooltip }}
-          </div>
-          <button slot="reference"
-              :disabled="!canStart"
-              id="search_button"
-              v-on:click="startGame"
-              class="btn btn-primary my-2 my-sm-0 mr-2 white dark_accent">
-            Start Game
-          </button>
-        </popper>
       </nav>
     </header>
     <main>
@@ -71,6 +54,25 @@
           <div class="d-flex align-justify-center url-subtext d-md-none">
             <!-- Small screens or smaller -->
             <p>Tap the above link to copy it</p>
+          </div>
+          <div v-if="this.$store.state.isHost" class="d-flex align-justify-center my-2">
+            <popper
+                trigger="hover"
+                :options="{placement: 'bottom'}"
+                transition="fade"
+                enter-active-class='fade-enter-active'
+                leave-active-class='fade-leave-active'>
+              <div class="popper">
+                {{ startTooltip }}
+              </div>
+              <button slot="reference"
+                  :disabled="!canStart"
+                  id="search_button"
+                  v-on:click="startGame"
+                  class="btn btn-primary my-2 my-sm-0 mr-2 white dark_accent">
+                {{ buttonText }}
+              </button>
+            </popper>
           </div>
         </div>
       </div>
@@ -171,6 +173,9 @@
       takenNames: function () {
         // List of taken names
         return this.$store.state.playersList.map((player) => player.name);
+      },
+      buttonText: function () {
+        return this.canStart ? 'Start Game' : 'Waiting for Players';
       }
     }
   }
@@ -209,7 +214,6 @@
     color: #F5F2F2;
     display: inline;
     position: relative;
-    top: -4px;
   }
 
   .nav-title span:not(.lobby-label) {

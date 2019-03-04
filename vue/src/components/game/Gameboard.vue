@@ -9,6 +9,11 @@
     <div :style="{ paddingTop: navHeight + 'px' }">
       <v-stage :config="configKonva">
         <v-layer>
+          <v-line v-for="waterConnection in waterConnectionConfigs"
+              :key="waterConnection.num"
+              :config="waterConnection"></v-line>
+        </v-layer>
+        <v-layer>
           <v-path v-for="pathConfig in pathConfigs"
               :key="pathConfig.num"
               :config="pathConfig"
@@ -27,6 +32,7 @@
   import VueKonva from 'vue-konva';
   // noinspection ES6UnusedImports
   import Vue from "vue";
+  import {ColorLuminance} from './../../util'
 
   Vue.use(VueKonva);
 
@@ -37,16 +43,54 @@
     computed: {
       pathConfigs: function () {
         const mouseOver = this.mouseOver;
-        return this.$store.state.game.territoryPathData.map(function(item, index) {
+        const base = this.base;
+        const state = this.$store.state;
+        return state.game.gameboard.pathData.map(function(item, index) {
+          const region = state.game.gameboard.regions.findIndex(r => r.includes(index));
+          let color = 'lightgray';
+          if (state.settings.settings.territoryColors.length > region) {
+            color = state.settings.settings.territoryColors[region];
+          }
           return {
-            x: 40,
-            y: 40,
+            x: base[0],
+            y: base[1],
             data: item,
-            fill: mouseOver === index ? 'white' : 'lightgray',
+            fill: mouseOver === index ? ColorLuminance(color, 0.2) : ('#' + color),
             scale: {
               x: 1,
               y: 1
             },
+            shadowBlur: 10,
+            num: index
+          };
+        });
+      },
+      waterConnectionConfigs: function () {
+        const gameState = this.$store.state.game;
+        const base = this.base;
+        return gameState.gameboard.waterConnections.map(function(item, index) {
+          const node1 = gameState.gameboard.centers[item.a];
+          const node2 = gameState.gameboard.centers[item.b];
+          let bezier = item.bz;
+          let tension = item.tension;
+          let points = [node1[0], node1[1]];
+          if (item.midpoints.length > 0) {
+            item.midpoints.forEach(function(point) {
+              points.push(point[0]);
+              points.push(point[1])
+            });
+          }
+          points.push(node2[0], node2[1]);
+          return {
+            x: base[0],
+            y: base[1],
+            points: points,
+            bezier: bezier,
+            tension: tension,
+            strokeWidth: 3,
+            stroke: 'white',
+            dash: [6, 6],
+            opacity: 0.7,
             num: index
           };
         });
@@ -63,11 +107,12 @@
     data() {
       return {
         configKonva: {
-          width: 400,
-          height: 500
+          width: 1200,
+          height: 800
         },
         mouseOver: -1,
-        navHeight: 62
+        navHeight: 62,
+        base: [40, 40]
       };
     }
   }

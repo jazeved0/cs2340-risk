@@ -1,16 +1,21 @@
+import java.util
+
 import actors.GameSupervisor
 import com.google.inject.{AbstractModule, Inject}
+import com.typesafe.config.{Config, ConfigObject}
 import common.Resources
 import game.mode.GameMode
+import game.{Connection, Gameboard, Territory}
 import models.Color
 import play.api.libs.concurrent.AkkaGuiceSupport
 import play.api.{Configuration, Environment}
 
+import scala.collection.JavaConverters._
 import scala.concurrent.duration.FiniteDuration
 
 class Module @Inject()(environment: Environment, configuration: Configuration)
   extends AbstractModule with AkkaGuiceSupport {
-  override def configure() {
+  override def configure(): Unit = {
     // Create root actor and bind it for DI
     bindActor[GameSupervisor]("game-supervisor")
 
@@ -43,13 +48,91 @@ class Module @Inject()(environment: Environment, configuration: Configuration)
         config.get[String](Resources.ConfigKeys.GameMode))
         .asSubclass(classOf[GameMode])
         .getDeclaredConstructor().newInstance()
-      val initialArmiesSubConfig: Configuration = configuration.getOptional[Configuration](Resources.ConfigKeys.SkirmishInitialArmies)
+      val initialArmiesSubConfig: Configuration = configuration
+        .getOptional[Configuration](Resources.ConfigKeys.SkirmishInitialArmies)
         .getOrElse(Configuration.empty)
       Resources.SkirmishInitialArmies = initialArmiesSubConfig
         .subKeys
         .map(s => Integer.parseInt(s) -> initialArmiesSubConfig.get[Int](s))
         .toMap
-      Resources.SkirmishTerritories = config.get[Seq[String]](Resources.ConfigKeys.SkirmishTerritories)
+      Resources.SkirmishGameboard = loadGameboard(loadOrThrow(
+        configuration.getOptional[Configuration](Resources.ConfigKeys.SkirmishGameboard),
+        Resources.ConfigKeys.SkirmishGameboard))
     }
   }
+
+  def loadGameboard(configuration: Configuration): Gameboard = {
+    val nodeCount: Int = configuration.get[Int]("nodeCount")
+
+    val waterConnections: Seq[Connection] = toList(configuration.underlying.getObjectList("waterConnections"))
+      .map(parseConnection)
+    val regions: Seq[Range] = toList(configuration.underlying.getObjectList("regions"))
+      .map { configObject =>
+        configObject.getInt("a") to configObject.getInt("b")
+      }
+    val nodeList: Seq[Config] = toList(configuration.underlying.getObjectList("nodes")).sortWith(
+      (c1: Config, c2: Config) => c1.getInt("node") < c2.getInt("node"))
+    val nodeData: Seq[String] = nodeList.map { configObject =>
+      configObject.getString("data")
+    }
+    val centers: Seq[(Float, Float)] = nodeList.map { configObject =>
+      (configObject.getDouble("center.x").toFloat, configObject.getDouble("center.y").toFloat)
+    }
+    val edgeList: Seq[(Int, Int)] = getAbTuples(configuration, "edges")
+    val territories: Seq[Territory] = (0 until nodeCount).map { i =>
+      Territory(edgeList
+        .filter(t => t._1 == i || t._2 == i)
+        .map(t => if (i == t._1) t._2 else t._1)
+        .toSet)
+    }
+    Gameboard(nodeCount, nodeData, centers, regions, waterConnections, territories)
+  }
+
+  def parseConnection(configObject: Config): Connection = {
+    val midpoints: Seq[(Float, Float)] =
+      if (configObject.hasPath("midpoints"))
+        configObject.getAnyRefList("midpoints").asScala.toList.map {
+          case l: util.ArrayList[_] =>
+            (toFloatOrElse(l.get(0)), toFloatOrElse(l.get(1)))
+          case _ => (0f, 0f)
+        }
+      else Nil
+    val bezier: Boolean =
+      if (configObject.hasPath("bz"))
+        configObject.getBoolean("bz")
+      else false
+    val tension: Float =
+      if (configObject.hasPath("tension"))
+        configObject.getDouble("tension").toFloat
+      else 0
+
+    Connection(
+      configObject.getInt("a"), configObject.getInt("b"),
+      midpoints, bezier, tension)
+  }
+
+  def toFloatOrElse(in: Any, defaultVal: Float = 0): Float = {
+    in match {
+      case d: Double => d.toFloat
+      case s: String => s.toFloat
+      case f: Float => f
+      case _ => defaultVal
+    }
+  }
+
+  def getAbTuples(configuration: Configuration, key: String): Seq[(Int, Int)] = {
+    toList(configuration.underlying.getObjectList(key)).map { configObject =>
+      (configObject.getInt("a"), configObject.getInt("b"))
+    }
+  }
+
+  def toList(jList: java.util.List[_ <: ConfigObject]): Seq[Config] = {
+    val l = jList.asScala.toList
+    l.map(item => {
+      item.toConfig
+    })
+  }
+
+  def loadOrThrow[A](oa: Option[A], key: String): A =
+    oa.getOrElse(throw new RuntimeException(s"Key $key not found"))
 }

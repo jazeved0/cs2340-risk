@@ -15,6 +15,5 @@ class SkirmishGameMode extends GameMode {
     val armySize = Resources.SkirmishInitialArmies.getOrElse(gameState.gameSize, 0)
     gameState.turnOrder.map(_ => Army(armySize))
   }
-
-  lazy override val gameboard: Gameboard = Gameboard(Resources.SkirmishTerritories)
+  lazy override val gameboard: Gameboard = Resources.SkirmishGameboard
 }

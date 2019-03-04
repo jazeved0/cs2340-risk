@@ -1,6 +1,7 @@
 package common
 
 import controllers.routes
+import game.Gameboard
 import game.mode.GameMode
 import models.{Color, PlayerSettings}
 import play.api.data.Form
@@ -49,7 +50,7 @@ object Resources {
     val MinimumPlayers = "app.gameplay.minPlayers"
     val MaximumPlayers = "app.gameplay.maxPlayers"
     val SkirmishInitialArmies = "app.gameplay.skirmish.initialArmies"
-    var SkirmishTerritories = "app.gameplay.skirmish.territories"
+    var SkirmishGameboard = "app.gameplay.skirmish.gameboard"
   }
 
   // ********************
@@ -80,5 +81,5 @@ object Resources {
   var MinimumPlayers: Int = _
   var MaximumPlayers: Int = _
   var SkirmishInitialArmies: Map[Int, Int] = _
-  var SkirmishTerritories: Seq[String] = _
+  var SkirmishGameboard: Gameboard = _
 }

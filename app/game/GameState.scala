@@ -9,6 +9,6 @@ import scala.collection.mutable
   */
 class GameState(var turnOrder: Seq[Player]) {
   var playerStates: mutable.Seq[PlayerState] = _
-
+  var territories: mutable.Seq[Territory] = _
   def gameSize: Int = turnOrder.length
 }
