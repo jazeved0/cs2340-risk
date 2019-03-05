@@ -14,7 +14,8 @@ export default {
       waterConnections: [],
       centers: [],
       regions: [],
-      territories: []
+      territories: [],
+      size: []
     },
     hasCurrentTurn: false, //TODO decide whether or not this is needed
     armyAmount: 0 //this one too
@@ -37,6 +38,7 @@ export default {
         state.gameboard.regions = data.gameboard.regions;
         state.gameboard.waterConnections = data.gameboard.waterConnections;
         state.gameboard.territories = data.gameboard.territories;
+        state.gameboard.size = data.gameboard.size;
       }
     }
   },

@@ -53,14 +53,14 @@
     border-style: solid;
     border-radius: 8px;
     border-width: 2px;
-    border-color: #FFFFFF00;
+    border-color: rgba(255, 255, 255, 0.0);
   }
 
   .player-slot-outer.current {
-    background-color: #D9B34F0A;
+    background-color: rgba(217, 179, 79, 0.03);
     border-style: dashed;
     border-width: 2px;
-    border-color: #D9B34FB0;
+    border-color: rgba(217, 179, 79, 0.69);
   }
 
   .player-slot-outer.placeholder {
@@ -111,8 +111,8 @@
   }
 
   .shadow {
-    -webkit-filter: drop-shadow(0 0 7px #FFFFFF30);
-    filter: drop-shadow(0 0 7px #FFFFFF30);
+    -webkit-filter: drop-shadow(0 0 7px rgba(255, 255, 255, .18));
+    filter: drop-shadow(0 0 7px rgba(255, 255, 255, .18));
     /* Similar syntax to box-shadow */
   }
 </style>

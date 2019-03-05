@@ -85,7 +85,8 @@ class Module @Inject()(environment: Environment, configuration: Configuration)
         .map(t => if (i == t._1) t._2 else t._1)
         .toSet)
     }
-    Gameboard(nodeCount, nodeData, centers, regions, waterConnections, territories)
+    val size: (Int, Int) = (configuration.get[Int]("size.a"), configuration.get[Int]("size.b"))
+    Gameboard(nodeCount, nodeData, centers, regions, waterConnections, territories, size)
   }
 
   def parseConnection(configObject: Config): Connection = {

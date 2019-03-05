@@ -6,4 +6,5 @@ case class Gameboard(nodeCount: Int,
                      centers: Seq[(Float, Float)],
                      regions: Seq[Range],
                      waterConnections: Seq[Connection],
-                     territories: Seq[Territory])
+                     territories: Seq[Territory],
+                     size: (Int, Int))

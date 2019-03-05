@@ -14,6 +14,7 @@ html {
 	margin: 0;
 	height: 100%;
 	width: 100%;
+	background-color: #362A4D;
 }
 
 body {
@@ -43,7 +44,7 @@ body {
 
 /* Adds translucent 'pane' behind the group */
 #colorButtonGroup {
-	background-color: #362A4D20;
+	background-color: rgba(54, 42, 77, .12);
 	border-radius: 4px;
 }
 
@@ -87,7 +88,7 @@ body {
 /* Modify padding and add shadow to nav, color */
 nav {
 	padding: .2rem 1rem !important;
-	box-shadow: 0 0 72px #00000060;
+	box-shadow: 0 0 72px rgba(0, 0, 0, 0.37);
 }
 
 /* Striped background */
@@ -101,5 +102,5 @@ nav {
 .light-background-container {
 	background-color: #EBEAEE;
 	z-index: 10;
-	box-shadow: 0 0 72px #00000060;
+	box-shadow: 0 0 72px rgba(0, 0, 0, 0.37);
 }

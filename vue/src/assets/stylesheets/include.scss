@@ -1,0 +1,33 @@
+// Common include file
+
+$light-shades: #F5F2F2;
+$light-accent: #D9B34F;
+$primary: #9793C7;
+$dark-accent: #5B78BB;
+$dark-shades: #362A4D;
+$darker-shades: #1F192B;
+
+// Font stacks
+
+$roboto-font: "Roboto", "Franklin Gothic Medium", "Open Sans", "Droid Sans", "Avenir", Tahoma, sans-serif;
+$roboto-slab-font: "Roboto Slab", "Segoe UI", Candara, "Bitstream Vera Sans", "DejaVu Sans", "Bitstream Vera Sans", Verdana, "Verdana Ref", sans-serif;
+
+// Styles
+
+.frosted-glass-dark {
+	background-color: rgba($darker-shades, .8);
+}
+@supports ((-webkit-backdrop-filter: blur(1em)) or (backdrop-filter: blur(1em))) {
+	.frosted-glass-dark {
+		background-color: rgba($darker-shades, .5);
+		-webkit-backdrop-filter: blur(1em);
+		backdrop-filter: blur(1em);
+	}
+}
+.frosted-glass-dark hr {
+	border-top: 1px solid rgba($light-shades, 0.25);
+}
+
+// Measurements
+
+$card-corner-radius: 8px;

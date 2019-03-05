@@ -109,6 +109,10 @@
 </script>
 
 <style lang="scss">
+  #app {
+    min-height: 100%;
+  }
+
   #error-wrapper {
     position: absolute;
     top: 2%;

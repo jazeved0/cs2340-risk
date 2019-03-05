@@ -1,40 +1,65 @@
 <template>
-  <div class="wrapper">
-    <div v-for="player in this.$store.getters.playerStates" :key='player.name' :style='{color: player.color, opacity: player.currentTurn ? 1 : 0.7, flex: player.currentTurn ? 2 : 1, order: player.turnOrder}'>
-      <span v-if="player.currentTurn"> It is {{player.name}}'s turn</span> <br>
-      {{player.turnOrder}} <br>
-      {{player.name}} <br>
-      Number of Armies: {{player.armies}} <br>
+  <div class="d-flex outer-info-bar" style="width: 100%">
+    <div class="flex-fill d-flex flex-row-reverse">
+      <div v-for="player in this.$store.getters.playerStates"
+          :key='player.name'
+          class="info-card frosted-glass-dark">
+        <div class="d-flex">
+          <fa-icon class="color" icon="circle" v-bind:style="{ color: player.color }"></fa-icon>
+          <p class="name mb-2">
+            {{ player.name }}
+          </p>
+        </div>
+        <hr class="mt-1">
+      </div>
     </div>
   </div>
 </template>
+
 <script>
-  export default {}
+  export default {
+    props: {
+      overdraw: Number
+    }
+  }
 </script>
+
 <style lang="scss">
-  .wrapper {
-    display: flex;
-    font-family: 'Roboto', sans-serif;
-    font-size: 1.4em;
+  @import '../../assets/stylesheets/include';
+  $card-margin: 6px;
+
+  .outer-info-bar {
+    width: 100%;
+    margin-left: -$card-margin;
+    margin-right: -$card-margin;
+    pointer-events: none;
   }
 
-  /* .wrapper > div:nth-child(even) {
-      background: repeating-linear-gradient(
-      45deg,
-      #606dbc,
-      #606dbc 10px,
-      #465298 10px,
-      #465298 20px
-      );
-  } */
+  .info-card {
+    color: $light-shades;
+    font-family: $roboto-font;
+    border-top-right-radius: $card-corner-radius;
+    border-top-left-radius: $card-corner-radius;
+    padding: 24px;
+    margin-left: $card-margin;
+    margin-right: $card-margin;
+    pointer-events: initial;
 
-  .wrapper div {
-    background-color: #BBBBBB;
-    text-align: center;
-    border: 10px double #d9b34f;
+    -webkit-flex-grow: 1;
+    flex-grow: 1;
+    min-width: 100px;
+    max-width: 320px;
+    height: 200px;
+    overflow: hidden;
   }
 
-  .wrapper span {
-    font-size: 1.5em;
+  .info-card .name {
+    font-size: 24px;
+    font-family: $roboto-slab-font;
+  }
+
+  .info-card .color {
+    margin-top: 10px;
+    margin-right: 12px;
   }
 </style>

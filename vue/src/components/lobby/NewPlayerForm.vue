@@ -213,7 +213,7 @@
     // noinspection CssUnknownTarget
     background-image: url("/static/images/disabledPattern.svg");
     background-size: 150px;
-    border: 1px solid #77777780 !important;
+    border: 1px solid rgba(119, 119, 119, 0.5) !important;
     opacity: 0.4;
     -webkit-transition: opacity 0.2s;
     transition: opacity 0.2s;
