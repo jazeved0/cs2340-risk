@@ -1,11 +1,10 @@
 <template>
   <div class="gameboard">
-    <nav class="navbar fixed-top navbar-dark bg-dark">
-      <h1 style="color:white">RISK</h1>
-      <a class="navbar-brand" href="https://github.gatech.edu/achafos3/CS2340Sp19Team10" name="github" target="_blank" rel="noopener">
-        <fa-icon :icon="['fab', 'github']" size="lg" class="repoImg pl-2"></fa-icon>
-      </a>
-    </nav>
+    <tool-bar>
+      <span slot="left-element">
+        <h1 style="color:white">RISK</h1>
+      </span>
+    </tool-bar>
     <div :style="{ paddingTop: navHeight + 'px' }" class="full-height d-flex flex-column">
       <div class="flex-fill stage-wrapper" ref="stageWrapper">
         <v-stage :config="stageConfig" ref="stage">
@@ -31,6 +30,7 @@
 
 <script>
   import PlayerInfoBar from './PlayerInfoBar.vue'
+  import Toolbar from './../Toolbar'
   import VueKonva from 'vue-konva';
   // noinspection ES6UnusedImports
   import Vue from "vue";
@@ -40,6 +40,7 @@
 
   export default {
     components: {
+      'tool-bar': Toolbar,
       'player-info-bar': PlayerInfoBar
     },
     computed: {

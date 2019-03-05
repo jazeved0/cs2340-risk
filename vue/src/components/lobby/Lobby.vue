@@ -1,18 +1,12 @@
 <template>
   <div>
     <header>
-      <nav class="navbar fixed-top navbar-dark bg-dark">
-        <div>
-          <a class="navbar-brand" href="https://github.gatech.edu/achafos3/CS2340Sp19Team10" name="github" target="_blank" rel="noopener">
-            <fa-icon :icon="['fab', 'github']" size="lg" class="repoImg pl-2"></fa-icon>
-          </a>
-          <p class="nav-title">
-            <span class="lobby-label">Lobby </span>
-            <span>{{ this.$store.state.gameId }}</span>
-          </p>
-        </div>
-        <div class="height-fix"></div>
-      </nav>
+      <tool-bar>
+        <p class="nav-title" slot="left-element">
+          <span class="lobby-label">Lobby </span>
+          <span>{{ this.$store.state.gameId }}</span>
+        </p>
+      </tool-bar>
     </header>
     <main>
       <div class="light-background-container">
@@ -99,11 +93,13 @@
 <script>
   import PlayerList from './PlayerList.vue';
   import Popper from 'vue-popperjs';
+  import Toolbar from './../Toolbar.vue';
   import NewPlayerForm from './NewPlayerForm';
   import {
     ADD_PLAYER, SET_CURRENT,
     UPDATE_HOST, UPDATE_IS_HOST
   } from "../../store/mutation-types";
+  import ToolBar from "../Toolbar";
 
   export default {
     data: function () {
@@ -113,6 +109,7 @@
       }
     },
     components: {
+      'tool-bar' : ToolBar,
       'player-list': PlayerList,
       'popper': Popper,
       'new-player-form': NewPlayerForm
