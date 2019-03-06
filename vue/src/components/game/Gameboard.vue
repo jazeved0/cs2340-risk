@@ -101,21 +101,6 @@
           draggable: true,
           dragBoundFunc: (pos) => this.clampPosition(pos)
         }
-      },
-      scaleBounds: function () {
-        return {
-          min: 0.8,
-          max: 5
-        }
-      },
-      positionBounds: function () {
-        const scale = this.stageObj.scale();
-        const bounds = this.stageDimensions;
-        const size = this.$store.state.game.gameboard.size;
-        return {
-          x: this.axisBounds(size[0] * scale.x, bounds.w),
-          y: this.axisBounds(size[1] * scale.y, bounds.h)
-        };
       }
     },
     methods: {
@@ -236,11 +221,20 @@
         return clamp(scale, this.scaleBounds.min, this.scaleBounds.max);
       },
       clampPosition: function (pos) {
-        const bounds = this.positionBounds;
+        const bounds = this.calculatePositionBounds();
         return {
           x: clamp(pos.x, bounds.x.min, bounds.x.max),
           y: clamp(pos.y, bounds.y.min, bounds.y.max)
         }
+      },
+      calculatePositionBounds: function () {
+        const scale = this.stageObj.scale();
+        const bounds = this.stageDimensions;
+        const size = this.$store.state.game.gameboard.size;
+        return {
+          x: this.axisBounds(size[0] * scale.x, bounds.w),
+          y: this.axisBounds(size[1] * scale.y, bounds.h)
+        };
       },
       axisBounds: function (size, bound) {
         return (size < bound) ? {
@@ -288,6 +282,10 @@
         touchState: {
           lastDist: 0,
           point: undefined
+        },
+        scaleBounds: {
+          min: 0.8,
+          max: 5
         }
       };
     },
@@ -315,6 +313,7 @@
           });
           this.stageObj.x(initialTransform.x);
           this.stageObj.y(initialTransform.y);
+          this.scaleBounds = Math.min(scaleBounds, initialTransform.scale);
         }
       })
     },
