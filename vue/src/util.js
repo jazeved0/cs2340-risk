@@ -27,7 +27,7 @@ export const ColorLuminance = (hex, lum) => {
   }
   lum = lum || 0;
   // convert to decimal and change luminosity
-  var rgb = "#", c, i;
+  let rgb = "#", c, i;
   for (i = 0; i < 3; i++) {
     c = parseInt(hex.substr(i*2,2), 16);
     c = Math.round(Math.min(Math.max(0, c + (c * lum)), 255)).toString(16);
@@ -38,4 +38,8 @@ export const ColorLuminance = (hex, lum) => {
 
 export const distance = (p1, p2) => {
   return Math.sqrt(Math.pow((p2.x - p1.x), 2) + Math.pow((p2.y - p1.y), 2));
+};
+
+export const clamp = (num, min, max) => {
+  return num <= min ? min : num >= max ? max : num;
 };

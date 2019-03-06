@@ -27,7 +27,7 @@
             <div class="d-flex">
             @for(i <- Resources.Colors.indices) {
               <label class="btn-circle btn btn-secondary" onclick="onColorButtonClick('colorButton@i')" id="colorButton@i" style="background-color:#@Resources.Colors(i).hex.toString" for="ordinal_@i">
-                <input type="radio" id="ordinal_@i" name = "ordinal" value="@i" autocomplete="off" @{if (i == 0) "checked" else ""} style="display:none"/> &nbsp
+                <input type="radio" id="ordinal_@i" name = "ordinal" value="@i" autocomplete="off" @{if (i == 0) "checked" else ""} style="display:none"/> &nbsp;
               </label>
             }
             </div>

@@ -17,6 +17,10 @@ export default {
       territories: [],
       size: []
     },
+    playerInfoCard: {
+      w: 320,
+      h: 200
+    },
     hasCurrentTurn: false, //TODO decide whether or not this is needed
     armyAmount: 0 //this one too
   },

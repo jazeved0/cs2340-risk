@@ -99,7 +99,6 @@
     ADD_PLAYER, SET_CURRENT,
     UPDATE_HOST, UPDATE_IS_HOST
   } from "../../store/mutation-types";
-  import ToolBar from "../Toolbar";
 
   export default {
     data: function () {
@@ -109,7 +108,7 @@
       }
     },
     components: {
-      'tool-bar' : ToolBar,
+      'tool-bar' : Toolbar,
       'player-list': PlayerList,
       'popper': Popper,
       'new-player-form': NewPlayerForm
@@ -223,7 +222,7 @@
   }
 
   .url-container {
-    padding-top: 98px; /* +58.4 px for the nav */
+    padding-top: 25px;
     padding-bottom: 15px;
     color: #362A4D;
   }
@@ -276,7 +275,7 @@
   // Small device or larger
   @media(min-width: 768px) {
     .url-container {
-      padding-top: 128px; /* +58.4 px for the nav */
+      padding-top: 55px;
       padding-bottom: 45px;
     }
 

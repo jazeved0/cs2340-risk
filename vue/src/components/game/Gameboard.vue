@@ -1,12 +1,11 @@
 <template>
-  <div class="gameboard">
+  <div class="gameboard d-flex flex-column">
     <tool-bar>
       <span slot="left-element">
         <h1 style="color:white">RISK</h1>
       </span>
     </tool-bar>
-    <div :style="{ paddingTop: navHeight + 'px' }" class="full-height d-flex flex-column">
-      <div class="flex-fill stage-wrapper" ref="stageWrapper">
+    <div class="stage-wrapper flex-fill" ref="stageWrapper">
         <v-stage :config="stageConfig" ref="stage">
           <v-layer>
             <v-line v-for="waterConnection in waterConnectionConfigs"
@@ -21,9 +20,8 @@
                 @mouseout="territoryMouseOut(pathConfig.num)"></v-path>
           </v-layer>
         </v-stage>
-      </div>
     </div>
-    <player-info-bar class="players" :overdraw="playerInfoBarOverdraw">
+    <player-info-bar class="players" :overdraw="playerInfoBarOverdraw" ref="playerInfo">
     </player-info-bar>
   </div>
 </template>
@@ -34,7 +32,7 @@
   import VueKonva from 'vue-konva';
   // noinspection ES6UnusedImports
   import Vue from "vue";
-  import {ColorLuminance, distance} from './../../util'
+  import {ColorLuminance, distance, clamp} from './../../util'
 
   Vue.use(VueKonva);
 
@@ -46,7 +44,6 @@
     computed: {
       pathConfigs: function () {
         const mouseOver = this.mouseOver;
-        const base = this.base;
         const state = this.$store.state;
         return state.game.gameboard.pathData.map(function(item, index) {
           const region = state.game.gameboard.regions.findIndex(r => r.includes(index));
@@ -55,8 +52,8 @@
             color = state.settings.settings.territoryColors[region];
           }
           return {
-            x: base[0],
-            y: base[1],
+            x: 0,
+            y: 0,
             data: item,
             fill: mouseOver === index ? ColorLuminance(color, 0.2) : ('#' + color),
             scale: {
@@ -70,7 +67,6 @@
       },
       waterConnectionConfigs: function () {
         const gameState = this.$store.state.game;
-        const base = this.base;
         return gameState.gameboard.waterConnections.map(function(item, index) {
           const node1 = gameState.gameboard.centers[item.a];
           const node2 = gameState.gameboard.centers[item.b];
@@ -85,8 +81,8 @@
           }
           points.push(node2[0], node2[1]);
           return {
-            x: base[0],
-            y: base[1],
+            x: 0,
+            y: 0,
             points: points,
             bezier: bezier,
             tension: tension,
@@ -102,8 +98,24 @@
         return {
           width: this.stageDimensions.w,
           height: this.stageDimensions.h,
-          draggable: true
+          draggable: true,
+          dragBoundFunc: (pos) => this.clampPosition(pos)
         }
+      },
+      scaleBounds: function () {
+        return {
+          min: 0.8,
+          max: 5
+        }
+      },
+      positionBounds: function () {
+        const scale = this.stageObj.scale();
+        const bounds = this.stageDimensions;
+        const size = this.$store.state.game.gameboard.size;
+        return {
+          x: this.axisBounds(size[0] * scale.x, bounds.w),
+          y: this.axisBounds(size[1] * scale.y, bounds.h)
+        };
       }
     },
     methods: {
@@ -147,13 +159,14 @@
           } else {
             newScale = oldScale * scaleBy;
           }
+          newScale = this.clampScale(newScale);
           stage.scale({ x: newScale, y: newScale });
 
           const newPosition = {
             x: (pointer.x / newScale - startPos.x) * newScale,
             y: (pointer.y / newScale - startPos.y) * newScale,
           };
-          stage.position(newPosition);
+          stage.position(this.clampPosition(newPosition));
           stage.batchDraw();
         }
       },
@@ -195,7 +208,7 @@
             };
 
             const scaleBy = 1.01 + Math.abs(delta) / 100;
-            const newScale = delta < 0 ? oldScale / scaleBy : oldScale * scaleBy;
+            const newScale = this.clampScale(delta < 0 ? oldScale / scaleBy : oldScale * scaleBy);
             stage.scale({ x: newScale, y: newScale });
 
             const newPosition = {
@@ -203,7 +216,7 @@
               y: (pointer.y / newScale - startPos.y) * newScale,
             };
 
-            stage.position(newPosition);
+            stage.position(this.clampPosition(newPosition));
             stage.batchDraw();
             touchState.lastDist = dist;
           }
@@ -218,13 +231,55 @@
           x: clientX - stage.getContent().offsetLeft,
           y: clientY - stage.getContent().offsetTop,
         }
+      },
+      clampScale: function (scale) {
+        return clamp(scale, this.scaleBounds.min, this.scaleBounds.max);
+      },
+      clampPosition: function (pos) {
+        const bounds = this.positionBounds;
+        return {
+          x: clamp(pos.x, bounds.x.min, bounds.x.max),
+          y: clamp(pos.y, bounds.y.min, bounds.y.max)
+        }
+      },
+      axisBounds: function (size, bound) {
+        return (size < bound) ? {
+          min: -(size / 2),
+          max: bound - (size / 2)
+        } : {
+          min: bound / 2 - size,
+          max: bound / 2
+        }
+      },
+      calculateInitialTransform: function () {
+        const bounds = this.stageDimensions;
+        let totalW = bounds.w;
+        let totalH = bounds.h;
+        const state = this.$store.state;
+        if ('playerInfo' in this.$refs) {
+          const maxPlayerInfoWidth = (state.game.playerInfoCard.w *
+            state.playersList.length);
+          if (maxPlayerInfoWidth > (bounds.w / 2)) {
+            totalH -= state.game.playerInfoCard.h;
+          }
+        }
+        const size = this.$store.state.game.gameboard.size;
+        // make initial map take up 3/4 of smaller dimension
+        const margin = Math.min(totalW, totalH) / 8;
+        const kw = (totalW - 2 * margin) / size[0];
+        const kh = (totalH - 2 * margin) / size[1];
+        const k = Math.min(kw, kh);
+        return {
+          x: (totalW - (size[0] * k)) / 2,
+          y: (totalH - (size[1] * k)) / 2,
+          scale: k
+        };
       }
     },
     data() {
       return {
         mouseOver: -1,
         navHeight: 62,
-        base: [40, 40],
         playerInfoBarOverdraw: 32,
         stageDimensions: {
           w: 0, h: 0
@@ -251,6 +306,15 @@
           // attach the touch listeners
           stageContent.addEventListener('touchmove', this.touchMove, false);
           stageContent.addEventListener('touchend', this.touchEnd, false);
+          // transform by the initial transforms
+          const initialTransform = this.calculateInitialTransform();
+          console.log(JSON.stringify(initialTransform));
+          this.stageObj.scale({
+            x: initialTransform.scale,
+            y: initialTransform.scale
+          });
+          this.stageObj.x(initialTransform.x);
+          this.stageObj.y(initialTransform.y);
         }
       })
     },
@@ -264,10 +328,6 @@
 <style lang="scss">
   .gameboard {
     height: 100vh;
-  }
-
-  .full-height {
-    height: 100%;
   }
 
   .stage-wrapper {

@@ -10,7 +10,7 @@
             {{ player.name }}
           </p>
         </div>
-        <hr class="mt-1">
+        <hr class="mt-0">
       </div>
     </div>
   </div>
