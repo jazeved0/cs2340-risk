@@ -27,6 +27,7 @@
 						height: radius,
             shadowBlur: 3,
 						shadowOpacity: 0.2,
+            listening : false,
             sceneFunc: function (context, shape) {
               context.beginPath();
               context.arc(

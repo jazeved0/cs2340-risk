@@ -32,8 +32,6 @@ CONNECTION_TAGS = ['polyline', 'line']
 POLYLINE_ATTRIBUTE = 'points'
 CURVE_TENSION = 0.3
 COORD_REGEX = '^(-?[0-9]+[.]?[0-9]*),(-?[0-9]+[.]?[0-9]*)$'
-SVG_DATA_COMMAND_REGEX = '([MLlHhVvCcSsQqTtAa][-0-9.,]+)'
-SVG_LINE_COMMANDS = ''
 
 
 def main():
