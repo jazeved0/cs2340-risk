@@ -1,5 +1,8 @@
 import os
 import re
+import math
+import json
+from itertools import groupby
 from xml.dom.minidom import parse
 
 # Ingests raw svg data and converts it to json for injection on the back and
@@ -18,10 +21,19 @@ from xml.dom.minidom import parse
 #     <polyline> tags (*with their stroke width greater than the edges*)
 
 INGEST_PATH = 'source/'
+INGEST_EXTENSION = '.svg'
 OUTPUT_PATH = 'maps/'
+OUTPUT_EXTENSION = '.json'
 TOLERANCE = 15
 STYLE_REGEX = '^[.](\\S+){.+stroke-width:([0-9.])+;.+}$'
 PATH_TAGS = ['polygon', 'path']
+LINE_ATTRIBUTES = ['x1', 'x2', 'y1', 'y2']
+CONNECTION_TAGS = ['polyline', 'line']
+POLYLINE_ATTRIBUTE = 'points'
+CURVE_TENSION = 0.3
+COORD_REGEX = '^(-?[0-9]+[.]?[0-9]*),(-?[0-9]+[.]?[0-9]*)$'
+SVG_DATA_COMMAND_REGEX = '([MLlHhVvCcSsQqTtAa][-0-9.,]+)'
+SVG_LINE_COMMANDS = ''
 
 
 def main():
@@ -29,6 +41,8 @@ def main():
                     if not (os.path.isdir(os.path.join(INGEST_PATH, f)))]
 
     for source_path in ingest_files:
+        if INGEST_EXTENSION not in source_path:
+            continue
         print('Parsing {}'.format(source_path))
         with open(source_path, 'r') as source_file:
             source_dom = parse(source_file)
@@ -44,28 +58,140 @@ def main():
             # parse all group tags
             territories = []
             edge_groups = []
+            territory_count = 0
             for group in groups:
                 children = list(filter(lambda n: n.nodeType != n.TEXT_NODE, group.childNodes))
                 if children:
                     text_elements = list(filter(lambda t: t.nodeName == 'text', children))
                     if text_elements:
+                        territory_count += 1
                         territory = parse_territory(children)
                         if territory:
                             territories.append(territory)
                     else:
                         edge_groups.append(group)
+            if territories:
+                print('    - Successfully parsed {} out of {} territories'.format(
+                    len(territories), territory_count))
 
+            edges = []
+            water_connections = []
+            edge_count = 0
+            water_connection_count = 0
             if not edge_groups:
                 print('    - Cannot find any <g> tags containing only lines! '
                       'This map will not have any graph edges or water connections')
             else:
+                edge_group_styles_map = {}
                 edge_group_styles = []
                 for edge_group in edge_groups:
-                    # TODO map to class, then flatten to unique, then ensure only one, build map to children,
-                    #  find maximum, merge together other sublists, interpret merged as edges, maxiumum list
-                    #  as water connections
-                    group_styles = list(map(lambda s: 0,
-                                            filter(lambda s: s.attribute['class'], edge_group.childNodes)))
+                    valid_nodes = list(filter(lambda s: s.nodeType != s.TEXT_NODE
+                                              and 'class' in s.attributes, edge_group.childNodes))
+                    group_styles = list(set(
+                        map(lambda n: n.attributes['class'].value, valid_nodes)))
+                    if len(group_styles) > 1:
+                        print('    - Found more than one class in a single group: {}'
+                              .format(group_styles))
+                    elif len(group_styles) == 1:
+                        edge_group_styles_map[group_styles[0]] = valid_nodes
+                        edge_group_styles.append(group_styles[0])
+
+                matching_styles = {style: line_styles[style] for style in line_styles
+                                   if style in edge_group_styles}
+                water_class = max(matching_styles, key=lambda k: matching_styles[k])
+                water_connection_nodes = edge_group_styles_map[water_class]
+                water_connection_count = len(water_connection_nodes)
+                connection_styles = {style: edge_group_styles_map[style] for style
+                                     in edge_group_styles_map if style != water_class}
+                edge_nodes = [item for sublist in connection_styles.values() for item in sublist]
+                edge_count = len(edge_nodes)
+                centers = dict(list(map(lambda t: (t[0], t[1]), territories)))
+
+                # parse edges
+                for edge_node in edge_nodes:
+                    parsed = parse_edge(edge_node, centers)
+                    if parsed and parsed[0] != -1 and parsed[1] != -1:
+                        edges.append(parsed)
+
+                # parse water connections
+                for water_connection_node in water_connection_nodes:
+                    parsed = parse_water_connection(water_connection_node, centers)
+                    if parsed and parsed[0] != -1 and parsed[1] != -1:
+                        water_connections.append(parsed)
+
+            if edges:
+                print('    - Successfully parsed {} out of {} edges'.format(
+                    len(edges), edge_count))
+            if water_connections:
+                print('    - Successfully parsed {} out of {} water connections'.format(
+                    len(water_connections), water_connection_count))
+
+            # parse size
+            size = parse_size(source_dom.getElementsByTagName('svg')[0])
+            if size[0] != 0 and size[1] != 0:
+                print('    - Successfully parsed map bounds [{} x {}]'.format(
+                    size[0], size[1]))
+
+            # parse regions
+            regions = parse_regions(territories)
+            if len(regions) != 0:
+                print('    - Successfully parsed {} regions from territory data'.format(
+                    len(regions)))
+
+            # serialize to JSON
+            if len(territories) > 0 and len(edges) > 0:
+                destination_path = os.path.join(OUTPUT_PATH, os.path.relpath(source_path, INGEST_PATH)
+                                                .replace(INGEST_EXTENSION, OUTPUT_EXTENSION))
+                write_to_file(destination_path, territories, edges, water_connections, size, regions)
+
+
+def write_to_file(path, territories, edges, water_connections, size, regions):
+    directory = os.path.dirname(path)
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    with open(path, 'w+') as output_file:
+        print('--------------------------------------------------------')
+        print('Writing output to {}'.format(path))
+        print()
+        data = {
+            'nodeCount': len(territories),
+            'nodes': list(map(lambda t: {
+                'node': t[0],
+                'center': {
+                    'x': t[1][0],
+                    'y': t[1][1]
+                },
+                'data': t[2]
+            }, territories)),
+            'edges': list(map(lambda e: {
+                'a': e[0],
+                'b': e[1]
+            }, edges)),
+            'size': {
+                'a': size[0],
+                'b': size[1]
+            },
+            'regions': list(map(lambda r: {
+                'a': r[0],
+                'b': r[1]
+            }, regions)),
+            'waterConnections': list(map(serialize_water_connection, water_connections))
+        }
+        json.dump(data, output_file, indent=2)
+
+
+def serialize_water_connection(water_connection):
+    base = {
+        'a': water_connection[0],
+        'b': water_connection[1]
+    }
+    add = {}
+    if len(water_connection[2]) != 0:
+        add = {
+            'midpoints': water_connection[2],
+            'tension': CURVE_TENSION
+        }
+    return {**base, **add}
 
 
 def parse_styles(style_elements):
@@ -84,10 +210,13 @@ def parse_styles(style_elements):
 
 
 def parse_territory(children):
-    # parse data
+    # parse data and class
     data = None
+    class_value = None
     path_tag = next(filter(lambda t: t.tagName in PATH_TAGS, children), None)
     if path_tag:
+        if 'class' in path_tag.attributes:
+            class_value = path_tag.attributes['class'].value
         if path_tag.tagName == 'polygon':
             if path_tag.attributes['points']:
                 data = polygon_to_path(path_tag.attributes['points'].value)
@@ -110,139 +239,129 @@ def parse_territory(children):
         if text_tag.firstChild and text_tag.firstChild.nodeValue:
             number = int(text_tag.firstChild.nodeValue)
 
-    if number and center and data:
-        return number, center, data
+    if number is not None and center is not None and data is not None:
+        return number, center, data, class_value
+    else:
+        print('    - Failed to parse node {} with center at ({}, {}) and path data [{}]'
+              .format(number, center[0], center[1], data))
+        return None
+
+
+def parse_edge(edge_node, centers):
+    attributes = edge_node.attributes
+    center_list = [centers[i] for i in sorted(centers.keys())]
+    if attributes and all(a in attributes for a in LINE_ATTRIBUTES):
+        start, end = parse_line(edge_node)
+        start_node = find_rounded_tuple(center_list, start)
+        end_node = find_rounded_tuple(center_list, end)
+        return start_node, end_node
     else:
         return None
 
 
+def parse_water_connection(water_connection_node, centers):
+    center_list = [centers[i] for i in sorted(centers.keys())]
+    if water_connection_node.nodeName in CONNECTION_TAGS:
+        if water_connection_node.nodeName == 'polyline':
+            # polyline
+            if POLYLINE_ATTRIBUTE in water_connection_node.attributes:
+                point_strings = water_connection_node.attributes[POLYLINE_ATTRIBUTE]\
+                    .value.strip().split()
+                points = list(map(to_point, point_strings))
+                if len(points) >= 2:
+                    start_node = find_rounded_tuple(center_list, points[0])
+                    end_node = find_rounded_tuple(center_list, points[-1])
+                    midpoints = points[1:-1] if len(points) > 2 else []
+                    return start_node, end_node, midpoints
+                else:
+                    print('   - Failed parsing water connection node {} with points {}'
+                          .format(water_connection_node.nodeName, points))
+            else:
+                print('   - Failed parsing water connection node {} with attributes {}'
+                      .format(water_connection_node.nodeName,
+                              list(map(lambda a: a.value, water_connection_node.attributes))))
+        else:
+            # line
+            start, end = parse_line(water_connection_node)
+            start_node = find_rounded_tuple(center_list, start)
+            end_node = find_rounded_tuple(center_list, end)
+            return start_node, end_node, []
+    else:
+        print('    - Failed parsing water connection node {}: unknown tag type')\
+            .format(water_connection_node.nodeName)
+    return None
+
+
+def parse_line(node):
+    start = (node.attributes['x1'].value, node.attributes['y1'].value)
+    end = (node.attributes['x2'].value, node.attributes['y2'].value)
+    return start, end
+
+
+def parse_size(svg_node):
+    if 'viewBox' in svg_node.attributes:
+        view_box = svg_node.attributes['viewBox'].value
+        coords = list(map(lambda s: float(s.strip()), view_box.strip().split()))
+        if len(coords) == 4:
+            min_bounds = (coords[0], coords[1])
+            max_bounds = (coords[2], coords[3])
+            width = max_bounds[0] - min_bounds[0]
+            height = max_bounds[1] - min_bounds[1]
+            return math.ceil(width), math.ceil(height)
+        else:
+            print('    - Failed parsing viewBox: invalid value {}'.format(view_box))
+    return 0, 0
+
+
+def parse_regions(territories):
+    num_class_dict = dict(map(lambda t: (t[0], t[3]), territories))
+    class_list = [num_class_dict[i] for i in sorted(num_class_dict.keys())]
+    class_runs = [x[0] for x in groupby(class_list)]
+    if len(list(set(class_list))) != len(class_runs):
+        print('    - Failed parsing region data: territory numbers are not contiguous '
+              '(parsed list: {})'.format(class_list))
+        return []
+    else:
+        full_runs = map(lambda c: list(
+            {num: num_class_dict[num] for num in sorted(num_class_dict.keys()) if num_class_dict[num] == c}
+            .keys()), class_runs)
+        ranges = list(map(lambda l: (l[0], l[-1]), full_runs))
+        return ranges
+
+
+def to_point(string):
+    match = re.search(COORD_REGEX, string.strip())
+    if match:
+        return match.group(1), match.group(2)
+    else:
+        return 0, 0
+
+
+def find_rounded_tuple(source, target):
+    tup1 = float(target[0])
+    tup2 = float(target[1])
+    nearest_dist = 0
+    nearest = -1
+    i = 0
+    for node in source:
+        node1 = float(node[0])
+        node2 = float(node[1])
+        dist = distance(tup1, tup2, node1, node2)
+        if dist <= TOLERANCE:
+            if nearest == -1 or dist < nearest_dist:
+                nearest = i
+                nearest_dist = dist
+        i += 1
+    return nearest
+
+
+def distance(x1, y1, x2, y2):
+    return math.sqrt((x1 - x2)**2 + (y1 - y2)**2)
+
+
 def polygon_to_path(polygon_data):
-    polygon_data = re.sub(
-        r'(<polygon[\w\W]+?)points=(["\'])([.\d, ]+?)(["\'])',
-        '\\g<1>d=\\g<2>M\\g<3>z\\g<4>',
-        polygon_data
-    )
-    polygon_data = re.sub(
-        r'(<polyline[\w\W]+?)points=(["\'])([.\d, ]+?)(["\'])',
-        '\\g<1>d=\\g<2>M\\g<3>\\g<4>',
-        polygon_data
-    )
-    polygon_data = re.sub(
-        r'poly(gon|line)',
-        'path',
-        polygon_data
-    )
-    return polygon_data
+    return 'M{}z'.format(polygon_data)
 
-
-# def to_path(line):
-#     line = re.sub(
-#         r'(<polygon[\w\W]+?)points=(["\'])([\.\d, ]+?)(["\'])',
-#         '\g<1>d=\g<2>M\g<3>z\g<4>',
-#         line
-#     )
-#     line = re.sub(
-#         r'(<polyline[\w\W]+?)points=(["\'])([\.\d, ]+?)(["\'])',
-#         '\g<1>d=\g<2>M\g<3>\g<4>',
-#         line
-#     )
-#     line = re.sub(
-#         r'poly(gon|line)',
-#         'path',
-#         line
-#     )
-#     return line
-#
-#
-# def distance(x1, y1, x2, y2):
-#     return math.sqrt((x1 - x2)**2 + (y1 - y2)**2)
-#
-#
-# def find_rounded_tuple(list, tuple):
-#     tup1 = float(tuple[0])
-#     tup2 = float(tuple[1])
-#     nearestDistance = 0
-#     nearest = -1
-#     i = 0
-#     for node in list:
-#         node1 = float(node[0])
-#         node2 = float(node[1])
-#         dist = distance(tup1, tup2, node1, node2)
-#         if dist <= tolerance:
-#             if (nearest == -1 or dist < nearestDistance):
-#                 nearest = i
-#                 nearestDistance = dist
-#         i += 1
-#     return nearest
-#
-#
-# with open(output_path, 'w') as output_file:
-#     nodesList = [(-1, -1)]*(nodes)
-#     # continent data
-#     with open(continent_ingest, 'r') as input_file:
-#         first = True
-#         output_file.write('{"nodes":[')
-#         while True:
-#             path_poly = input_file.readline()
-#             if not path_poly:
-#                 break
-#             circle = input_file.readline()
-#             text = input_file.readline()
-#
-#             # path data
-#             start = len('<path d="')
-#             path_text = to_path(path_poly)
-#             data = path_text[start:path_text.index('"', start + 1)]
-#
-#             # node center
-#             center = (-1, -1)
-#             center_search = re.search('<circle.+cx="([-0-9.]+)" cy="([-0-9.]+)".+\/>', circle)
-#             if center_search:
-#                 center = (center_search.group(1), center_search.group(2))
-#             else:
-#                 raise Exception('invalid node center')
-#
-#             # node number
-#             number = -1
-#             number_search = re.search('<text.+>([0-9]+)<\/text>', text)
-#             if number_search:
-#                 number = int(number_search.group(1))
-#             else:
-#                 raise Exception('invalid node number')
-#             nodesList[number] = center
-#
-#             if first:
-#                 delimiter = ''
-#             else:
-#                 delimiter = ','
-#             output_file.write('%s{"node":%s,"center":{"x":"%s","y":"%s"},"data":"%s"}' %
-#                 (delimiter, number, center[0], center[1], data))
-#             first = False
-#         output_file.write('],"edges":[')
-#
-#     # edge data
-#     with open(graph_ingest, 'r') as input_file:
-#         first = True
-#         for line in input_file:
-#             line_search = re.search(
-#                 '<line.+x1="([-0-9.]+)" *y1="([-0-9.]+)" *x2="([-0-9.]+)" *y2="([-0-9.]+)" *\/>',
-#                     line)
-#             if line_search:
-#                 x1 = line_search.group(1)
-#                 y1 = line_search.group(2)
-#                 x2 = line_search.group(3)
-#                 y2 = line_search.group(4)
-#                 a = (x1, y1)
-#                 b = (x2, y2)
-#                 nodeA = find_rounded_tuple(nodesList, a)
-#                 nodeB = find_rounded_tuple(nodesList, b)
-#                 if first:
-#                     delimiter = ''
-#                 else:
-#                     delimiter = ','
-#                 output_file.write('%s{"a":"%s","b":"%s"}' % (delimiter, nodeA, nodeB))
-#                 first = False
-#         output_file.write(']}')
 
 # Run script
 if __name__ == "__main__":

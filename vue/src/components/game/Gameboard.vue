@@ -288,7 +288,7 @@
         if ('playerInfo' in this.$refs) {
           const maxPlayerInfoWidth = (state.game.playerInfoCard.w *
             state.playersList.length);
-          if (maxPlayerInfoWidth > (bounds.w / 2)) {
+          if (maxPlayerInfoWidth > (bounds.w * 0.7)) {
             totalH -= state.game.playerInfoCard.h;
           }
         }
@@ -341,7 +341,6 @@
           stageContent.addEventListener('touchend', this.touchEnd, false);
           // transform by the initial transforms
           const initialTransform = this.calculateInitialTransform();
-          console.log(JSON.stringify(initialTransform));
           this.stageObj.scale({
             x: initialTransform.scale,
             y: initialTransform.scale
