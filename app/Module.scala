@@ -91,21 +91,28 @@ class Module @Inject()(environment: Environment, configuration: Configuration)
 
   def parseConnection(configObject: Config): Connection = {
     val midpoints: Seq[(Float, Float)] =
-      if (configObject.hasPath("midpoints"))
+      if (configObject.hasPath("midpoints")) {
         configObject.getAnyRefList("midpoints").asScala.toList.map {
           case l: util.ArrayList[_] =>
             (toFloatOrElse(l.get(0)), toFloatOrElse(l.get(1)))
           case _ => (0f, 0f)
         }
-      else Nil
+      } else {
+        Nil
+      }
     val bezier: Boolean =
-      if (configObject.hasPath("bz"))
+      if (configObject.hasPath("bz")) {
         configObject.getBoolean("bz")
-      else false
+      }
+      else {
+        false
+      }
     val tension: Float =
-      if (configObject.hasPath("tension"))
+      if (configObject.hasPath("tension")) {
         configObject.getDouble("tension").toFloat
-      else 0
+      } else {
+        0
+      }
 
     Connection(
       configObject.getInt("a"), configObject.getInt("b"),

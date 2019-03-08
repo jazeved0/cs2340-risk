@@ -17,6 +17,5 @@ trait GameMode {
       }.toList: _*)
     gameState
   }
-  // noinspection AbstractValueInTrait
-  val gameboard: Gameboard
+  def gameboard: Gameboard
 }
