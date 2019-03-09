@@ -12,10 +12,12 @@
       config: function () {
         const state = this.$store.state;
         if (state) {
-          const color = ('color' in this.data)
+          const color = ('color' in this.data
+						&& state.settings.settings.colors.length > this.data.color)
             ? '#' + state.settings.settings.colors[this.data.color]
             : '#FFFFFF';
-          const position = ('position' in this.data)
+          const position = ('position' in this.data
+						&& state.game.gameboard.centers.length > this.data.position)
 						? state.game.gameboard.centers[this.data.position]
 						: { x: 0, y: 0 };
           const radius = 10;

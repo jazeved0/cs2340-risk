@@ -11,6 +11,7 @@ export default {
     gameboard: {
       nodeCount: 0,
       pathData: [],
+      iconData: [],
       waterConnections: [],
       centers: [],
       regions: [],
@@ -38,6 +39,7 @@ export default {
       if ('gameboard' in data) {
         state.gameboard.nodeCount = data.gameboard.nodeCount;
         state.gameboard.pathData = data.gameboard.pathData;
+        state.gameboard.iconData = data.gameboard.iconData;
         state.gameboard.centers = data.gameboard.centers;
         state.gameboard.regions = data.gameboard.regions;
         state.gameboard.waterConnections = data.gameboard.waterConnections;

@@ -2,8 +2,12 @@ import os
 import re
 import math
 import json
+import decimal
 from itertools import groupby
-from xml.dom.minidom import parse
+from svgpathtools import parse_path
+from svgpathtools.path import translate, scale
+from scour.scour import cleanPath, sanitizeOptions
+from xml.dom.minidom import parse, Node
 
 # Ingests raw svg data and converts it to json for injection on the back and
 # front ends. To ensure successful parses, the svg must be formatted in a
@@ -32,6 +36,13 @@ CONNECTION_TAGS = ['polyline', 'line']
 POLYLINE_ATTRIBUTE = 'points'
 CURVE_TENSION = 0.3
 COORD_REGEX = '^(-?[0-9]+[.]?[0-9]*),(-?[0-9]+[.]?[0-9]*)$'
+PREVIEW_SIZE = 100
+DECIMAL_REGEX = re.compile(r"\d*\.\d+")
+MIDDLE_LINE_START_REGEX = '( M [0-9]+(?:[.][0-9]+),[0-9]+(?:[.][0-9]+))'
+EXP_FIX_REGEX = '([0-9]+(?:[.][0-9]+)(?:e-([0-9]+))+)'
+ICON_ACCURACY = 2
+# Important because of zooming in
+MAP_ACCURACY = 4
 
 
 def main():
@@ -159,7 +170,8 @@ def write_to_file(path, territories, edges, water_connections, size, regions):
                     'x': t[1][0],
                     'y': t[1][1]
                 },
-                'data': t[2]
+                'data': t[2],
+                'iconData': t[4]
             }, territories)),
             'edges': list(map(lambda e: {
                 'a': e[0],
@@ -217,10 +229,27 @@ def parse_territory(children):
             class_value = path_tag.attributes['class'].value
         if path_tag.tagName == 'polygon':
             if path_tag.attributes['points']:
-                data = polygon_to_path(path_tag.attributes['points'].value)
+                data = clean_path(polygon_to_path(path_tag.attributes['points'].value), MAP_ACCURACY)
         else:
             if path_tag.attributes['d']:
-                data = path_tag.attributes['d'].value
+                data = clean_path(path_tag.attributes['d'].value, MAP_ACCURACY)
+
+    # parse icon data
+    icon_data = None
+    if data is not None:
+        path = parse_path(data)
+        x_min, x_max, y_min, y_max = path.bbox()
+        w = x_max - x_min
+        h = y_max - y_min
+        kx = PREVIEW_SIZE / w
+        ky = PREVIEW_SIZE / h
+        k = min(kx, ky)
+        origin = translate(path, complex(-x_min, -y_min))
+        normalized = scale(origin, k)
+        offset = ((PREVIEW_SIZE - (w * k)) / 2,
+                  (PREVIEW_SIZE - (h * k)) / 2)
+        centered = translate(normalized, complex(*offset))
+        icon_data = clean_path(centered.d(), ICON_ACCURACY)
 
     # parse center
     center = None
@@ -238,11 +267,56 @@ def parse_territory(children):
             number = int(text_tag.firstChild.nodeValue)
 
     if number is not None and center is not None and data is not None:
-        return number, center, data, class_value
+        return number, center, data, class_value, icon_data
     else:
         print('    - Failed to parse node {} with center at ({}, {}) and path data [{}]'
               .format(number, center[0], center[1], data))
         return None
+
+
+def clean_path(path, accuracy):
+    path_obj = parse_path(path)
+    no_midpoints = round_numbers(re.sub(MIDDLE_LINE_START_REGEX, '', path_obj.d()), accuracy)
+    data = clean_path_data(remove_exp(no_midpoints), accuracy)
+    return data
+
+
+def clean_path_data(path_data, accuracy):
+    # noinspection PyPep8Naming, PyMethodMayBeStatic
+    class ElementWrapper:
+        def __init__(self, data):
+            self.data = data
+
+        def getAttribute(self, attr):
+            if attr == 'd':
+                return self.data
+            else:
+                return ''
+
+        def hasAttribute(self, attr):
+            if attr == 'd':
+                return True
+            else:
+                return False
+
+        def setAttribute(self, attr, value):
+            if attr == 'd':
+                self.data = value
+            else:
+                return
+
+        def nodeType(self):
+            return Node.ELEMENT_NODE
+
+    import scour
+    scour.scour._num_path_segments_removed = 0
+    scour.scour._num_bytes_saved_in_path_data = 0
+    context = decimal.Context(prec=accuracy)
+    scour.scour.scouringContext = context
+    scour.scour.scouringContextC = context
+    wrapper = ElementWrapper(path_data)
+    cleanPath(wrapper, sanitizeOptions(None))
+    return wrapper.data
 
 
 def parse_edge(edge_node, centers):
@@ -359,6 +433,37 @@ def distance(x1, y1, x2, y2):
 
 def polygon_to_path(polygon_data):
     return 'M{}z'.format(polygon_data)
+
+
+def round_numbers(text, places):
+    def round_match(match):
+        return pretty_float(("{:." + str(places) + "f}").format(float(match.group())))
+    return re.sub(DECIMAL_REGEX, round_match, text)
+
+
+def pretty_float(num):
+    try:
+        dec = decimal.Decimal(num)
+    except decimal.InvalidOperation:
+        return 'bad'
+    tup = dec.as_tuple()
+    delta = len(tup.digits) + tup.exponent
+    digits = ''.join(str(d) for d in tup.digits)
+    if delta <= 0:
+        zeros = abs(tup.exponent) - len(tup.digits)
+        val = '0.' + ('0'*zeros) + digits
+    else:
+        val = digits[:delta] + ('0'*tup.exponent) + '.' + digits[delta:]
+    val = val.rstrip('0')
+    if val[-1] == '.':
+        val = val[:-1]
+    if tup.sign:
+        return '-' + val
+    return val
+
+
+def remove_exp(string):
+    return re.sub(EXP_FIX_REGEX, '0', string)
 
 
 # Run script

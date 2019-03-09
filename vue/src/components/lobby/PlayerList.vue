@@ -10,7 +10,7 @@
 </template>
 
 <script>
-  import PlayerSlot from './PlayerSlot.vue';
+  import PlayerSlot from './PlayerListSlot.vue';
 
   export default {
     name: "player-list",

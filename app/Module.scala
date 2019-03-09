@@ -75,6 +75,9 @@ class Module @Inject()(environment: Environment, configuration: Configuration)
     val nodeData: Seq[String] = nodeList.map { configObject =>
       configObject.getString("data")
     }
+    val nodeIconData: Seq[String] = nodeList.map { configObject =>
+      configObject.getString("iconData")
+    }
     val centers: Seq[(Float, Float)] = nodeList.map { configObject =>
       (configObject.getDouble("center.x").toFloat, configObject.getDouble("center.y").toFloat)
     }
@@ -86,7 +89,7 @@ class Module @Inject()(environment: Environment, configuration: Configuration)
         .toSet)
     }
     val size: (Int, Int) = (configuration.get[Int]("size.a"), configuration.get[Int]("size.b"))
-    Gameboard(nodeCount, nodeData, centers, regions, waterConnections, territories, size)
+    Gameboard(nodeCount, nodeData, nodeIconData, centers, regions, waterConnections, territories, size)
   }
 
   def parseConnection(configObject: Config): Connection = {
