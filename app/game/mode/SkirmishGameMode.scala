@@ -1,10 +1,11 @@
 package game.mode
 
 import actors.PlayerWithActor
-import common.Resources
-import controllers.{InGamePacket, OutPacket, UpdateBoardState}
-import game.{Army, GameState, Gameboard, OwnedArmy}
+import common.{Resources, Util}
+import controllers.{InGamePacket, OutPacket, UpdateBoardState, UpdatePlayerState}
+import game._
 
+import scala.collection.mutable
 import scala.util.Random
 
 /**
@@ -22,13 +23,26 @@ class SkirmishGameMode extends GameMode {
                                    sendCallback: (OutPacket, String) => Unit): Unit = {
     // Assign territories to players
     val perTerritory = Resources.SkirmishInitialArmy
-    val territoryIndices = Random.shuffle(state.boardState.indices.toList)
-    (territoryIndices zip Stream
-      .continually(state.turnOrder.toStream)
-      .flatten
-      .take(gameboard.nodeCount))
-      .map(t => (t._1, OwnedArmy(Army(perTerritory), t._2.player)))
-      .foreach(t => state.boardState.update(t._1, Some(t._2)))
+    val territoryIndices = mutable.ListBuffer() ++ Random.shuffle(state.boardState.indices.toList)
+    val samplesPerPlayer: Seq[Int] =
+      if (state.boardState.size % state.gameSize == 0) {
+        List.fill(state.gameSize)(state.boardState.size / state.gameSize)
+      } else {
+        val base = state.boardState.size / state.gameSize
+        val remainder = state.boardState.size % state.gameSize
+        (0 until state.gameSize).map(i => if (i >= state.gameSize - remainder) base + 1 else base)
+      }
+    samplesPerPlayer.zipWithIndex.foreach { t =>
+      val territories = territoryIndices.take(t._1)
+      territoryIndices --= territories
+      territories.foreach { i =>
+        val army = OwnedArmy(Army(perTerritory), state.turnOrder(t._2).player)
+        state.boardState.update(i, Some(army))
+      }
+      state.playerStates.update(t._2, PlayerState(
+        state.turnOrder(t._2).player,
+        Army(t._1 * perTerritory)))
+    }
     broadcastCallback(updateBoardState(state), None)
   }
 
@@ -53,6 +67,8 @@ class SkirmishGameMode extends GameMode {
     state.boardState.zipWithIndex
       .filter(t => t._1.forall(oa => oa.owner == actor.player))
       .foreach(t => state.boardState.update(t._2, None))
-    broadcastCallback(updateBoardState(state), None)
+    state.turnOrder = Util.remove(actor, state.turnOrder)
+    broadcastCallback(updateBoardState(state), Some(actor.id))
+    broadcastCallback(UpdatePlayerState(state.playerStates), Some(actor.id))
   }
 }

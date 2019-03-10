@@ -72,6 +72,7 @@
   #territoryAssignmentModal .modal-content {
     @extend .frosted-glass-dark;
     border-style: none;
+    border-radius: $card-corner-radius;
   }
 
   @supports ((-webkit-backdrop-filter: blur(1em)) or (backdrop-filter: blur(1em))) {

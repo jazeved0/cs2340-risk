@@ -17,7 +17,7 @@ class GameState(private var _turnOrder: Seq[PlayerWithActor], territories: Int) 
   def gameSize: Int = _turnOrder.length
 
   def turnOrder: Seq[PlayerWithActor] = _turnOrder
-  def turnOrder_(newOrder: Seq[PlayerWithActor]): Unit = {
+  def turnOrder_=(newOrder: Seq[PlayerWithActor]): Unit = {
     // Update playerStates
     val oldStates = _turnOrder.zipWithIndex.toMap
     playerStates = mutable.Buffer() ++

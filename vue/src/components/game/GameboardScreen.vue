@@ -59,10 +59,18 @@
     computed: {
       armyData: function () {
         const store = this.$store;
-        return store.getters.boardStates.map(territoryState => {
+        return store.getters.boardStates.filter(
+          ts => 'owner' in ts
+            && 'amount' in ts
+            && 'territory' in ts)
+        .map(territoryState => {
+          let color = territoryState.owner < store.state.game.playerStateList.length
+            ? store.state.game.playerStateList[territoryState.owner]
+            : null;
+          color = color !== null && 'player' in color ? color.player.settings.ordinal : 0;
           return {
             size: territoryState.amount,
-            color: store.state.game.playerStateList[territoryState.owner].player.settings.ordinal,
+            color: color,
             position: territoryState.territory,
             num: territoryState.territory
           }

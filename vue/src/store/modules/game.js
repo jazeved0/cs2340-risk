@@ -22,18 +22,12 @@ export default {
     playerInfoCard: {
       w: 320,
       h: 200
-    },
-    hasCurrentTurn: false, //TODO decide whether or not this is needed
-    armyAmount: 0 //this one too
+    }
   },
   mutations: {
     [ON_UPDATE_PLAYER_STATE](state, data) {
       if ('seq' in data) {
         state.playerStateList = data.seq;
-        const index = this.getters.getPlayerIndex;
-        if (index >= 0) {
-          state.armyAmount = data.seq[index].units.size;
-        }
       }
     },
     [ON_SEND_GAMEBOARD](state, data) {
