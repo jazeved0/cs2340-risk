@@ -82,20 +82,18 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
   var host: Option[PlayerWithActor] = None
   // Current state of the game
   var state: State = GameLobbyState.Lobby
-  var gameState: GameState = _
+  var gameState: Option[GameState] = None
 
   def hasInitialHostJoined: Boolean = initialHostSettings.isEmpty
   def hasHost: Boolean = host.isEmpty
 
   def startGame(): Unit = {
-    // Send each player a list of players in their turn order with starting
-    // armies
+    // Update GameLobbyState enum and delegate to GameMode
     this.state = GameLobbyState.InGame
-    gameState = Resources.GameMode.initializeGameState(players.values.map(_.player).toList)
-    val gameboardPacket = SendGameboard(Resources.GameMode.gameboard)
-    notifyGame(gameboardPacket)
-    val statePacket = UpdatePlayerState(gameState.playerStates)
-    notifyGame(statePacket)
+    gameState = Some(gameMode.initializeGame(
+      players.values.toList,
+      broadcastCallback,
+      sendCallback))
   }
 
   // Receive incoming packets and turn them into internal state
@@ -163,10 +161,22 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
   // Handle incoming packets during the InGame state
   def receiveInGame(inGamePacket: InGamePacket): Unit = {
     inGamePacket match {
+      case p if gameState.isDefined =>
+        gameMode.handlePacket(p, gameState.get, broadcastCallback, sendCallback)
       case p =>
         badPacket(p)
     }
   }
+
+  def broadcastCallback(packet: OutPacket, exclude: Option[String] = None): Unit =
+    notifyGame(packet, exclude
+      .filter(id => players.isDefinedAt(id))
+      .map(id => players(id).actor))
+
+  def sendCallback(packet: OutPacket, target: String): Unit =
+    players.get(id)
+      .map(p => p.actor)
+      .foreach(a => a ! packet)
 
   def playerConnect(playerId: String, actor: ActorRef): Unit = {
     if (players.get(playerId).isEmpty && connected.get(playerId).isEmpty) {
@@ -279,24 +289,33 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
     this.state match {
       case GameLobbyState.Lobby =>
         if (players.isDefinedAt(playerId)) {
-          if (host.exists(_.id == playerId)) {
-            // Host disconnecting
-            removePlayer(playerId)
-            // Promote the first-joined player to host if there is one
-            host = if (players.isEmpty) None else Some(players.head._2)
-            notifyGame(constructGameUpdate)
-          } else {
-            // Normal player disconnecting
-            removePlayer(playerId)
-            notifyGame(constructGameUpdate)
-          }
+          removePotentialHost(playerId)
         } else {
           // Player hadn't actually joined, silently remove them
           connected -= playerId
         }
 
       case GameLobbyState.InGame =>
-      // TODO Implement
+        if (players.isDefinedAt(playerId)) {
+          gameState.foreach(s => gameMode.playerDisconnect(
+            players(playerId), s,
+            broadcastCallback, sendCallback))
+          removePotentialHost(playerId)
+        }
+    }
+  }
+
+  def removePotentialHost(playerId: String): Unit = {
+    if (host.exists(_.id == playerId)) {
+      // Host disconnecting
+      removePlayer(playerId)
+      // Promote the first-joined player to host if there is one
+      host = if (players.isEmpty) None else Some(players.head._2)
+      notifyGame(constructGameUpdate)
+    } else {
+      // Normal player disconnecting
+      removePlayer(playerId)
+      notifyGame(constructGameUpdate)
     }
   }
 

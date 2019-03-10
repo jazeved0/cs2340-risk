@@ -1,7 +1,7 @@
 build
 logs
 target
-/.idea
+.idea
 /.idea_modules
 /.classpath
 /.gradle
@@ -10,3 +10,5 @@ target
 /RUNNING_PID
 vue/node_modules/
 node_modules
+venv
+vue/dist

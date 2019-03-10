@@ -37,4 +37,6 @@ object Util {
   def randomString(length: Int): String = Random.alphanumeric.take(length).mkString
 
   def randomString(length: Int, from: Seq[Char]): String = Random.shuffle(from).take(length).mkString
+
+  def remove[A, B >: A](elem: B, list: Seq[A]): Seq[A] = list diff List(elem)
 }

@@ -21,7 +21,7 @@
 <script>
   // noinspection ES6UnusedImports
   import Vue from 'vue'
-  import Lobby from './components/lobby/Lobby.vue'
+  import Lobby from './components/lobby/LobbyScreen.vue'
   import store from './store'
   import {getCookie, pascalToUnderscore} from './util.js'
   import VueNativeSock from 'vue-native-websocket'
@@ -74,7 +74,7 @@
 
   const gameboardFactory = () => ({
     // Use a dynamic import to flag webpack to compile into separate modules
-    component: import('./components/game/Gameboard.vue'),
+    component: import('./components/game/GameboardScreen.vue'),
     loading: {
       template: `
         <b-spinner class="loading-circle" variant="light"></b-spinner>

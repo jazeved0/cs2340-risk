@@ -1,51 +1,85 @@
+<!--suppress HtmlUnknownTag -->
 <template>
   <div class="gameboard d-flex flex-column">
     <tool-bar>
       <span slot="left-element">
+        <!-- TODO Should not be wrapping h1 in span -->
         <h1 style="color:white">RISK</h1>
       </span>
     </tool-bar>
     <div class="stage-wrapper flex-fill" ref="stageWrapper">
-        <v-stage :config="stageConfig" ref="stage">
-          <v-layer>
-            <v-line v-for="waterConnection in waterConnectionConfigs"
-                :key="waterConnection.num"
-                :config="waterConnection"></v-line>
-          </v-layer>
-          <v-layer>
-            <v-path v-for="pathConfig in pathConfigs"
-                :key="pathConfig.num"
-                :config="pathConfig"
-                @mouseover="territoryMouseOver(pathConfig.num)"
-                @mouseout="territoryMouseOut(pathConfig.num)"></v-path>
-          </v-layer>
-        </v-stage>
+      <v-stage :config="stageConfig" ref="stage">
+        <v-layer>
+          <v-line v-for="waterConnection in waterConnectionConfigs"
+              :key="waterConnection.num"
+              :config="waterConnection"></v-line>
+        </v-layer>
+        <v-layer>
+          <v-path v-for="pathConfig in pathConfigs"
+              :key="pathConfig.num"
+              :config="pathConfig"
+              @mouseover="territoryMouseOver(pathConfig.num)"
+              @mouseout="territoryMouseOut(pathConfig.num)"></v-path>
+        </v-layer>
+        <v-layer>
+          <v-army-shape v-for="army in armyData"
+              :data="army"
+              :key="army.num"></v-army-shape>
+        </v-layer>
+      </v-stage>
     </div>
     <player-info-bar class="players" :overdraw="playerInfoBarOverdraw" ref="playerInfo">
     </player-info-bar>
+    <territory-assignment-modal
+        v-bind:visible="showAssignmentModal"
+        @hide="this.hasSeenAssignments = true">
+    </territory-assignment-modal>
   </div>
 </template>
 
 <script>
-  import PlayerInfoBar from './PlayerInfoBar.vue'
+  import PlayerInfoBar from './PlayerInfoBar'
+  import ArmyShape from './ArmyShape';
+  import TerritoryAssignmentModal from './TerritoryAssignmentModal';
   import Toolbar from './../Toolbar'
   import VueKonva from 'vue-konva';
   // noinspection ES6UnusedImports
   import Vue from "vue";
-  import {ColorLuminance, distance, clamp} from './../../util'
+  import {clamp, ColorLuminance, distance} from './../../util'
 
   Vue.use(VueKonva);
 
   export default {
     components: {
       'tool-bar': Toolbar,
-      'player-info-bar': PlayerInfoBar
+      'player-info-bar': PlayerInfoBar,
+      'v-army-shape': ArmyShape,
+      'territory-assignment-modal': TerritoryAssignmentModal
     },
     computed: {
+      armyData: function () {
+        const store = this.$store;
+        return store.getters.boardStates.filter(
+          ts => 'owner' in ts
+            && 'amount' in ts
+            && 'territory' in ts)
+        .map(territoryState => {
+          let color = territoryState.owner < store.state.game.playerStateList.length
+            ? store.state.game.playerStateList[territoryState.owner]
+            : null;
+          color = color !== null && 'player' in color ? color.player.settings.ordinal : 0;
+          return {
+            size: territoryState.amount,
+            color: color,
+            position: territoryState.territory,
+            num: territoryState.territory
+          }
+        });
+      },
       pathConfigs: function () {
         const mouseOver = this.mouseOver;
         const state = this.$store.state;
-        return state.game.gameboard.pathData.map(function(item, index) {
+        return state.game.gameboard.pathData.map(function (item, index) {
           const region = state.game.gameboard.regions.findIndex(r => r.includes(index));
           let color = 'lightgray';
           if (state.settings.settings.territoryColors.length > region) {
@@ -67,14 +101,14 @@
       },
       waterConnectionConfigs: function () {
         const gameState = this.$store.state.game;
-        return gameState.gameboard.waterConnections.map(function(item, index) {
+        return gameState.gameboard.waterConnections.map(function (item, index) {
           const node1 = gameState.gameboard.centers[item.a];
           const node2 = gameState.gameboard.centers[item.b];
           let bezier = item.bz;
           let tension = item.tension;
           let points = [node1[0], node1[1]];
           if (item.midpoints.length > 0) {
-            item.midpoints.forEach(function(point) {
+            item.midpoints.forEach(function (point) {
               points.push(point[0]);
               points.push(point[1])
             });
@@ -101,6 +135,10 @@
           draggable: true,
           dragBoundFunc: (pos) => this.clampPosition(pos)
         }
+      },
+      showAssignmentModal: function () {
+        return !this.hasSeenAssignments &&
+          this.$store.getters.playerStates.length > 0;
       }
     },
     methods: {
@@ -145,7 +183,7 @@
             newScale = oldScale * scaleBy;
           }
           newScale = this.clampScale(newScale);
-          stage.scale({ x: newScale, y: newScale });
+          stage.scale({x: newScale, y: newScale});
 
           const newPosition = {
             x: (pointer.x / newScale - startPos.x) * newScale,
@@ -169,8 +207,8 @@
             const oldScale = stage.scaleX();
 
             const dist = distance(
-              { x: t1.clientX, y: t1.clientY },
-              { x: t2.clientX, y: t2.clientY }
+              {x: t1.clientX, y: t1.clientY},
+              {x: t2.clientX, y: t2.clientY}
             );
 
             if (!touchState.lastDist) touchState.lastDist = dist;
@@ -194,7 +232,7 @@
 
             const scaleBy = 1.01 + Math.abs(delta) / 100;
             const newScale = this.clampScale(delta < 0 ? oldScale / scaleBy : oldScale * scaleBy);
-            stage.scale({ x: newScale, y: newScale });
+            stage.scale({x: newScale, y: newScale});
 
             const newPosition = {
               x: (pointer.x / newScale - startPos.x) * newScale,
@@ -253,7 +291,7 @@
         if ('playerInfo' in this.$refs) {
           const maxPlayerInfoWidth = (state.game.playerInfoCard.w *
             state.playersList.length);
-          if (maxPlayerInfoWidth > (bounds.w / 2)) {
+          if (maxPlayerInfoWidth > (bounds.w * 0.7)) {
             totalH -= state.game.playerInfoCard.h;
           }
         }
@@ -278,6 +316,7 @@
         stageDimensions: {
           w: 0, h: 0
         },
+        hasSeenAssignments: false,
         stageObj: undefined,
         touchState: {
           lastDist: 0,
@@ -290,7 +329,7 @@
       };
     },
     mounted() {
-      this.$nextTick(function() {
+      this.$nextTick(function () {
         // attach listener
         window.addEventListener('resize', this.resizeCanvas);
         // initialize canvas dimensions
@@ -306,14 +345,14 @@
           stageContent.addEventListener('touchend', this.touchEnd, false);
           // transform by the initial transforms
           const initialTransform = this.calculateInitialTransform();
-          console.log(JSON.stringify(initialTransform));
           this.stageObj.scale({
             x: initialTransform.scale,
             y: initialTransform.scale
           });
           this.stageObj.x(initialTransform.x);
           this.stageObj.y(initialTransform.y);
-          this.scaleBounds = Math.min(scaleBounds, initialTransform.scale);
+          this.scaleBounds.min = Math.min(this.scaleBounds.min, initialTransform.scale);
+          this.scaleBounds.max = Math.max(this.scaleBounds.max, initialTransform.scale)
         }
       })
     },

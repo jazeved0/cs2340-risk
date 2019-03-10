@@ -44,17 +44,11 @@ class Module @Inject()(environment: Environment, configuration: Configuration)
       Resources.MinimumPlayers = config.get[Int](Resources.ConfigKeys.MinimumPlayers)
       Resources.MaximumPlayers = config.get[Int](Resources.ConfigKeys.MaximumPlayers)
 
+      Resources.SkirmishInitialArmy = config.get[Int](Resources.ConfigKeys.SkirmishInitialArmy)
       Resources.GameMode = environment.classLoader.loadClass(
         config.get[String](Resources.ConfigKeys.GameMode))
         .asSubclass(classOf[GameMode])
         .getDeclaredConstructor().newInstance()
-      val initialArmiesSubConfig: Configuration = configuration
-        .getOptional[Configuration](Resources.ConfigKeys.SkirmishInitialArmies)
-        .getOrElse(Configuration.empty)
-      Resources.SkirmishInitialArmies = initialArmiesSubConfig
-        .subKeys
-        .map(s => Integer.parseInt(s) -> initialArmiesSubConfig.get[Int](s))
-        .toMap
       Resources.SkirmishGameboard = loadGameboard(loadOrThrow(
         configuration.getOptional[Configuration](Resources.ConfigKeys.SkirmishGameboard),
         Resources.ConfigKeys.SkirmishGameboard))
@@ -75,6 +69,9 @@ class Module @Inject()(environment: Environment, configuration: Configuration)
     val nodeData: Seq[String] = nodeList.map { configObject =>
       configObject.getString("data")
     }
+    val nodeIconData: Seq[String] = nodeList.map { configObject =>
+      configObject.getString("iconData")
+    }
     val centers: Seq[(Float, Float)] = nodeList.map { configObject =>
       (configObject.getDouble("center.x").toFloat, configObject.getDouble("center.y").toFloat)
     }
@@ -86,26 +83,33 @@ class Module @Inject()(environment: Environment, configuration: Configuration)
         .toSet)
     }
     val size: (Int, Int) = (configuration.get[Int]("size.a"), configuration.get[Int]("size.b"))
-    Gameboard(nodeCount, nodeData, centers, regions, waterConnections, territories, size)
+    Gameboard(nodeCount, nodeData, nodeIconData, centers, regions, waterConnections, territories, size)
   }
 
   def parseConnection(configObject: Config): Connection = {
     val midpoints: Seq[(Float, Float)] =
-      if (configObject.hasPath("midpoints"))
+      if (configObject.hasPath("midpoints")) {
         configObject.getAnyRefList("midpoints").asScala.toList.map {
           case l: util.ArrayList[_] =>
             (toFloatOrElse(l.get(0)), toFloatOrElse(l.get(1)))
           case _ => (0f, 0f)
         }
-      else Nil
+      } else {
+        Nil
+      }
     val bezier: Boolean =
-      if (configObject.hasPath("bz"))
+      if (configObject.hasPath("bz")) {
         configObject.getBoolean("bz")
-      else false
+      }
+      else {
+        false
+      }
     val tension: Float =
-      if (configObject.hasPath("tension"))
+      if (configObject.hasPath("tension")) {
         configObject.getDouble("tension").toFloat
-      else 0
+      } else {
+        0
+      }
 
     Connection(
       configObject.getInt("a"), configObject.getInt("b"),

@@ -11,6 +11,7 @@
           </p>
         </div>
         <hr class="mt-0">
+        <p class="army-text">{{ player.armies !== 1 ? player.armies + ' armies' : '1 army' }}</p>
       </div>
     </div>
   </div>
@@ -61,5 +62,9 @@
   .info-card .color {
     margin-top: 10px;
     margin-right: 12px;
+  }
+
+  .info-card .army-text {
+    opacity: 0.5;
   }
 </style>

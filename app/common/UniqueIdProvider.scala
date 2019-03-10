@@ -12,13 +12,9 @@ import scala.collection.mutable
   */
 trait UniqueIdProvider {
   def idLength: Int
-
   protected def generateId(len: Int): String
-
   protected def isIdChar(c: Char): Boolean
-
   protected val Ids: mutable.HashSet[String] = new mutable.HashSet()
-
   protected def issueId(id: String) {
     Ids += id
   }
