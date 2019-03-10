@@ -30,6 +30,10 @@
     </div>
     <player-info-bar class="players" :overdraw="playerInfoBarOverdraw" ref="playerInfo">
     </player-info-bar>
+    <territory-assignment-modal
+        v-bind:visible="showAssignmentModal"
+        @hide="this.hasSeenAssignments = true">
+    </territory-assignment-modal>
   </div>
 </template>
 
@@ -58,7 +62,7 @@
         return store.getters.boardStates.map(territoryState => {
           return {
             size: territoryState.amount,
-            color: store.state.playersList[territoryState.owner].ordinal,
+            color: store.state.game.playerStateList[territoryState.owner].player.settings.ordinal,
             position: territoryState.territory,
             num: territoryState.territory
           }
@@ -123,6 +127,10 @@
           draggable: true,
           dragBoundFunc: (pos) => this.clampPosition(pos)
         }
+      },
+      showAssignmentModal: function () {
+        return !this.hasSeenAssignments &&
+          this.$store.getters.playerStates.length > 0;
       }
     },
     methods: {
@@ -300,6 +308,7 @@
         stageDimensions: {
           w: 0, h: 0
         },
+        hasSeenAssignments: false,
         stageObj: undefined,
         touchState: {
           lastDist: 0,
