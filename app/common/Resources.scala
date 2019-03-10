@@ -49,7 +49,7 @@ object Resources {
     val GameMode = "app.gameplay.gameMode"
     val MinimumPlayers = "app.gameplay.minPlayers"
     val MaximumPlayers = "app.gameplay.maxPlayers"
-    val SkirmishInitialArmies = "app.gameplay.skirmish.initialArmies"
+    val SkirmishInitialArmy = "app.gameplay.skirmish.initialArmy"
     var SkirmishGameboard = "app.gameplay.skirmish.gameboard"
   }
 
@@ -80,6 +80,6 @@ object Resources {
   var GameMode: GameMode = _
   var MinimumPlayers: Int = _
   var MaximumPlayers: Int = _
-  var SkirmishInitialArmies: Map[Int, Int] = _
+  var SkirmishInitialArmy: Int = _
   var SkirmishGameboard: Gameboard = _
 }

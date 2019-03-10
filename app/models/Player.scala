@@ -14,4 +14,12 @@ object Player extends UniqueIdProvider {
 }
 
 // player DTO
-case class Player(settings: Option[PlayerSettings])
+case class Player(settings: Option[PlayerSettings]) {
+  // Slower than comparing PlayerWithActors by their ID, only use when that
+  // isn't available
+  override def equals(a: Any): Boolean = a match {
+    case other: Player => other.settings.exists(settings.contains)
+    case _ => false
+  }
+  override def hashCode(): Int = Player.unapply(this).##
+}

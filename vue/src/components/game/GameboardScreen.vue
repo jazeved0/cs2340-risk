@@ -1,44 +1,47 @@
+<!--suppress HtmlUnknownTag -->
 <template>
-	<div class="gameboard d-flex flex-column">
-		<tool-bar>
+  <div class="gameboard d-flex flex-column">
+    <tool-bar>
       <span slot="left-element">
+        <!-- TODO Should not be wrapping h1 in span -->
         <h1 style="color:white">RISK</h1>
       </span>
-		</tool-bar>
-		<div class="stage-wrapper flex-fill" ref="stageWrapper">
-			<v-stage :config="stageConfig" ref="stage">
-				<v-layer>
-					<v-line v-for="waterConnection in waterConnectionConfigs"
-									:key="waterConnection.num"
-									:config="waterConnection"></v-line>
-				</v-layer>
-				<v-layer>
-					<v-path v-for="pathConfig in pathConfigs"
-									:key="pathConfig.num"
-									:config="pathConfig"
-									@mouseover="territoryMouseOver(pathConfig.num)"
-									@mouseout="territoryMouseOut(pathConfig.num)"></v-path>
-				</v-layer>
-				<v-layer>
-					<v-army-shape v-for="army in armyData"
-												:data="army"
-												:key="army.num"></v-army-shape>
-				</v-layer>
-			</v-stage>
-		</div>
-		<player-info-bar class="players" :overdraw="playerInfoBarOverdraw" ref="playerInfo">
-		</player-info-bar>
-	</div>
+    </tool-bar>
+    <div class="stage-wrapper flex-fill" ref="stageWrapper">
+      <v-stage :config="stageConfig" ref="stage">
+        <v-layer>
+          <v-line v-for="waterConnection in waterConnectionConfigs"
+              :key="waterConnection.num"
+              :config="waterConnection"></v-line>
+        </v-layer>
+        <v-layer>
+          <v-path v-for="pathConfig in pathConfigs"
+              :key="pathConfig.num"
+              :config="pathConfig"
+              @mouseover="territoryMouseOver(pathConfig.num)"
+              @mouseout="territoryMouseOut(pathConfig.num)"></v-path>
+        </v-layer>
+        <v-layer>
+          <v-army-shape v-for="army in armyData"
+              :data="army"
+              :key="army.num"></v-army-shape>
+        </v-layer>
+      </v-stage>
+    </div>
+    <player-info-bar class="players" :overdraw="playerInfoBarOverdraw" ref="playerInfo">
+    </player-info-bar>
+  </div>
 </template>
 
 <script>
   import PlayerInfoBar from './PlayerInfoBar'
   import ArmyShape from './ArmyShape';
+  import TerritoryAssignmentModal from './TerritoryAssignmentModal';
   import Toolbar from './../Toolbar'
   import VueKonva from 'vue-konva';
   // noinspection ES6UnusedImports
   import Vue from "vue";
-  import {ColorLuminance, distance, clamp} from './../../util'
+  import {clamp, ColorLuminance, distance} from './../../util'
 
   Vue.use(VueKonva);
 
@@ -46,36 +49,20 @@
     components: {
       'tool-bar': Toolbar,
       'player-info-bar': PlayerInfoBar,
-      'v-army-shape': ArmyShape
+      'v-army-shape': ArmyShape,
+      'territory-assignment-modal': TerritoryAssignmentModal
     },
     computed: {
       armyData: function () {
-        // TODO implement
-        return [{
-          size: 3,
-          color: 1,
-          position: 17
-        }, {
-          size: 2,
-          color: 0,
-          position: 34
-        }, {
-          size: 1,
-          color: 3,
-          position: 5
-        }, {
-          size: 4,
-          color: 1,
-          position: 19
-        }, {
-          size: 5,
-          color: 5,
-          position: 23
-        }, {
-          size: 10,
-          color: 1,
-          position: 10
-        }].map((o, index) => Object.assign({}, o, {num: index}));
+        const store = this.$store;
+        return store.getters.boardStates.map(territoryState => {
+          return {
+            size: territoryState.amount,
+            color: store.state.playersList[territoryState.owner].ordinal,
+            position: territoryState.territory,
+            num: territoryState.territory
+          }
+        });
       },
       pathConfigs: function () {
         const mouseOver = this.mouseOver;
@@ -360,16 +347,16 @@
 </script>
 
 <style lang="scss">
-	.gameboard {
-		height: 100vh;
-	}
+  .gameboard {
+    height: 100vh;
+  }
 
-	.stage-wrapper {
-		overflow: hidden;
-	}
+  .stage-wrapper {
+    overflow: hidden;
+  }
 
-	.players {
-		position: absolute;
-		bottom: 0;
-	}
+  .players {
+    position: absolute;
+    bottom: 0;
+  }
 </style>

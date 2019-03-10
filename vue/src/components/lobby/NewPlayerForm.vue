@@ -231,7 +231,7 @@
 
   @media(min-width: 576px) {
     /* Form label font settings */
-    .form-label-container {
+    #playerFormModal .form-label-container {
       display: flex;
       -webkit-box-orient: horizontal !important;
       -webkit-box-direction: reverse !important;
@@ -240,7 +240,7 @@
     }
   }
 
-  .form-label-container p {
+  #playerFormModal .form-label-container p {
     font-size: 18px;
     font-family: Roboto, sans-serif;
     color: #362A4D;
@@ -284,12 +284,12 @@
     margin: auto
   }
 
-  .modal-content {
+  #playerFormModal .modal-content {
     background-color: #F5F2F2 !important;
     color: #362A4D;
   }
 
-  .modal-footer {
+  #playerFormModal .modal-footer {
     padding: 4px !important;
   }
 

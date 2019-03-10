@@ -1,5 +1,5 @@
 package game
 
-import models.PlayerSettings
+import models.Player
 
-case class PlayerState(settings: PlayerSettings, units: Army)
+case class PlayerState(player: Player, units: Army)

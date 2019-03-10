@@ -15,17 +15,18 @@ $roboto-slab-font: "Roboto Slab", "Segoe UI", Candara, "Bitstream Vera Sans", "D
 // Styles
 
 .frosted-glass-dark {
-	background-color: rgba($darker-shades, .8);
+	background-color: rgba($darker-shades, .8)!important;
 }
 @supports ((-webkit-backdrop-filter: blur(1em)) or (backdrop-filter: blur(1em))) {
 	.frosted-glass-dark {
-		background-color: rgba($darker-shades, .5);
-		-webkit-backdrop-filter: blur(1em);
-		backdrop-filter: blur(1em);
+		background-color: rgba($darker-shades, .5)!important;
+		-webkit-backdrop-filter: blur(1em)!important;
+		backdrop-filter: blur(1em)!important;
 	}
 }
+$frosted-glass-dark-border: 1px solid rgba($light-shades, 0.25);
 .frosted-glass-dark hr {
-	border-top: 1px solid rgba($light-shades, 0.25);
+	border-top: $frosted-glass-dark-border
 }
 
 // Measurements

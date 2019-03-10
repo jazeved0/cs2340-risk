@@ -44,17 +44,11 @@ class Module @Inject()(environment: Environment, configuration: Configuration)
       Resources.MinimumPlayers = config.get[Int](Resources.ConfigKeys.MinimumPlayers)
       Resources.MaximumPlayers = config.get[Int](Resources.ConfigKeys.MaximumPlayers)
 
+      Resources.SkirmishInitialArmy = config.get[Int](Resources.ConfigKeys.SkirmishInitialArmy)
       Resources.GameMode = environment.classLoader.loadClass(
         config.get[String](Resources.ConfigKeys.GameMode))
         .asSubclass(classOf[GameMode])
         .getDeclaredConstructor().newInstance()
-      val initialArmiesSubConfig: Configuration = configuration
-        .getOptional[Configuration](Resources.ConfigKeys.SkirmishInitialArmies)
-        .getOrElse(Configuration.empty)
-      Resources.SkirmishInitialArmies = initialArmiesSubConfig
-        .subKeys
-        .map(s => Integer.parseInt(s) -> initialArmiesSubConfig.get[Int](s))
-        .toMap
       Resources.SkirmishGameboard = loadGameboard(loadOrThrow(
         configuration.getOptional[Configuration](Resources.ConfigKeys.SkirmishGameboard),
         Resources.ConfigKeys.SkirmishGameboard))
