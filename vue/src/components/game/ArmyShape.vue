@@ -19,7 +19,7 @@
           const position = ('position' in this.data
 						&& state.game.gameboard.centers.length > this.data.position)
 						? state.game.gameboard.centers[this.data.position]
-						: { x: 0, y: 0 };
+						: [0, 0];
           const radius = 10;
           return {
             fill: color,
