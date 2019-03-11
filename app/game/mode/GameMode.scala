@@ -36,8 +36,8 @@ trait GameMode {
 
     // Consume earlier built latent callbacks
     sends.foreach((t: (OutPacket, CallbackFlag, Option[String])) => t._2 match {
-      case Broadcast => broadcastCallback.apply(t._1, t._3)
-      case Send => sendCallback.apply(t._1, t._3.getOrElse(""))
+      case Broadcast => broadcastCallback(t._1, t._3)
+      case Send => sendCallback(t._1, t._3.getOrElse(""))
     })
 
     gameState

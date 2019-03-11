@@ -1,5 +1,6 @@
 package common
 
+import scala.collection.immutable.StringLike
 import scala.collection.mutable
 
 /**
@@ -10,32 +11,34 @@ import scala.collection.mutable
   *
   * Known implementors are Player and Game
   */
-trait UniqueIdProvider {
+trait UniqueIdProvider[T <: StringLike[C], C] {
   def idLength: Int
-  protected def generateId(len: Int): String
+  protected def generateId(len: Int): T
   protected def isIdChar(c: Char): Boolean
-  protected val Ids: mutable.HashSet[String] = new mutable.HashSet()
-  protected def issueId(id: String) {
+  protected val Ids: mutable.HashSet[T] = new mutable.HashSet()
+  protected def issueId(id: T) {
     Ids += id
   }
 
-  def returnId(id: String) {
+  def returnId(id: T) {
     Ids -= id
   }
 
-  def generateAndIssueId: String = {
-    var id = ""
-    do id = generateId(idLength)
-    while (Ids.contains(id))
+  def generateAndIssueId: T = {
+    var id: T = {
+      do id = generateId(idLength)
+      while (Ids.contains(id))
+      id
+    }
     issueId(id)
     id
   }
 
-  def isValidId(id: String): Boolean =
+  def isValidId(id: T): Boolean =
     id.length == idLength &&
       id.forall(isIdChar) &&
-      this.contains(id)
+      Ids.contains(id)
 
-  def contains(id: String): Boolean =
+  def contains(id: T): Boolean =
     Ids.contains(id)
 }
