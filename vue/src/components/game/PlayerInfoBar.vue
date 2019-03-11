@@ -1,6 +1,6 @@
 <template>
   <div class="d-flex outer-info-bar" style="width: 100%">
-    <div class="flex-fill d-flex flex-row-reverse">
+    <div class="flex-fill d-flex name-list">
       <div v-for="player in this.$store.getters.playerStates"
           :key='player.name'
           class="info-card frosted-glass-dark">
@@ -10,7 +10,7 @@
             {{ player.name }}
           </p>
         </div>
-        <hr class="mt-0">
+        <hr class="mt-0 divider-bar">
         <p class="army-text">{{ player.armies !== 1 ? player.armies + ' armies' : '1 army' }}</p>
       </div>
     </div>
@@ -28,6 +28,10 @@
 <style lang="scss">
   @import '../../assets/stylesheets/include';
   $card-margin: 6px;
+
+  .name-list {
+    flex-direction: row-reverse;
+  }
 
   .outer-info-bar {
     width: 100%;
@@ -66,5 +70,39 @@
 
   .info-card .army-text {
     opacity: 0.5;
+  }
+
+  @media screen and (max-width: 600px) {
+    .name-list {
+      flex-wrap: wrap-reverse;
+      flex-direction: row-reverse;
+      height: min-content;
+    }
+
+    .divider-bar {
+      display:none;
+    }
+
+    .info-card {
+      color: $light-shades;
+      font-family: $roboto-font;
+      padding: 6px;
+      pointer-events: initial;
+      margin-left: 5px;
+
+      border-bottom-right-radius: $card-corner-radius;
+      border-bottom-left-radius: $card-corner-radius;
+
+      -webkit-flex-grow: 1;
+      flex-grow: 1;
+      min-width: min-content;
+      max-width: 100%;
+      height: min-content;
+      overflow: hidden;
+    }
+
+    .name {
+      font-size: 14px;
+    }
   }
 </style>
