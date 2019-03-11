@@ -34,7 +34,7 @@
               context.beginPath();
               context.arc(
                 0, 0,
-								shape.getAttr('width'),
+								shape.hasAttr('width') ? shape.getAttr('width') : 4,
 								0, 2 * Math.PI, false);
               context.closePath();
               context.fillStrokeShape(shape);
