@@ -46,7 +46,7 @@ class GameSupervisor extends Actor {
       val id = Game.generateAndIssueId
       val game = context.actorOf(Game(id, hostInfo))
       games += id.toString -> game
-      sender() ! id
+      sender() ! id.toString
 
     // Internal message to poll game state
     case CanJoin(gameId) =>
