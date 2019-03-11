@@ -11,7 +11,7 @@ import scala.collection.mutable
   *
   * Known implementors are Player and Game
   */
-trait UniqueIdProvider[T <: StringLike[C], C] {
+trait UniqueIdProvider[T <: StringLike[_]] {
   def idLength: Int
   protected def generateId(len: Int): T
   protected def isIdChar(c: Char): Boolean
@@ -25,13 +25,12 @@ trait UniqueIdProvider[T <: StringLike[C], C] {
   }
 
   def generateAndIssueId: T = {
-    var id: T = {
-      do id = generateId(idLength)
-      while (Ids.contains(id))
-      id
+    var id: Option[T] = None
+    while (id.forall(Ids.contains)) {
+      id = Some(generateId(idLength))
     }
-    issueId(id)
-    id
+    issueId(id.get)
+    id.get
   }
 
   def isValidId(id: T): Boolean =

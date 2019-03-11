@@ -45,7 +45,7 @@ class GameSupervisor extends Actor {
     case MakeGame(hostInfo) =>
       val id = Game.generateAndIssueId
       val game = context.actorOf(Game(id, hostInfo))
-      games += id -> game
+      games += id.toString -> game
       sender() ! id
 
     // Internal message to poll game state

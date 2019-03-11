@@ -2,10 +2,12 @@ package models
 
 import common.{Resources, UniqueIdProvider, Util}
 
-object Player extends UniqueIdProvider {
+import scala.collection.immutable.WrappedString
+
+object Player extends UniqueIdProvider[WrappedString] {
   // Methods for UniqueIdProvider
   override val idLength: Int = Resources.PlayerIdLength
-  override protected def generateId(len: Int): String = Util.randomString(len)
+  override protected def generateId(len: Int): WrappedString = Util.randomString(len)
   override protected def isIdChar(c: Char): Boolean = Util.isAlphanumeric(c)
 
   def apply(name: String, color: Color): Player =

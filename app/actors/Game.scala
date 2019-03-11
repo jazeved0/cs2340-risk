@@ -14,16 +14,16 @@ import models.{GameLobbyState, Player, PlayerSettings}
 import play.api.Logger
 import play.api.libs.json.Json
 
-import scala.collection.immutable.HashSet
+import scala.collection.immutable.{HashSet, WrappedString}
 import scala.collection.mutable
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.language.postfixOps
 
-object Game extends UniqueIdProvider {
+object Game extends UniqueIdProvider[WrappedString] {
   // Methods for UniqueIdProvider
   override def idLength: Int = Resources.GameIdLength
   private val IdCharsSet: Set[Char] = HashSet() ++ Resources.GameIdChars
-  override protected def generateId(len: Int): String =
+  override protected def generateId(len: Int): WrappedString =
     Util.randomString(len, Resources.GameIdChars)
   override protected def isIdChar(c: Char): Boolean = IdCharsSet.contains(c)
 
