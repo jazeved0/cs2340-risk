@@ -1,7 +1,8 @@
 // noinspection ES6UnusedImports
-import Vue from 'vue'
-import Vuex from 'vuex'
-import {ON_SEND_GAMEBOARD, ON_UPDATE_PLAYER_STATE, ON_UPDATE_BOARD_STATE} from '.././mutation-types'
+import Vue from 'vue';
+import Vuex from 'vuex';
+import {ON_SEND_GAMEBOARD, ON_UPDATE_PLAYER_STATE, ON_UPDATE_BOARD_STATE} from '.././mutation-types';
+import {initializeGameboardScreen, NETWORK_CTX} from "./game/InitializeGameboardScreen";
 
 Vue.use(Vuex);
 
@@ -22,7 +23,8 @@ export default {
     playerInfoCard: {
       w: 320,
       h: 200
-    }
+    },
+    tryInitializeGameboardScreen: initializeGameboardScreen
   },
   mutations: {
     [ON_UPDATE_PLAYER_STATE](state, data) {
@@ -41,10 +43,11 @@ export default {
         state.gameboard.territories = data.gameboard.territories;
         state.gameboard.size = data.gameboard.size;
       }
+      initializeGameboardScreen(NETWORK_CTX);
     },
     [ON_UPDATE_BOARD_STATE](state, data) {
       if ('armies' in data) {
-        state.boardStateList = data.armies
+        state.boardStateList = data.armies;
       }
     }
   },
@@ -58,7 +61,7 @@ export default {
             armies: playerState.units.size,
             turnOrder: index,
             currentTurn: playerState.player.settings.ordinal === 0
-          }
+          };
         } else return {};
       };
       return state.playerStateList.map(resolveMapping);
@@ -84,9 +87,9 @@ export default {
             amount: stateArr[0],
             owner: stateArr[1]
           };
-        } else return {}
+        } else return {};
       };
       return state.gameboard.territories.map(resolveMapping).filter(obj => obj !== {});
     }
   }
-}
+};

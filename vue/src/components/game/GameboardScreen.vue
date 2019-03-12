@@ -46,7 +46,9 @@
   // noinspection ES6UnusedImports
   import Vue from "vue";
   import {clamp, ColorLuminance, distance} from './../../util'
+  import {GUI_CTX} from "../../store/modules/game/InitializeGameboardScreen";
 
+  // noinspection JSUnresolvedFunction
   Vue.use(VueKonva);
 
   export default {
@@ -67,7 +69,9 @@
           let color = territoryState.owner < store.state.game.playerStateList.length
             ? store.state.game.playerStateList[territoryState.owner]
             : null;
-          color = color !== null && 'player' in color ? color.player.settings.ordinal : 0;
+          if ('player' in color && color !== null) {
+            color = color.player.settings.ordinal;
+          } else color = 0;
           return {
             size: territoryState.amount,
             color: color,
@@ -104,10 +108,10 @@
         return gameState.gameboard.waterConnections.map(function (item, index) {
           const node1 = gameState.gameboard.centers[item.a];
           const node2 = gameState.gameboard.centers[item.b];
-          let bezier = item.bz;
-          let tension = item.tension;
+          let bezier = 'bz' in item ? item.bz : false;
+          let tension = 'tension' in item ? item.tension : 0;
           let points = [node1[0], node1[1]];
-          if (item.midpoints.length > 0) {
+          if ('midpoints' in item && item.midpoints.length > 0) {
             item.midpoints.forEach(function (point) {
               points.push(point[0]);
               points.push(point[1])
@@ -343,24 +347,31 @@
           // attach the touch listeners
           stageContent.addEventListener('touchmove', this.touchMove, false);
           stageContent.addEventListener('touchend', this.touchEnd, false);
-          // transform by the initial transforms
-          const initialTransform = this.calculateInitialTransform();
-          this.stageObj.scale({
-            x: initialTransform.scale,
-            y: initialTransform.scale
+
+          const closure = {
+            'stage': this.stageObj,
+            'scaleBounds': this.scaleBounds,
+            'transformCallback': this.calculateInitialTransform };
+          this.$store.state.game.tryInitializeGameboardScreen(GUI_CTX, function () {
+            // transform by the initial transforms
+            const initialTransform = closure.transformCallback();
+            closure.stage.scale({
+              x: initialTransform.scale,
+              y: initialTransform.scale
+            });
+            closure.stage.x(initialTransform.x);
+            closure.stage.y(initialTransform.y);
+            closure.scaleBounds.min = Math.min(closure.scaleBounds.min, initialTransform.scale);
+            closure.scaleBounds.max = Math.max(closure.scaleBounds.max, initialTransform.scale)
           });
-          this.stageObj.x(initialTransform.x);
-          this.stageObj.y(initialTransform.y);
-          this.scaleBounds.min = Math.min(this.scaleBounds.min, initialTransform.scale);
-          this.scaleBounds.max = Math.max(this.scaleBounds.max, initialTransform.scale)
         }
-      })
+      });
     },
     beforeDestroy() {
       // detach listener
       window.removeEventListener('resize', this.resizeCanvas);
     }
-  }
+  };
 </script>
 
 <style lang="scss">
