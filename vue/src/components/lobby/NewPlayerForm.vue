@@ -28,7 +28,8 @@
                 type="text" v-model="currentName"
                 :maxlength="maxLength"
                 :disabled="hasSubmitted"
-                class="mb-2 mb-md-0">
+                class="mb-2 mb-md-0"
+                @keyup.enter="submitPlayer">
             </b-form-input>
           </div>
         </div>
