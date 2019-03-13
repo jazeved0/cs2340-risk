@@ -2,9 +2,12 @@ package controllers
 
 import akka.actor.ActorRef
 import controllers.RequestResponse.Response
-import game.{Army, PlayerState}
-import models.PlayerSettings
+import game.{Connection, _}
+import models.{Player, PlayerSettings}
+import play.api.Logger
 import play.api.libs.json._
+
+import scala.collection.mutable
 
 // Incoming packets from the network
 sealed trait InPacket {
@@ -39,6 +42,19 @@ case class StartGame(identity: String = "start") extends OutPacket
 case class UpdatePlayerState(seq: Seq[PlayerState]) extends OutPacket
 case class PingPlayer(identity: String = "ping") extends OutPacket
 case class SendConfig(config: String) extends OutPacket
+case class SendGameboard(gameboard: Gameboard) extends OutPacket
+case class UpdateBoardState(armies: Map[Int, (Int, Int)]) extends OutPacket
+object UpdateBoardState {
+  def apply(buf: mutable.Buffer[Option[OwnedArmy]], players: Seq[Player]): UpdateBoardState = {
+    val playerToInt = players.zipWithIndex.toMap
+    new UpdateBoardState(buf.zipWithIndex
+      .filter(t => t._1.isDefined)
+      .map(t => (t._2, (
+        t._1.get.army.size,
+        playerToInt(t._1.get.owner))))
+      .toMap)
+  }
+}
 
 // Response type to the given Request
 object RequestResponse extends Enumeration {
@@ -57,7 +73,12 @@ object JsonMarshallers {
   implicit val playerSettingsR: Reads[PlayerSettings] = Json.reads[PlayerSettings]
   implicit val playerSettingsW: Writes[PlayerSettings] = Json.writes[PlayerSettings]
   implicit val armyW: Writes[Army] = Json.writes[Army]
+  implicit val playerW: Writes[Player] = Json.writes[Player]
   implicit val playerStateW: Writes[PlayerState] = Json.writes[PlayerState]
+  implicit val ownedArmyW: Writes[OwnedArmy] = Json.writes[OwnedArmy]
+  implicit val territoryW: Writes[Territory] = Json.writes[Territory]
+  implicit val connectionW: Writes[Connection] = Json.writes[Connection]
+  implicit val gameboardW: Writes[Gameboard] = Json.writes[Gameboard]
 
   // Deserializers
   implicit val requestPlayerJoin: Reads[RequestPlayerJoin] = Json.reads[RequestPlayerJoin]
@@ -77,6 +98,8 @@ object JsonMarshallers {
   implicit val updatePlayerState: Writes[UpdatePlayerState] = Json.writes[UpdatePlayerState]
   implicit val pingPlayer: Writes[PingPlayer] = Json.writes[PingPlayer]
   implicit val sendConfig: Writes[SendConfig] = Json.writes[SendConfig]
+  implicit val sendGameboard: Writes[SendGameboard] = Json.writes[SendGameboard]
+  implicit val updateBoardState: Writes[UpdateBoardState] = Json.writes[UpdateBoardState]
 
   // Trait marshallers
   implicit val globalPacket: Reads[GlobalPacket] = Json.reads[GlobalPacket]

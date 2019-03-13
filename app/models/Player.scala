@@ -2,16 +2,26 @@ package models
 
 import common.{Resources, UniqueIdProvider, Util}
 
-object Player extends UniqueIdProvider {
+import scala.collection.immutable.WrappedString
+
+object Player extends UniqueIdProvider[WrappedString] {
   // Methods for UniqueIdProvider
-  override def idLength: Int = Resources.PlayerIdLength
-  override protected def generateId(len: Int): String = Util.randomString(len)
+  override val idLength: Int = Resources.PlayerIdLength
+  override protected def generateId(len: Int): WrappedString = Util.randomString(len)
   override protected def isIdChar(c: Char): Boolean = Util.isAlphanumeric(c)
 
-  def apply(id: String, name: String, color: Color): Player =
-    Player(id, Some(PlayerSettings(name, Resources.Colors.indexOf(color))))
-  def apply(id: String): Player = Player(id, None)
+  def apply(name: String, color: Color): Player =
+    Player(Some(PlayerSettings(name, Resources.Colors.indexOf(color))))
+  def apply: Player = Player(None)
 }
 
 // player DTO
-case class Player(id: String, settings: Option[PlayerSettings])
+case class Player(settings: Option[PlayerSettings]) {
+  // Slower than comparing PlayerWithActors by their ID, only use when that
+  // isn't available
+  override def equals(a: Any): Boolean = a match {
+    case other: Player => other.settings.exists(settings.contains)
+    case _ => false
+  }
+  override def hashCode(): Int = Player.unapply(this).##
+}

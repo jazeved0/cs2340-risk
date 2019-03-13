@@ -2,7 +2,7 @@ package controllers
 
 import java.io.File
 
-import actors.GameSupervisor.{CanHost, GameExists, MakeGame}
+import actors.GameSupervisor.{CanHost, CanJoin, GameExists, MakeGame}
 import actors._
 import akka.actor.{ActorRef, ActorSystem}
 import akka.pattern.ask
@@ -24,12 +24,13 @@ import scala.concurrent.{ExecutionContext, Future}
 /**
   * Is the primary router for incoming network messages, whether they be over
   * HTTP or through the WebSocket protocol
-  * @param cached The caching API endpoint
-  * @param cc Implicit component helper
-  * @param config The application's configuration
-  * @param actorSystem The application's single actor system for managing state
+  *
+  * @param cached         The caching API endpoint
+  * @param cc             Implicit component helper
+  * @param config         The application's configuration
+  * @param actorSystem    The application's single actor system for managing state
   * @param gameSupervisor The application's root actor, used to manage games
-  * @param ec Implicit context
+  * @param ec             Implicit context
   */
 class MainController @Inject()(cached: Cached,
                                cc: MessagesControllerComponents,
@@ -37,7 +38,7 @@ class MainController @Inject()(cached: Cached,
                                actorSystem: ActorSystem,
                                @Named("game-supervisor") gameSupervisor: ActorRef)
                               (implicit ec: ExecutionContext)
-    extends MessagesAbstractController(cc) with SameOriginCheck {
+  extends MessagesAbstractController(cc) with SameOriginCheck {
   val logger: Logger = Logger(this.getClass)
   implicit val timeout: Timeout = 5.seconds
 
@@ -60,10 +61,12 @@ class MainController @Inject()(cached: Cached,
   def make: Action[AnyContent] = Action.async { implicit request =>
     val formValidationResult: Form[PlayerSettings] = Resources.UserForm.bindFromRequest
     formValidationResult.fold(
-      _ => Future[Result](BadRequest("Form submission failed")),
+      _ => Future[Result](ErrorHandler.renderErrorPage(Results.BadRequest,
+        "Form submission failed")),
       userData => {
         if (!PlayerSettings.isValid(userData)) {
-          Future[Result](BadRequest(PlayerSettings.formatInvalid(userData)))
+          Future[Result](ErrorHandler.renderErrorPage(Results.BadRequest,
+            PlayerSettings.formatInvalid(userData)))
         } else {
           val hostInfo = PlayerSettings(userData.name, userData.ordinal)
           (gameSupervisor ? MakeGame(hostInfo)).mapTo[String].map { id =>
@@ -78,10 +81,12 @@ class MainController @Inject()(cached: Cached,
   // GET /lobby/host/:id
   def host(id: String): Action[AnyContent] = Action.async { implicit request =>
     (gameSupervisor ? CanHost(id)).mapTo[CanHost.Value].map {
-      case CanHost.Yes =>
-        Ok.sendFile(new File("vue/dist/index.html"))
-        .withCookies(makePlayerIdCookie)
-      case CanHost.InvalidId => BadRequest(s"Invalid app id $id")
+      case CanHost.Yes => spaEntryPoint
+      case CanHost.Started => ErrorHandler.renderErrorPage(Results.Unauthorized,
+        "Game has already started")
+      case CanHost.Hosted => Redirect(s"/lobby/$id")
+      case CanHost.InvalidId => ErrorHandler.renderErrorPage(Results.NotFound,
+        s"Invalid game id $id")
       case _ => Redirect("/")
     }
   }
@@ -95,16 +100,28 @@ class MainController @Inject()(cached: Cached,
   // and then joining the existing game
   // GET /lobby/:id
   def lobby(id: String): Action[AnyContent] = Action.async { implicit request =>
-    (gameSupervisor ? GameExists(id)).mapTo[Boolean].map {
-      case true =>
-        Ok.sendFile(new File("vue/dist/index.html"))
-        .withCookies(makePlayerIdCookie)
-      case false => BadRequest(s"Invalid app id $id")
+    (gameSupervisor ? CanJoin(id)).mapTo[CanJoin.Value].map {
+      case CanJoin.Yes => spaEntryPoint
+      case CanJoin.Started => ErrorHandler.renderErrorPage(Results.Unauthorized,
+        "Game has already started")
+      case CanJoin.InvalidId => ErrorHandler.renderErrorPage(Results.NotFound,
+        s"Invalid game id $id")
+      case _ => Redirect("/")
+    }
+  }
+
+  // Creates a response for the spa entry point, or an error if it doesn't exist
+  def spaEntryPoint()(implicit header: RequestHeader): Result = {
+    val f = new File(Resources.SpaEntryPoint)
+    f match {
+      case file if file.exists => Ok.sendFile(file).withCookies(makePlayerIdCookie)
+      case _ => ErrorHandler.renderErrorPage(Results.NotFound,
+        "Game application not found")
     }
   }
 
   // generates player Id cookies for the frontend to consume
-  def makePlayerIdCookie(implicit request: RequestHeader): Cookie = {
+  def makePlayerIdCookie()(implicit request: RequestHeader): Cookie = {
     val id = Player.generateAndIssueId
     Cookie(Resources.PlayerIdCookie,
       id, httpOnly = false)
@@ -114,7 +131,7 @@ class MainController @Inject()(cached: Cached,
   // ERROR HANDLING
   // **************
 
-  //Redirects user to host index page if they do /main by mistake
+  //Redirects user to host index page if they do /lobby by mistake
   def redirectIndex: Action[AnyContent] = Action {
     // redirect to landing page
     Redirect("/")
@@ -130,14 +147,13 @@ class MainController @Inject()(cached: Cached,
 
   def routeFiles(path: String): Action[AnyContent] = Action {
     val file = path match {
-      case p if p.startsWith("static") => new File("public" + path.substring(path.indexOf('/')))
+      case p if p.startsWith("static") =>
+        new File("public" + path.substring(path.indexOf('/')))
       case _ => new File("vue/dist/" + path)
     }
-    if (file.exists) Ok.sendFile(file) else NotFound(s"Can't find $path")
+    if (file.exists) Ok.sendFile(file) else ErrorHandler.renderErrorPage(Results.NotFound,
+      s"Can't find $path")
   }
-
-  // TODO Add pages for error handling (404s, forbidden)
-  // TODO Add page for invalid ID (either POST or GET)
 
   // ***********
   // WEB SOCKETS
@@ -170,6 +186,7 @@ class MainController @Inject()(cached: Cached,
   }
 
   import controllers.JsonMarshallers._
+
   implicit val messageFlowTransformer: MessageFlowTransformer[InPacket, OutPacket] =
     MessageFlowTransformer.jsonMessageFlowTransformer[InPacket, OutPacket]
   val playerActorSource: Source[OutPacket, ActorRef] =
@@ -178,29 +195,31 @@ class MainController @Inject()(cached: Cached,
   // Builds a flow for each WebSocket connection
   def flow(gameId: String, playerId: String): Flow[InPacket, OutPacket, ActorRef] = {
     Flow.fromGraph(GraphDSL.create(playerActorSource) {
-      implicit builder => playerActor =>
-        import akka.stream.scaladsl.GraphDSL.Implicits._
+      implicit builder =>
+        playerActor =>
+          import akka.stream.scaladsl.GraphDSL.Implicits._
 
-        // Join & Network entry points for InPackets
-        val materialization = builder.materializedValue.map(playerActor =>
-          PlayerConnect(gameId, playerId, playerActor))
-        val incomingRouter: FlowShape[InPacket, InPacket] = builder.add(Flow[InPacket])
+          // Join & Network entry points for InPackets
+          val materialization = builder.materializedValue.map(playerActor =>
+            PlayerConnect(gameId, playerId, playerActor))
+          val incomingRouter: FlowShape[InPacket, InPacket] = builder.add(Flow[InPacket])
 
-        // Merge Join & Network sources
-        val merge = builder.add(Merge[InPacket](2))
-        materialization ~> merge
-        incomingRouter ~> merge
+          // Merge Join & Network sources
+          val merge = builder.add(Merge[InPacket](2))
+          materialization ~> merge
+          incomingRouter ~> merge
 
-        // Output for messages (with default for ones that don't get processed
-        // (dead connection))
-        val gameSupervisorSink = Sink.actorRef[InPacket](gameSupervisor,
-          PlayerDisconnect(gameId, playerId))
-        merge ~> gameSupervisorSink
+          // Output for messages (with default for ones that don't get processed
+          // (dead connection))
+          val gameSupervisorSink = Sink.actorRef[InPacket](gameSupervisor,
+            PlayerDisconnect(gameId, playerId))
+          merge ~> gameSupervisorSink
 
-        // Set the WebSocket points of ingress and egress
-        FlowShape(incomingRouter.in, playerActor.out)
+          // Set the WebSocket points of ingress and egress
+          FlowShape(incomingRouter.in, playerActor.out)
     })
   }
 
-  override def validOrigin(path: String): Boolean = Resources.Origins.exists(path.contains(_))
+  override def validOrigin(path: String): Boolean =
+    Resources.Origins.exists(path.contains(_))
 }

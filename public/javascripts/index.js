@@ -55,7 +55,7 @@ codeButton.on('click', function () {
 
 // Handle color select button click
 function onColorButtonClick(id) {
-  $("#colorButtonGroup label").each(function () {
+  $(".color-button-group label").each(function () {
     if ($(this).attr("id") === (id)) {
       $(this).fadeTo(200, 1);
       $("input", this).prop("checked", true);

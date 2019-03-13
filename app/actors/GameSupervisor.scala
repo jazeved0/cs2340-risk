@@ -1,7 +1,7 @@
 package actors
 
-import actors.Game.CanBeHosted
-import actors.GameSupervisor.{CanHost, GameExists, MakeGame}
+import actors.Game.{CanBeHosted, CanBeJoined}
+import actors.GameSupervisor.{CanHost, CanJoin, GameExists, MakeGame}
 import akka.actor.{Actor, ActorRef}
 import akka.util.Timeout
 import controllers.InPacket
@@ -12,13 +12,21 @@ import scala.collection.mutable
 import scala.concurrent.duration._
 
 object GameSupervisor {
+
   // internal messages from MainController
   case class GameExists(id: String)
   case class MakeGame(hostInfo: PlayerSettings)
   case class CanHost(id: String)
+  case class CanJoin(id: String)
+
   object CanHost extends Enumeration {
     type CanHost = Value
-    val Yes, InvalidId, Hosted = Value
+    val Yes, InvalidId, Hosted, Started = Value
+  }
+
+  object CanJoin extends Enumeration {
+    type CanJoin = Value
+    val Yes, InvalidId, Started = Value
   }
 }
 
@@ -33,16 +41,20 @@ class GameSupervisor extends Actor {
 
   override def receive: Receive = {
 
-    // Internal message to poll app existence
-    case GameExists(gameId) =>
-      sender() ! games.isDefinedAt(gameId)
-
     // Internal message to make a new Game actor given the host's PlayerSettings
     case MakeGame(hostInfo) =>
       val id = Game.generateAndIssueId
       val game = context.actorOf(Game(id, hostInfo))
-      games += id -> game
-      sender() ! id
+      games += id.toString -> game
+      sender() ! id.toString
+
+    // Internal message to poll game state
+    case CanJoin(gameId) =>
+      if (games.isDefinedAt(gameId)) {
+        games(gameId) forward CanBeJoined()
+      } else {
+        sender() ! CanJoin.InvalidId
+      }
 
     // Internal message to determine whether the lobby can be hosted
     case CanHost(gameId) =>

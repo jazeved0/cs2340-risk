@@ -1,13 +1,14 @@
 package common
 
 import controllers.routes
+import game.Gameboard
 import game.mode.GameMode
 import models.{Color, PlayerSettings}
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.mvc.Call
 
-import scala.concurrent.duration.{Duration, FiniteDuration}
+import scala.concurrent.duration.FiniteDuration
 
 /**
   * General resources for the application loaded from the configuration
@@ -35,6 +36,7 @@ object Resources {
     val PingTimeoutCheckDelay = "app.controllers.pingTimeoutCheckDelay"
     val PingTimeoutCheckInterval = "app.controllers.pingTimeoutCheckInterval"
     val PublicConfigPath = "app.controllers.publicConfigPath"
+    val SpaEntryPoint = "app.controllers.spaEntryPoint"
 
     val Colors = "app.settings.colors"
     val GameIdChars = "app.settings.gameIdChars"
@@ -47,7 +49,8 @@ object Resources {
     val GameMode = "app.gameplay.gameMode"
     val MinimumPlayers = "app.gameplay.minPlayers"
     val MaximumPlayers = "app.gameplay.maxPlayers"
-    val InitialArmies = "app.gameplay.initialArmies"
+    val SkirmishInitialArmy = "app.gameplay.skirmish.initialArmy"
+    var SkirmishGameboard = "app.gameplay.skirmish.gameboard"
   }
 
   // ********************
@@ -64,6 +67,7 @@ object Resources {
   var PingTimeoutCheckDelay: FiniteDuration = _
   var PingTimeoutCheckInterval: FiniteDuration = _
   var PublicConfigPath: String = _
+  var SpaEntryPoint: String = _
 
   var Colors: Seq[Color] = _
   var GameIdChars: Seq[Char] = _
@@ -76,5 +80,6 @@ object Resources {
   var GameMode: GameMode = _
   var MinimumPlayers: Int = _
   var MaximumPlayers: Int = _
-  var InitialArmies: Map[Int, Int] = _
+  var SkirmishInitialArmy: Int = _
+  var SkirmishGameboard: Gameboard = _
 }

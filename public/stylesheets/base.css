@@ -1,91 +1,95 @@
 /* Makes body take up at least one screen height */
 html {
-	margin: 0;
-	height: 100%;
-	width: 100%;
+  margin: 0;
+  height: 100%;
+  width: 100%;
+  background-color: #362A4D;
 }
+
 body {
-	margin: 0;
-	min-height: 100%;
-	width: 100%;
-	background-color: #362A4D;
+  margin: 0;
+  min-height: 100%;
+  width: 100%;
+  background-color: #362A4D;
 }
 
 /* Github icon */
 .repoImg {
-	font-size: 40px;
-	color: #F5F2F2;
-	opacity: 0.88;
+  font-size: 40px;
+  color: #F5F2F2;
+  opacity: 0.88;
 }
 
 /* Color button styling */
 .btn-circle {
-	width: 25px;
-	height: 25px;
-	text-align: center;
-	padding: 6px 0;
-	font-size: 12px;
-	line-height: 1.42;
-	border-radius: 15px;
+  width: 25px;
+  height: 25px;
+  text-align: center;
+  padding: 6px 0;
+  font-size: 12px;
+  line-height: 1.42;
+  border-radius: 15px;
 }
 
 /* Adds translucent 'pane' behind the group */
-#colorButtonGroup {
-	background-color: #362A4D20;
-	border-radius: 4px;
+.color-button-group {
+  background-color: rgba(54, 42, 77, .12);
+  border-radius: 4px;
 }
 
 /* Modify spacing of group and then its children */
-#colorButtonGroup div {
-	padding-left: 10px;
-	padding-right: 10px;
+.color-button-group div {
+  padding-left: 10px;
+  padding-right: 10px;
 }
-#colorButtonGroup div label {
-	margin: 10px 6px 10px 6px;
-	border-style: none;
+
+.color-button-group div label {
+  margin: 10px 6px 10px 6px;
+  border-style: none;
 }
 
 /* Dark accent from theme */
 .dark_accent {
-	background-color: #5B78BB;
+  background-color: #5B78BB;
 }
 
 /* White color from theme */
 .white {
-	color: #F5F2F2;
+  color: #F5F2F2;
 }
 
 /* Dark color from theme */
 .dark_background {
-	background-color: #362A4D ;
+  background-color: #362A4D;
 }
 
 /* Fix button color to theme color */
 .btn-primary {
-	background-color: #5B78BB!important;
-	border-color: #5B78BB!important;
+  background-color: #5B78BB !important;
+  border-color: #5B78BB !important;
 }
 
 /* Override nav color */
 .bg-dark {
-	background-color: #191919!important;
+  background-color: #191919 !important;
 }
 
 /* Modify padding and add shadow to nav, color */
 nav {
-	padding: .2rem 1rem!important;
-	box-shadow: 0 0 72px #00000060;
+  padding: .2rem 1rem !important;
+  box-shadow: 0 0 72px rgba(0, 0, 0, .37);
 }
 
 /* Striped background */
 .light-background {
-	background-image: url("/static/images/stripes.svg");
-	background-size: 250px;
+  /* noinspection CssUnknownTarget */
+  background-image: url("/static/images/stripes.svg");
+  background-size: 250px;
 }
 
 /* Adds white background behind striped background */
 .light-background-container {
-	background-color: #EBEAEE;
-	z-index: 10;
-	box-shadow: 0 0 72px #00000060;
+  background-color: #EBEAEE;
+  z-index: 10;
+  box-shadow: 0 0 72px rgba(0, 0, 0, .37);
 }
