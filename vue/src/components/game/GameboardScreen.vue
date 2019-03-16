@@ -93,7 +93,7 @@
             x: 0,
             y: 0,
             data: item,
-            fill: mouseOver === index ? ColorLuminance(color, 0.2) : ('#' + color),
+            fill: mouseOver === index ? ColorLuminance(color, 0.15) : ('#' + color),
             scale: {
               x: 1,
               y: 1
@@ -376,8 +376,11 @@
 </script>
 
 <style lang="scss">
+  @import '../../assets/stylesheets/include';
+
   .gameboard {
     height: 100vh;
+    background-color: $ocean-color;
   }
 
   .stage-wrapper {
