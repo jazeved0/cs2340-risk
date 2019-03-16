@@ -1,7 +1,7 @@
 package actors
 
 import actors.Game.{CanBeHosted, CanBeJoined}
-import actors.GameSupervisor.{CanHost, CanJoin, GameExists, MakeGame}
+import actors.GameSupervisor.{CanHost, CanJoin, MakeGame}
 import akka.actor.{Actor, ActorRef}
 import akka.util.Timeout
 import controllers.InPacket

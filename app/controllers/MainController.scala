@@ -2,7 +2,7 @@ package controllers
 
 import java.io.File
 
-import actors.GameSupervisor.{CanHost, CanJoin, GameExists, MakeGame}
+import actors.GameSupervisor.{CanHost, CanJoin, MakeGame}
 import actors._
 import akka.actor.{ActorRef, ActorSystem}
 import akka.pattern.ask

@@ -2,8 +2,9 @@ package game.mode
 
 import actors.PlayerWithActor
 import common.{Resources, Util}
-import controllers.{InGamePacket, OutPacket, UpdateBoardState, UpdatePlayerState}
+import controllers.{InGamePacket, UpdateBoardState, UpdatePlayerState}
 import game._
+import game.mode.GameMode._
 
 import scala.collection.mutable
 import scala.util.Random
@@ -18,9 +19,7 @@ class SkirmishGameMode extends GameMode {
   override def assignTurnOrder(players: Seq[PlayerWithActor]): Seq[PlayerWithActor] =
     Random.shuffle(players)
 
-  override def initializeGameState(state: GameState,
-                                   broadcastCallback: (OutPacket, Option[String]) => Unit,
-                                   sendCallback: (OutPacket, String) => Unit): Unit = {
+  override def initializeGameState(state: GameState, callback: Callback): Unit = {
     // Assign territories to players
     val perTerritory = Resources.SkirmishInitialArmy
     val territoryIndices = mutable.ListBuffer() ++ Random.shuffle(state.boardState.indices.toList)
@@ -32,18 +31,18 @@ class SkirmishGameMode extends GameMode {
         val remainder = state.boardState.size % state.gameSize
         (0 until state.gameSize).map(i => if (i >= state.gameSize - remainder) base + 1 else base)
       }
-    samplesPerPlayer.zipWithIndex.foreach { t =>
-      val territories = territoryIndices.take(t._1)
+    samplesPerPlayer.zipWithIndex.foreach { case (sample, index) =>
+      val territories = territoryIndices.take(sample)
       territoryIndices --= territories
       territories.foreach { i =>
-        val army = OwnedArmy(Army(perTerritory), state.turnOrder(t._2).player)
+        val army = OwnedArmy(Army(perTerritory), state.turnOrder(index).player)
         state.boardState.update(i, Some(army))
       }
-      state.playerStates.update(t._2, PlayerState(
-        state.turnOrder(t._2).player,
-        Army(t._1 * perTerritory)))
+      state.playerStates.update(index, PlayerState(
+        state.turnOrder(index).player,
+        Army(sample * perTerritory)))
     }
-    broadcastCallback(updateBoardState(state), None)
+    callback.broadcast(updateBoardState(state), None)
   }
 
   def updateBoardState(state: GameState): UpdateBoardState =
@@ -51,24 +50,18 @@ class SkirmishGameMode extends GameMode {
       state.boardState,
       state.turnOrder.map(actor => actor.player))
 
-  override def handlePacket(packet: InGamePacket,
-                            state: GameState,
-                            broadcastCallback: (OutPacket, Option[String]) => Unit,
-                            sendCallback: (OutPacket, String) => Unit): Unit = {
+  override def handlePacket(packet: InGamePacket, state: GameState, callback: Callback): Unit = {
     packet match {
       case _ =>
     }
   }
 
-  override def playerDisconnect(actor: PlayerWithActor,
-                                state: GameState,
-                                broadcastCallback: (OutPacket, Option[String]) => Unit,
-                                sendCallback: (OutPacket, String) => Unit): Unit = {
+  override def playerDisconnect(actor: PlayerWithActor, state: GameState, callback: Callback): Unit = {
     state.boardState.zipWithIndex
-      .filter(t => t._1.forall(oa => oa.owner == actor.player))
-      .foreach(t => state.boardState.update(t._2, None))
+      .filter { case (armyOption, _) => armyOption.forall(oa => oa.owner == actor.player) }
+      .foreach { case (_, index) => state.boardState.update(index, None) }
     state.turnOrder = Util.remove(actor, state.turnOrder)
-    broadcastCallback(updateBoardState(state), Some(actor.id))
-    broadcastCallback(UpdatePlayerState(state.playerStates), Some(actor.id))
+    callback.broadcast(updateBoardState(state), Some(actor.id))
+    callback.send(UpdatePlayerState(state.playerStates), actor.id)
   }
 }

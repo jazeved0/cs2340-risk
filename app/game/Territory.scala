@@ -1,5 +1,6 @@
 package game
 
-// Territory DTO
+import game.Gameboard.Location
 
-case class Territory(connections: Set[Int])
+// Territory DTO
+case class Territory(connections: Set[Int], castle: Option[Location])

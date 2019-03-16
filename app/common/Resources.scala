@@ -1,18 +1,23 @@
 package common
 
+import java.util
+
+import com.typesafe.config.{Config, ConfigObject}
 import controllers.routes
-import game.Gameboard
+import game.Gameboard.{Location, Node}
 import game.mode.GameMode
+import game.{Connection, Gameboard, Territory}
 import models.{Color, PlayerSettings}
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.mvc.Call
+import play.api.{Configuration, Environment}
 
+import scala.collection.JavaConverters._
 import scala.concurrent.duration.FiniteDuration
 
 /**
-  * General resources for the application loaded from the configuration
-  * file
+  * General resources for the application loaded from the configuration file
   */
 object Resources {
   val UserForm = Form(
@@ -82,4 +87,122 @@ object Resources {
   var MaximumPlayers: Int = _
   var SkirmishInitialArmy: Int = _
   var SkirmishGameboard: Gameboard = _
+
+
+  // *************
+  // CONFIG LOADER
+  // *************
+
+  object ConfigLoader {
+    def load(config: Configuration, environment: Environment): Unit = {
+      Resources.Origins = config.get[Seq[String]](Resources.ConfigKeys.OriginsConfig)
+
+      Resources.PlayerIdCookie = config.get[String](Resources.ConfigKeys.PlayerIdCookie)
+      Resources.BaseUrl = config.get[String](Resources.ConfigKeys.BaseUrl)
+      Resources.IncomingPacketBufferSize = config.get[Int](Resources.ConfigKeys.IncomingPacketBufferSize)
+      Resources.InitialPingDelay = config.get[FiniteDuration](Resources.ConfigKeys.InitialPingDelay)
+      Resources.PingDelay = config.get[FiniteDuration](Resources.ConfigKeys.PingDelay)
+      Resources.PingTimeout = config.get[FiniteDuration](Resources.ConfigKeys.PingTimeout)
+      Resources.PingTimeoutCheckDelay = config.get[FiniteDuration](Resources.ConfigKeys.PingTimeoutCheckDelay)
+      Resources.PingTimeoutCheckInterval = config.get[FiniteDuration](Resources.ConfigKeys.PingTimeoutCheckInterval)
+      Resources.PublicConfigPath = config.get[String](Resources.ConfigKeys.PublicConfigPath)
+      Resources.SpaEntryPoint = config.get[String](Resources.ConfigKeys.SpaEntryPoint)
+
+      Resources.Colors = config.get[Seq[String]](Resources.ConfigKeys.Colors).map(Color)
+      Resources.GameIdChars = config.get[String](Resources.ConfigKeys.GameIdChars).toLowerCase.toList
+      Resources.NameRegex = config.get[String](Resources.ConfigKeys.NameRegex)
+      Resources.GameIdLength = config.get[Int](Resources.ConfigKeys.GameIdLength)
+      Resources.PlayerIdLength = config.get[Int](Resources.ConfigKeys.PlayerIdLength)
+      Resources.MinNameLength = config.get[Int](Resources.ConfigKeys.MinNameLength)
+      Resources.MaxNameLength = config.get[Int](Resources.ConfigKeys.MaxNameLength)
+      Resources.MinimumPlayers = config.get[Int](Resources.ConfigKeys.MinimumPlayers)
+      Resources.MaximumPlayers = config.get[Int](Resources.ConfigKeys.MaximumPlayers)
+
+      Resources.SkirmishInitialArmy = config.get[Int](Resources.ConfigKeys.SkirmishInitialArmy)
+      Resources.GameMode = environment.classLoader.loadClass(
+        config.get[String](Resources.ConfigKeys.GameMode))
+        .asSubclass(classOf[GameMode])
+        .getDeclaredConstructor().newInstance()
+      Resources.SkirmishGameboard = loadGameboard(loadOrThrow(
+        config.getOptional[Configuration](Resources.ConfigKeys.SkirmishGameboard),
+        Resources.ConfigKeys.SkirmishGameboard))
+    }
+  }
+
+  def loadGameboard(configuration: Configuration): Gameboard = {
+    implicit val config: Config = configuration.underlying
+
+    val waterConnections: Seq[Connection] = configList("waterConnections").map(parseConnection)
+    val regions: Seq[Range] = getAbTuples("regions").map { case (a, b) => a to b }
+    val edgeList: Seq[(Int, Int)] = getAbTuples("edges")
+    val nodes: Seq[Node] = configList("nodes")
+      .sortWith((c1, c2) => c1.getInt("node") < c2.getInt("node"))
+      .map { subConfig =>
+        val i = subConfig.getInt("node")
+        Node(
+          subConfig.getString("data"),
+          subConfig.getString("iconData"),
+          getLocation("center", ("x", "y"))(subConfig),
+          Territory(edgeList
+            .filter(t => t._1 == i || t._2 == i)
+            .map(t => if (i == t._1) t._2 else t._1)
+            .toSet,
+            get("castle", (c, k) => {
+
+              Location.apply(toTuple2(c.getAnyRefList(k).asScala.toList.flatMap(toFloat)))
+            })(subConfig)))
+      }
+    val size: Location = getLocation("size")
+    Gameboard(nodes, regions, waterConnections, size)
+  }
+
+  def parseConnection(config: Config): Connection = {
+    val wrapper = Configuration(config)
+    val midpoints: Seq[(Float, Float)] = getList("midpoints", l =>
+      (toFloat(l.get(0)).getOrElse(0f), toFloat(l.get(1)).getOrElse(0f)))(config)
+    val bezier: Boolean = wrapper.getOptional[Boolean]("bz").getOrElse(false)
+    val tension: Double = wrapper.getOptional[Double]("tension").getOrElse(0)
+    Connection(
+      config.getInt("a"), config.getInt("b"),
+      midpoints, bezier, tension.toFloat)
+  }
+
+  def toFloat(in: Any): Option[Float] =
+    in match {
+      case d: Double => Some(d.toFloat)
+      case s: String => Some(s.toFloat)
+      case f: Float => Some(f)
+      case _ => None
+    }
+
+  def get[B](key: String, map: (Config, String) => B)(implicit config: Config): Option[B] =
+    if (config.hasPath(key)) Some(map(config, key)) else None
+
+  def getList[B](key: String, map: util.ArrayList[_] => B)(implicit config: Config): Seq[B] =
+    get(key, (c, k) =>
+      c.getAnyRefList(k).asScala.toList.flatMap {
+        case l: util.ArrayList[_] => Some(map(l))
+        case _ => None
+      })(config).getOrElse(Nil)
+
+  def getPair[B](subConfig: Config, subKeys: (String, String), map: (Config, String) => B)(implicit config: Config): (B, B) =
+    toTuple2(List(subKeys._1, subKeys._2).map { subKey => map(subConfig, subKey) })
+
+  def toTuple2[B](list: Seq[B]): (B, B) =
+    loadOrThrow(if (list.lengthCompare(2) >= 0) Some((list.head, list(1))) else None, s"list $list")
+
+  def getAbTuples(key: String)(implicit config: Config): Seq[(Int, Int)] =
+    list(key, configObj => getPair(configObj.toConfig, ("a", "b"), (c: Config, k: String) => c.getInt(k))(config))
+
+  def getLocation(key: String, subKeys: (String, String) = ("a", "b"))(implicit config: Config): Location =
+    Location.apply(getPair(config.getConfig(key), subKeys, (c: Config, k: String) => c.getDouble(k).toFloat))
+
+  def list[B](key: String, map: ConfigObject => B)(implicit config: Config): Seq[B] =
+    config.getObjectList(key).asScala.map(map)
+
+  def configList(key: String)(implicit config: Config): Seq[Config] =
+    list(key, item => item.toConfig)
+
+  def loadOrThrow[A](oa: Option[A], key: String): A =
+    oa.getOrElse(throw new RuntimeException(s"Key $key not found"))
 }

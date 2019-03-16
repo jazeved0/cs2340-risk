@@ -1,7 +1,7 @@
 {
 	"settings": {
 		"colors": [ "2980b9", "27ae60", "8e44ad", "e67e22", "c0392b", "16a085" ],
-		"territoryColors": [ "ABD699", "A0D7ED", "BBA9D2", "EBEFAB", "F8B4B2" ],
+		"territoryColors": [ "cde2c3", "cbe7ef", "d6daed", "caefe3", "f3dcf4", "e8dcf4", "eeefd3", "f4dfd0", "f9d2d2" ],
 		"nameRegex": "^[a-zA-Z0-9]+$",
 		"playerIdLength": 16,
 		"minNameLength": 2,

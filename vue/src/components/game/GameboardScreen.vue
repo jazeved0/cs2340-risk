@@ -110,14 +110,14 @@
           const node2 = gameState.gameboard.centers[item.b];
           let bezier = 'bz' in item ? item.bz : false;
           let tension = 'tension' in item ? item.tension : 0;
-          let points = [node1[0], node1[1]];
+          let points = [node1.a, node1.b];
           if ('midpoints' in item && item.midpoints.length > 0) {
             item.midpoints.forEach(function (point) {
               points.push(point[0]);
               points.push(point[1])
             });
           }
-          points.push(node2[0], node2[1]);
+          points.push(node2.a, node2.b);
           return {
             x: 0,
             y: 0,
@@ -154,6 +154,7 @@
       },
       resizeCanvas: function () {
         if (this.$refs && 'stageWrapper' in this.$refs) {
+          // noinspection JSUnresolvedVariable
           this.stageDimensions = {
             w: this.$refs.stageWrapper.clientWidth,
             h: this.$refs.stageWrapper.clientHeight
@@ -274,8 +275,8 @@
         const bounds = this.stageDimensions;
         const size = this.$store.state.game.gameboard.size;
         return {
-          x: this.axisBounds(size[0] * scale.x, bounds.w),
-          y: this.axisBounds(size[1] * scale.y, bounds.h)
+          x: this.axisBounds(size.a * scale.x, bounds.w),
+          y: this.axisBounds(size.b * scale.y, bounds.h)
         };
       },
       axisBounds: function (size, bound) {
@@ -302,12 +303,12 @@
         const size = this.$store.state.game.gameboard.size;
         // make initial map take up 3/4 of smaller dimension
         const margin = Math.min(totalW, totalH) / 8;
-        const kw = (totalW - 2 * margin) / size[0];
-        const kh = (totalH - 2 * margin) / size[1];
+        const kw = (totalW - 2 * margin) / size.a;
+        const kh = (totalH - 2 * margin) / size.b;
         const k = Math.min(kw, kh);
         return {
-          x: (totalW - (size[0] * k)) / 2,
-          y: (totalH - (size[1] * k)) / 2,
+          x: (totalW - (size.a * k)) / 2,
+          y: (totalH - (size.b * k)) / 2,
           scale: k
         };
       }

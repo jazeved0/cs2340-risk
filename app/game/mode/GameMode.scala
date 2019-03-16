@@ -2,24 +2,39 @@ package game.mode
 
 import actors.PlayerWithActor
 import controllers.{InGamePacket, OutPacket, SendGameboard, UpdatePlayerState}
+import game.mode.GameMode._
 import game.{GameState, Gameboard}
 
 import scala.collection.mutable
+
+object GameMode {
+  // Callback parameter wrapper
+  case class Callback(broadcast: (OutPacket, Option[String]) => Unit,
+                      send: (OutPacket, String) => Unit) {
+    def apply(payload: (OutPacket, Option[String]), flag: CallbackFlag): Unit = {
+      flag match {
+        case Broadcast => broadcast(payload._1, payload._2)
+        case Send => send(payload._1, payload._2.getOrElse(""))
+      }
+    }
+  }
+  sealed trait CallbackFlag
+  case object Broadcast extends CallbackFlag
+  case object Send extends CallbackFlag
+}
 
 trait GameMode {
   def makeGameState(turnOrder: Seq[PlayerWithActor]): GameState =
     new GameState(IndexedSeq() ++ turnOrder, gameboard.nodeCount)
 
-  def initializeGame(joinOrder: List[PlayerWithActor],
-                     broadcastCallback: (OutPacket, Option[String]) => Unit,
-                     sendCallback: (OutPacket, String) => Unit): GameState = {
+  def initializeGame(joinOrder: List[PlayerWithActor], callback: Callback): GameState = {
     // Use latent sending callbacks to preserve send order
-    sealed trait CallbackFlag
-    case object Broadcast extends CallbackFlag
-    case object Send extends CallbackFlag
-    val sends: mutable.MutableList[(OutPacket, CallbackFlag, Option[String])] = mutable.MutableList()
-    val latentBroadcast: (OutPacket, Option[String]) => Unit = (p, o) => sends += ((p, Broadcast, o))
-    val latentSend: (OutPacket, String) => Unit = (p, o) => sends += ((p, Send, Some(o)))
+
+    val messageQueue: mutable.Queue[(CallbackFlag, (OutPacket, Option[String]))] = mutable.Queue()
+    val latentCallback = Callback(
+      (p: OutPacket, s: Option[String]) => messageQueue += ((Broadcast, (p, s))),
+      (p: OutPacket, s: String) => messageQueue += ((Send, (p, Some(s))))
+    )
 
     // default game initialization behavior:
     //    1. Broadcast the proper gameboard
@@ -28,18 +43,14 @@ trait GameMode {
     //    4. Call initializeGameState to perform any initialization actions
     //    5. Broadcast the generated player state
     //    6. Broadcast and send any other OutPackets from the latent callbacks
-    broadcastCallback(SendGameboard(gameboard), None)
+    callback.broadcast(SendGameboard(gameboard), None)
     val turnOrder: Seq[PlayerWithActor] = assignTurnOrder(joinOrder)
     val gameState = makeGameState(turnOrder)
-    initializeGameState(gameState, latentBroadcast, latentSend)
-    broadcastCallback(UpdatePlayerState(gameState.playerStates), None)
+    initializeGameState(gameState, latentCallback)
+    callback.broadcast(UpdatePlayerState(gameState.playerStates), None)
 
     // Consume earlier built latent callbacks
-    sends.foreach((t: (OutPacket, CallbackFlag, Option[String])) => t._2 match {
-      case Broadcast => broadcastCallback(t._1, t._3)
-      case Send => sendCallback(t._1, t._3.getOrElse(""))
-    })
-
+    messageQueue.foreach { case (flag, payload) => callback(payload, flag) }
     gameState
   }
 
@@ -48,15 +59,7 @@ trait GameMode {
 
   // Abstract methods
   def assignTurnOrder(players: Seq[PlayerWithActor]): Seq[PlayerWithActor]
-  def initializeGameState(state: GameState,
-                          broadcastCallback: (OutPacket, Option[String]) => Unit,
-                          sendCallback: (OutPacket, String) => Unit): Unit
-  def handlePacket(packet: InGamePacket,
-                   state: GameState,
-                   broadcastCallback: (OutPacket, Option[String]) => Unit,
-                   sendCallback: (OutPacket, String) => Unit): Unit
-  def playerDisconnect(player: PlayerWithActor,
-                       s: GameState,
-                       broadcastCallback: (OutPacket, Option[String]) => Unit,
-                       sendCallback: (OutPacket, String) => Unit): Unit
+  def initializeGameState(state: GameState, callback: Callback): Unit
+  def handlePacket(packet: InGamePacket, state: GameState, callback: Callback): Unit
+  def playerDisconnect(player: PlayerWithActor, state: GameState, callback: Callback): Unit
 }

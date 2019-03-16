@@ -8,6 +8,7 @@ import akka.actor.{Actor, ActorRef, Cancellable, PoisonPill, Props}
 import common.{Resources, UniqueIdProvider, UniqueValueManager, Util}
 import controllers._
 import game.GameState
+import game.mode.GameMode._
 import game.mode.GameMode
 import models.GameLobbyState.State
 import models.{GameLobbyState, Player, PlayerSettings}
@@ -92,8 +93,8 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
     this.state = GameLobbyState.InGame
     gameState = Some(gameMode.initializeGame(
       players.values.toList,
-      broadcastCallback,
-      sendCallback))
+      Callback(broadcastCallback,
+      sendCallback)))
   }
 
   // Receive incoming packets and turn them into internal state
@@ -162,7 +163,7 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
   def receiveInGame(inGamePacket: InGamePacket): Unit = {
     inGamePacket match {
       case p if gameState.isDefined =>
-        gameMode.handlePacket(p, gameState.get, broadcastCallback, sendCallback)
+        gameMode.handlePacket(p, gameState.get, Callback(broadcastCallback, sendCallback))
       case p =>
         badPacket(p)
     }
@@ -299,7 +300,7 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
         if (players.isDefinedAt(playerId)) {
           gameState.foreach(s => gameMode.playerDisconnect(
             players(playerId), s,
-            broadcastCallback, sendCallback))
+            Callback(broadcastCallback, sendCallback)))
           removePotentialHost(playerId)
         }
     }

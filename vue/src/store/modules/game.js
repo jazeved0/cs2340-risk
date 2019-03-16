@@ -34,14 +34,17 @@ export default {
     },
     [ON_SEND_GAMEBOARD](state, data) {
       if ('gameboard' in data) {
-        state.gameboard.nodeCount = data.gameboard.nodeCount;
-        state.gameboard.pathData = data.gameboard.pathData;
-        state.gameboard.iconData = data.gameboard.iconData;
-        state.gameboard.centers = data.gameboard.centers;
+        state.gameboard.nodeCount = data.gameboard.nodes.length;
         state.gameboard.regions = data.gameboard.regions;
         state.gameboard.waterConnections = data.gameboard.waterConnections;
-        state.gameboard.territories = data.gameboard.territories;
         state.gameboard.size = data.gameboard.size;
+        // noinspection JSUnresolvedVariable
+        state.gameboard.territories = data.gameboard.nodes.map((n) => n.dto);
+        state.gameboard.pathData = data.gameboard.nodes.map((n) => n.path);
+        // noinspection JSUnresolvedVariable
+        state.gameboard.iconData = data.gameboard.nodes.map((n) => n.iconPath);
+        state.gameboard.centers = data.gameboard.nodes.map((n) => n.center);
+        // TODO Add castle parsing & bind to GameboardScreen
       }
       initializeGameboardScreen(NETWORK_CTX);
     },

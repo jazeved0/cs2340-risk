@@ -2,9 +2,9 @@ package controllers
 
 import akka.actor.ActorRef
 import controllers.RequestResponse.Response
+import game.Gameboard.{Location, Node}
 import game.{Connection, _}
 import models.{Player, PlayerSettings}
-import play.api.Logger
 import play.api.libs.json._
 
 import scala.collection.mutable
@@ -76,8 +76,10 @@ object JsonMarshallers {
   implicit val playerW: Writes[Player] = Json.writes[Player]
   implicit val playerStateW: Writes[PlayerState] = Json.writes[PlayerState]
   implicit val ownedArmyW: Writes[OwnedArmy] = Json.writes[OwnedArmy]
+  implicit val locationW: Writes[Location] = Json.writes[Location]
   implicit val territoryW: Writes[Territory] = Json.writes[Territory]
   implicit val connectionW: Writes[Connection] = Json.writes[Connection]
+  implicit val nodeW: Writes[Node] = Json.writes[Node]
   implicit val gameboardW: Writes[Gameboard] = Json.writes[Gameboard]
 
   // Deserializers
