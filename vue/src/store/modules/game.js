@@ -30,6 +30,11 @@ export default {
     [ON_UPDATE_PLAYER_STATE](state, data) {
       if ('seq' in data) {
         state.playerStateList = data.seq;
+        // TODO Update the current turn
+        //  data.turn // index of current turn
+        // TODO Update the initial allocation if in reinforcement
+        //  data.seq[n].turnState.state === "reinforcement"
+        //  data.seq[n].turnState.payload.amount // initial allocation
       }
     },
     [ON_SEND_GAMEBOARD](state, data) {
@@ -45,6 +50,8 @@ export default {
         state.gameboard.iconData = data.gameboard.nodes.map((n) => n.iconPath);
         state.gameboard.centers = data.gameboard.nodes.map((n) => n.center);
         // TODO Add castle parsing & bind to GameboardScreen
+        //  data.gameboard.nodes.filter((n) => 'castle' in n.dto).map((n) => n.dto.castle)
+        //  // gives [{ a: float, b: float }, ...]
       }
       initializeGameboardScreen(NETWORK_CTX);
     },

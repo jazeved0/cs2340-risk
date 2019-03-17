@@ -3,6 +3,7 @@ package controllers
 import akka.actor.ActorRef
 import controllers.RequestResponse.Response
 import game.Gameboard.{Location, Node}
+import game.PlayerState.{State, TurnState}
 import game.{Connection, _}
 import models.{Player, PlayerSettings}
 import play.api.libs.json._
@@ -28,10 +29,10 @@ case class RequestPlayerJoin(gameId: String, playerId: String, withSettings: Pla
 case class PlayerDisconnect(gameId: String, playerId: String) extends GlobalPacket
 // Incoming packet for starting the game
 case class RequestStartGame(gameId: String, playerId: String) extends LobbyPacket
-// Temporary class to satisfy Marshaller macros
-case class Unused(gameId: String, playerId: String) extends InGamePacket
 // Expected Ping Packet Response from Client (in Response to PingPlayer)
 case class PingResponse(gameId: String, playerId: String) extends GlobalPacket
+// Requests to place reinforcements at the given territories
+case class RequestPlaceReinforcements(gameId: String, playerId: String, assignments: Seq[(Int, Int)]) extends InGamePacket
 
 // Outgoing packets to the network
 sealed trait OutPacket
@@ -39,15 +40,18 @@ case class GameLobbyUpdate(seq: Seq[PlayerSettings], host: Int) extends OutPacke
 case class RequestReply(response: Response, message: String = "") extends OutPacket
 case class BadPacket(message: String = "") extends OutPacket
 case class StartGame(identity: String = "start") extends OutPacket
-case class UpdatePlayerState(seq: Seq[PlayerState]) extends OutPacket
+case class UpdatePlayerState(seq: Seq[PlayerState], turn: Int) extends OutPacket
+object UpdatePlayerState {
+  def apply(state: GameState): UpdatePlayerState = UpdatePlayerState(state.playerStates, state.turn)
+}
 case class PingPlayer(identity: String = "ping") extends OutPacket
 case class SendConfig(config: String) extends OutPacket
 case class SendGameboard(gameboard: Gameboard) extends OutPacket
 case class UpdateBoardState(armies: Map[Int, (Int, Int)]) extends OutPacket
 object UpdateBoardState {
-  def apply(buf: mutable.Buffer[Option[OwnedArmy]], players: Seq[Player]): UpdateBoardState = {
-    val playerToInt = players.zipWithIndex.toMap
-    new UpdateBoardState(buf.zipWithIndex
+  def apply(state: GameState): UpdateBoardState = {
+    val playerToInt = state.turnOrder.map(actor => actor.player).zipWithIndex.toMap
+    new UpdateBoardState(state.boardState.zipWithIndex
       .filter(t => t._1.isDefined)
       .map(t => (t._2, (
         t._1.get.army.size,
@@ -68,12 +72,22 @@ class UnusedFormat[T <: InPacket] extends Reads[T] {
   }
 }
 
+class PayloadWrites extends Writes[Seq[(String, Any)]] {
+  override def writes(data: Seq[(String, Any)]): JsValue = {
+    JsObject(data.iterator
+      .map { case (key, value) => (key, JsString(value.toString)) }.toList)
+  }
+}
+
 object JsonMarshallers {
   // Data object marshallers
   implicit val playerSettingsR: Reads[PlayerSettings] = Json.reads[PlayerSettings]
   implicit val playerSettingsW: Writes[PlayerSettings] = Json.writes[PlayerSettings]
   implicit val armyW: Writes[Army] = Json.writes[Army]
   implicit val playerW: Writes[Player] = Json.writes[Player]
+  implicit val stateW: Writes[State] = (s: State) => JsString(State.unapply(s).getOrElse(""))
+  implicit val payloadW: Writes[Seq[(String, Any)]] = new PayloadWrites
+  implicit val turnStateW: Writes[TurnState] = Json.writes[TurnState]
   implicit val playerStateW: Writes[PlayerState] = Json.writes[PlayerState]
   implicit val ownedArmyW: Writes[OwnedArmy] = Json.writes[OwnedArmy]
   implicit val locationW: Writes[Location] = Json.writes[Location]
@@ -86,7 +100,7 @@ object JsonMarshallers {
   implicit val requestPlayerJoin: Reads[RequestPlayerJoin] = Json.reads[RequestPlayerJoin]
   implicit val requestStartGame: Reads[RequestStartGame] = Json.reads[RequestStartGame]
   implicit val pingResponse: Reads[PingResponse] = Json.reads[PingResponse]
-  implicit val unused: Reads[Unused] = Json.reads[Unused]
+  implicit val requestPlaceReinforcements: Reads[RequestPlaceReinforcements] = Json.reads[RequestPlaceReinforcements]
 
   // Unused Deserializers; necessary for macros to work
   implicit val playerConnect: Reads[PlayerConnect] = new UnusedFormat[PlayerConnect]

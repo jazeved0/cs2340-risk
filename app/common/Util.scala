@@ -1,5 +1,7 @@
 package common
 
+import scala.collection.mutable
+import scala.collection.mutable.ListBuffer
 import scala.util.Random
 
 /**
@@ -39,4 +41,8 @@ object Util {
   def randomString(length: Int, from: Seq[Char]): String = Random.shuffle(from).take(length).mkString
 
   def remove[A, B >: A](elem: B, list: Seq[A]): Seq[A] = list diff List(elem)
+
+  def listBuffer[B](traversableOnce: TraversableOnce[B]): ListBuffer[B] = mutable.ListBuffer[B]() ++ traversableOnce
+
+  def buffer[B](traversableOnce: TraversableOnce[B]): mutable.Buffer[B] = mutable.Buffer[B]() ++ traversableOnce
 }

@@ -51,6 +51,18 @@
   // noinspection JSUnresolvedFunction
   Vue.use(VueKonva);
 
+  // TODO once army placement is complete, send packet to websocket:
+  //  this.$socket.sendObj({
+  //  _type: "controllers.RequestPlaceReinforcements",
+  //    gameId: this.$store.state.gameId,
+  //    playerId: this.$store.state.playerId,
+  //    assignments: [
+  //      [0, 4], // 0 is the index of the territory, 4 is the amount
+  //      ...
+  //    ]
+  //  }
+  //  );
+
   export default {
     components: {
       'tool-bar': Toolbar,

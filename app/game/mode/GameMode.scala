@@ -46,8 +46,8 @@ trait GameMode {
     callback.broadcast(SendGameboard(gameboard), None)
     val turnOrder: Seq[PlayerWithActor] = assignTurnOrder(joinOrder)
     val gameState = makeGameState(turnOrder)
-    initializeGameState(gameState, latentCallback)
-    callback.broadcast(UpdatePlayerState(gameState.playerStates), None)
+    initializeGameState(latentCallback)(gameState)
+    callback.broadcast(UpdatePlayerState(gameState), None)
 
     // Consume earlier built latent callbacks
     messageQueue.foreach { case (flag, payload) => callback(payload, flag) }
@@ -59,7 +59,7 @@ trait GameMode {
 
   // Abstract methods
   def assignTurnOrder(players: Seq[PlayerWithActor]): Seq[PlayerWithActor]
-  def initializeGameState(state: GameState, callback: Callback): Unit
-  def handlePacket(packet: InGamePacket, state: GameState, callback: Callback): Unit
-  def playerDisconnect(player: PlayerWithActor, state: GameState, callback: Callback): Unit
+  def initializeGameState(callback: Callback)(implicit state: GameState): Unit
+  def handlePacket(packet: InGamePacket, callback: Callback)(implicit state: GameState): Unit
+  def playerDisconnect(player: PlayerWithActor, callback: Callback)(implicit state: GameState): Unit
 }

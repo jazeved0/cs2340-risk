@@ -163,7 +163,7 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
   def receiveInGame(inGamePacket: InGamePacket): Unit = {
     inGamePacket match {
       case p if gameState.isDefined =>
-        gameMode.handlePacket(p, gameState.get, Callback(broadcastCallback, sendCallback))
+        gameMode.handlePacket(p, Callback(broadcastCallback, sendCallback))(gameState.get)
       case p =>
         badPacket(p)
     }
@@ -299,8 +299,7 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
       case GameLobbyState.InGame =>
         if (players.isDefinedAt(playerId)) {
           gameState.foreach(s => gameMode.playerDisconnect(
-            players(playerId), s,
-            Callback(broadcastCallback, sendCallback)))
+            players(playerId), Callback(broadcastCallback, sendCallback))(s))
           removePotentialHost(playerId)
         }
     }

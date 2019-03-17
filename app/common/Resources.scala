@@ -56,6 +56,8 @@ object Resources {
     val MaximumPlayers = "app.gameplay.maxPlayers"
     val SkirmishInitialArmy = "app.gameplay.skirmish.initialArmy"
     var SkirmishGameboard = "app.gameplay.skirmish.gameboard"
+    val SkirmishReinforcementDivisor = "app.gameplay.skirmish.reinforcementDivisor"
+    val SkirmishReinforcementBase = "app.gameplay.skirmish.reinforcementBase"
   }
 
   // ********************
@@ -87,7 +89,8 @@ object Resources {
   var MaximumPlayers: Int = _
   var SkirmishInitialArmy: Int = _
   var SkirmishGameboard: Gameboard = _
-
+  var SkirmishReinforcementDivisor: Int = _
+  var SkirmishReinforcementBase: Int = _
 
   // *************
   // CONFIG LOADER
@@ -126,34 +129,36 @@ object Resources {
       Resources.SkirmishGameboard = loadGameboard(loadOrThrow(
         config.getOptional[Configuration](Resources.ConfigKeys.SkirmishGameboard),
         Resources.ConfigKeys.SkirmishGameboard))
+      Resources.SkirmishReinforcementDivisor = config.get[Int](Resources.ConfigKeys.SkirmishReinforcementDivisor)
+      Resources.SkirmishReinforcementBase = config.get[Int](Resources.ConfigKeys.SkirmishReinforcementBase)
     }
   }
 
   def loadGameboard(configuration: Configuration): Gameboard = {
     implicit val config: Config = configuration.underlying
-
     val waterConnections: Seq[Connection] = configList("waterConnections").map(parseConnection)
     val regions: Seq[Range] = getAbTuples("regions").map { case (a, b) => a to b }
     val edgeList: Seq[(Int, Int)] = getAbTuples("edges")
     val nodes: Seq[Node] = configList("nodes")
       .sortWith((c1, c2) => c1.getInt("node") < c2.getInt("node"))
-      .map { subConfig =>
-        val i = subConfig.getInt("node")
-        Node(
-          subConfig.getString("data"),
-          subConfig.getString("iconData"),
-          getLocation("center", ("x", "y"))(subConfig),
-          Territory(edgeList
-            .filter(t => t._1 == i || t._2 == i)
-            .map(t => if (i == t._1) t._2 else t._1)
-            .toSet,
-            get("castle", (c, k) => {
-
-              Location.apply(toTuple2(c.getAnyRefList(k).asScala.toList.flatMap(toFloat)))
-            })(subConfig)))
-      }
+      .map(parseNode(_, edgeList))
     val size: Location = getLocation("size")
     Gameboard(nodes, regions, waterConnections, size)
+  }
+
+  def parseNode(config: Config, edges: Seq[(Int, Int)]): Node = {
+    val i = config.getInt("node")
+    val data = config.getString("data")
+    val iconData = config.getString("iconData")
+    val center = getLocation("center", ("x", "y"))(config)
+    val dto = Territory(edges
+      .filter(t => t._1 == i || t._2 == i)
+      .map(t => if (i == t._1) t._2 else t._1)
+      .toSet,
+      get("castle", (c, k) => {
+        Location.apply(toTuple2(c.getAnyRefList(k).asScala.toList.flatMap(toFloat)))
+      })(config))
+    Node(data, iconData, center, dto)
   }
 
   def parseConnection(config: Config): Connection = {
