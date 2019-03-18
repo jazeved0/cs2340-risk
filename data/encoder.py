@@ -72,7 +72,7 @@ def main():
             for group in groups:
                 children = list(filter(lambda n: n.nodeType != n.TEXT_NODE, group.childNodes))
                 if children:
-                    text_elements = list(filter(lambda t: t.nodeName == 'text', children))
+                    text_elements = list(filter(lambda text: text.nodeName == 'text', children))
                     if text_elements:
                         territory_count += 1
                         territory = parse_territory(children)
@@ -122,7 +122,7 @@ def main():
                                      in edge_group_styles_map if style != water_class}
                 edge_nodes = [item for sublist in connection_styles.values() for item in sublist]
                 edge_count = len(edge_nodes)
-                centers = dict(list(map(lambda t: (t[0], t[1]), territories)))
+                centers = dict(list(map(lambda ter: (ter[0], ter[1]), territories)))
 
                 # parse edges
                 for edge_node in edge_nodes:

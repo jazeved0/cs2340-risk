@@ -8,11 +8,10 @@ import akka.actor.{Actor, ActorRef, Cancellable, PoisonPill, Props}
 import common.{Resources, UniqueIdProvider, UniqueValueManager, Util}
 import controllers._
 import game.GameState
-import game.mode.GameMode._
 import game.mode.GameMode
+import game.mode.GameMode._
 import models.GameLobbyState.State
 import models.{GameLobbyState, Player, PlayerSettings}
-import play.api.Logger
 import play.api.libs.json.Json
 
 import scala.collection.immutable.{HashSet, WrappedString}
@@ -49,8 +48,6 @@ object Game extends UniqueIdProvider[WrappedString] {
   */
 class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
   extends Actor with UniqueValueManager[PlayerSettings] {
-
-  val logger: Logger = Logger(this.getClass)
 
   // *************
   // Mutable state
@@ -340,7 +337,6 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
     GameLobbyUpdate(playerList,
       host.fold(-1)(_.player.settings.fold(-1)(playerList.indexOf(_))))
   }
-
 
   def packetInvalidState(p: InPacket): Unit = {
     connected.get(p.playerId).orElse(players.get(p.playerId)).foreach(

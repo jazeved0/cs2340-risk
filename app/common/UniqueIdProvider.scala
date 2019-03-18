@@ -16,11 +16,11 @@ trait UniqueIdProvider[T <: StringLike[_]] {
   protected def generateId(len: Int): T
   protected def isIdChar(c: Char): Boolean
   protected val Ids: mutable.HashSet[T] = new mutable.HashSet()
-  protected def issueId(id: T) {
+  protected def issueId(id: T): Unit = {
     Ids += id
   }
 
-  def returnId(id: T) {
+  protected def returnId(id: T): Unit = {
     Ids -= id
   }
 

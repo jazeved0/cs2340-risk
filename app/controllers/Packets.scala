@@ -8,8 +8,6 @@ import game.{Connection, _}
 import models.{Player, PlayerSettings}
 import play.api.libs.json._
 
-import scala.collection.mutable
-
 // Incoming packets from the network
 sealed trait InPacket {
   def gameId: String

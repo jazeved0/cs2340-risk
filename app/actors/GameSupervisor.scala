@@ -6,7 +6,6 @@ import akka.actor.{Actor, ActorRef}
 import akka.util.Timeout
 import controllers.InPacket
 import models.PlayerSettings
-import play.api.Logger
 
 import scala.collection.mutable
 import scala.concurrent.duration._
@@ -35,7 +34,6 @@ object GameSupervisor {
   * has been generated
   */
 class GameSupervisor extends Actor {
-  val logger: Logger = Logger(this.getClass)
   val games: mutable.HashMap[String, ActorRef] = mutable.HashMap[String, ActorRef]()
   implicit val timeout: Timeout = 5.seconds
 

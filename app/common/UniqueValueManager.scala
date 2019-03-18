@@ -13,12 +13,12 @@ import scala.collection.mutable
   * Known implementors are Game[PlayerSettings]
   */
 trait UniqueValueManager[T <: Product] {
-  protected var Values: Option[List[mutable.HashSet[Any]]] = None
+  protected var values: Option[List[mutable.HashSet[Any]]] = None
 
   def isUnique(t: T): Boolean = {
-    if (Values.isEmpty) {
+    if (values.isEmpty) {
       true
-    } else if ((Values.get.iterator zip t.productIterator)
+    } else if ((values.get.iterator zip t.productIterator)
       .exists { case (set, v) => set.contains(v) }) {
       false
     } else {
@@ -26,27 +26,27 @@ trait UniqueValueManager[T <: Product] {
     }
   }
 
-  def add(t: T) {
-    if (Values.isEmpty) {
-      Values = Some(t.productIterator.map(mutable.HashSet[Any](_)).toList)
+  def add(t: T): Unit = {
+    if (values.isEmpty) {
+      values = Some(t.productIterator.map(mutable.HashSet[Any](_)).toList)
     } else {
-      (Values.get.iterator zip t.productIterator)
+      (values.get.iterator zip t.productIterator)
         .foreach { case (set, v) => set += v }
     }
   }
 
-  def remove(t: T) {
-    if (Values.isDefined) {
-      (Values.get.iterator zip t.productIterator)
+  def remove(t: T): Unit = {
+    if (values.isDefined) {
+      (values.get.iterator zip t.productIterator)
         .foreach { case (set, v) => set -= v }
     }
   }
 
   def nonUniqueElements(t: T): Seq[Any] = {
-    if (Values.isEmpty) {
+    if (values.isEmpty) {
       Nil
     } else {
-      (Values.get.iterator zip t.productIterator)
+      (values.get.iterator zip t.productIterator)
         .filter { case (set, v) => set.contains(v) }
         .map { case (_, v) => v }
         .toList
