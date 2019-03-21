@@ -31,7 +31,7 @@
 						width: radius,
 						height: radius,
             listening : false,
-            sceneFunc: function (context, shape) {
+            sceneFunc: function (context) {
               context.beginPath();
               const spacing = 1;
               if (size <= 4) {

@@ -41,6 +41,7 @@ object Resources {
     val PingTimeoutCheckDelay = "app.controllers.pingTimeoutCheckDelay"
     val PingTimeoutCheckInterval = "app.controllers.pingTimeoutCheckInterval"
     val PublicConfigPath = "app.controllers.publicConfigPath"
+    val SpaFileRoot = "app.controllers.spaFileRoot"
     val SpaEntryPoint = "app.controllers.spaEntryPoint"
 
     val Colors = "app.settings.colors"
@@ -74,6 +75,7 @@ object Resources {
   var PingTimeoutCheckDelay: FiniteDuration = _
   var PingTimeoutCheckInterval: FiniteDuration = _
   var PublicConfigPath: String = _
+  var SpaFileRoot: String = _
   var SpaEntryPoint: String = _
 
   var Colors: Seq[Color] = _
@@ -109,6 +111,7 @@ object Resources {
       Resources.PingTimeoutCheckDelay = config.get[FiniteDuration](Resources.ConfigKeys.PingTimeoutCheckDelay)
       Resources.PingTimeoutCheckInterval = config.get[FiniteDuration](Resources.ConfigKeys.PingTimeoutCheckInterval)
       Resources.PublicConfigPath = config.get[String](Resources.ConfigKeys.PublicConfigPath)
+      Resources.SpaFileRoot = config.get[String](Resources.ConfigKeys.SpaFileRoot)
       Resources.SpaEntryPoint = config.get[String](Resources.ConfigKeys.SpaEntryPoint)
 
       Resources.Colors = config.get[Seq[String]](Resources.ConfigKeys.Colors).map(Color)

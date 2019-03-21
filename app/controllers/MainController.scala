@@ -149,7 +149,7 @@ class MainController @Inject()(cached: Cached,
     val file = path match {
       case p if p.startsWith("static") =>
         new File("public" + path.substring(path.indexOf('/')))
-      case _ => new File("vue/dist/" + path)
+      case _ => new File(Resources.SpaFileRoot + path)
     }
     if (file.exists) Ok.sendFile(file) else ErrorHandler.renderErrorPage(Results.NotFound,
       s"Can't find $path")
