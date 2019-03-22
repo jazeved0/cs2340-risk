@@ -8,43 +8,55 @@ import game.{Connection, _}
 import models.{Player, PlayerSettings}
 import play.api.libs.json._
 
-// Incoming packets from the network
+/** Incoming packets from the network */
 sealed trait InPacket {
   def gameId: String
   def playerId: String
   def unapply(packet: InPacket): (String, String) = (packet.gameId, packet.playerId)
 }
 
+/** Incoming packets from the network in the lobby state */
 sealed trait LobbyPacket extends InPacket
+/** Incoming packets from the network in the game state */
 sealed trait InGamePacket extends InPacket
+/** Incoming packets from the network in either state state */
 sealed trait GlobalPacket extends InPacket
-// Player connection internal message created when WebSocket is established
-// Also used to add the host when they are the first one to join
+/** Player connection internal message created when WebSocket is established
+  * Also used to add the host when they are the first one to join */
 case class PlayerConnect(gameId: String, playerId: String, actor: ActorRef) extends LobbyPacket
-// Requests to join the game app with the provided settings
+/** Requests to join the game app with the provided settings */
 case class RequestPlayerJoin(gameId: String, playerId: String, withSettings: PlayerSettings) extends LobbyPacket
-// Player connection internal message created when WebSocket is closed
+/** Player connection internal message created when WebSocket is closed */
 case class PlayerDisconnect(gameId: String, playerId: String) extends GlobalPacket
-// Incoming packet for starting the game
+/** Incoming packet for starting the game */
 case class RequestStartGame(gameId: String, playerId: String) extends LobbyPacket
-// Expected Ping Packet Response from Client (in Response to PingPlayer)
+/** Expected Ping Packet Response from Client (in Response to PingPlayer) */
 case class PingResponse(gameId: String, playerId: String) extends GlobalPacket
-// Requests to place reinforcements at the given territories
+/** Requests to place reinforcements at the given territories */
 case class RequestPlaceReinforcements(gameId: String, playerId: String, assignments: Seq[(Int, Int)]) extends InGamePacket
 
-// Outgoing packets to the network
+/** Outgoing packets to the network */
 sealed trait OutPacket
+/** Update packet for when the list of connected players/the host changes */
 case class GameLobbyUpdate(seq: Seq[PlayerSettings], host: Int) extends OutPacket
+/** Generic reply to request packets */
 case class RequestReply(response: Response, message: String = "") extends OutPacket
+/** Response packet to invalid states/malformed packets */
 case class BadPacket(message: String = "") extends OutPacket
+/** Control packet to start the game */
 case class StartGame(identity: String = "start") extends OutPacket
+/** Updates the gamestate of the players in the game */
 case class UpdatePlayerState(seq: Seq[PlayerState], turn: Int) extends OutPacket
 object UpdatePlayerState {
   def apply(state: GameState): UpdatePlayerState = UpdatePlayerState(state.playerStates, state.turn)
 }
+/** Outgoing packet to ping a player */
 case class PingPlayer(identity: String = "ping") extends OutPacket
+/** Sends the public config file as JSON */
 case class SendConfig(config: String) extends OutPacket
+/** Sends the Gameboard object parsed from the data/maps folder */
 case class SendGameboard(gameboard: Gameboard) extends OutPacket
+/** Updates the gamestate of the gameboard (all territories) */
 case class UpdateBoardState(armies: Map[Int, (Int, Int)]) extends OutPacket
 object UpdateBoardState {
   def apply(state: GameState): UpdateBoardState = {
@@ -58,18 +70,20 @@ object UpdateBoardState {
   }
 }
 
-// Response type to the given Request
+/** Response type to the given Request */
 object RequestResponse extends Enumeration {
   type Response = Value
   val Accepted, Rejected = Value
 }
 
+/** Used to satisfy the compile-time macros; [unused] */
 class UnusedFormat[T <: InPacket] extends Reads[T] {
   override def reads(json: JsValue): JsResult[T] = {
     throw new NotImplementedError("Cannot deserialize internal messages")
   }
 }
 
+/** Writes a generic String -> Any map to JSON */
 class PayloadWrites extends Writes[Seq[(String, Any)]] {
   override def writes(data: Seq[(String, Any)]): JsValue = {
     JsObject(data.iterator
@@ -77,6 +91,8 @@ class PayloadWrites extends Writes[Seq[(String, Any)]] {
   }
 }
 
+/** Contains (automatically generated) implementations for Reads and Writes
+  * formatters, placed in the implicit scope */
 object JsonMarshallers {
   // Data object marshallers
   implicit val playerSettingsR: Reads[PlayerSettings] = Json.reads[PlayerSettings]

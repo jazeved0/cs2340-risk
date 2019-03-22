@@ -11,7 +11,7 @@ set conf_target=conf\prod.conf
 REM temp folder to put dist files
 set temp_dist_dir=dist
 REM folders to retain in the distribution
-set "retain_dirs=vue\dist@dist,data\maps@data\maps,public@public"
+set "retain_dirs=vue\dist@dist,data\maps@data\maps,public@public,docs@share/doc/api/_"
 
 REM command prefixes
 set script_prefix=[92m[Production Script][0m

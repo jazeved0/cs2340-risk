@@ -10,6 +10,7 @@ import game.{Connection, Gameboard, Territory}
 import models.{Color, PlayerSettings}
 import play.api.data.Form
 import play.api.data.Forms._
+import play.api.http.Status
 import play.api.mvc.Call
 import play.api.{Configuration, Environment}
 
@@ -28,6 +29,7 @@ object Resources {
   )
   val MakeUrl: Call = routes.MainController.make()
   val NonHostSubmitURL: Call = routes.MainController.make()
+  object StatusCodes extends Status
 
   // Consumed in Module
   object ConfigKeys {
@@ -43,6 +45,8 @@ object Resources {
     val PublicConfigPath = "app.controllers.publicConfigPath"
     val SpaFileRoot = "app.controllers.spaFileRoot"
     val SpaEntryPoint = "app.controllers.spaEntryPoint"
+    val DocsEnabled = "app.controllers.docsEnabled"
+    val DocsRoot = "app.controllers.docsRoot"
 
     val Colors = "app.settings.colors"
     val GameIdChars = "app.settings.gameIdChars"
@@ -77,6 +81,8 @@ object Resources {
   var PublicConfigPath: String = _
   var SpaFileRoot: String = _
   var SpaEntryPoint: String = _
+  var DocsEnabled: Boolean = _
+  var DocsRoot: String = _
 
   var Colors: Seq[Color] = _
   var GameIdChars: Seq[Char] = _
@@ -113,6 +119,8 @@ object Resources {
       Resources.PublicConfigPath = config.get[String](Resources.ConfigKeys.PublicConfigPath)
       Resources.SpaFileRoot = config.get[String](Resources.ConfigKeys.SpaFileRoot)
       Resources.SpaEntryPoint = config.get[String](Resources.ConfigKeys.SpaEntryPoint)
+      Resources.DocsRoot = config.get[String](Resources.ConfigKeys.DocsRoot)
+      Resources.DocsEnabled = config.get[Boolean](Resources.ConfigKeys.DocsEnabled)
 
       Resources.Colors = config.get[Seq[String]](Resources.ConfigKeys.Colors).map(Color)
       Resources.GameIdChars = config.get[String](Resources.ConfigKeys.GameIdChars).toLowerCase.toList

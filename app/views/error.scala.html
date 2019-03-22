@@ -1,4 +1,4 @@
-@(message: String)
+@(message: String)(status: String)
 @base("Risk: The Game of Global Domination", "<link rel=\"stylesheet\" media=\"screen\" href=\"/static/stylesheets/error.css\">") {
   <header>
     <nav class="navbar fixed-top navbar-dark bg-dark">
@@ -18,6 +18,9 @@
           <div class="mx-3">
             <h1>An error occurred</h1>
             <p>@message</p>
+            <div class="status-wrapper">
+              <p class="status-code">Status code @{status.toString}</p>
+            </div>
             <a class="btn btn-primary mt-1" href="/"><i class="fas fa-arrow-left mr-2"></i>Return</a>
           </div>
         </div>

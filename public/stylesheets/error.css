@@ -13,6 +13,16 @@ p {
   opacity: 0.9;
 }
 
+.status-wrapper {
+  margin: -20px 0 16px 0;
+}
+
+.error-container .status-wrapper .status-code {
+  font-weight: bold;
+  font-size: 13px;
+  margin: 0;
+}
+
 .error-icon {
   font-size: 40px;
   margin-right: 8px;
@@ -27,6 +37,10 @@ p {
 
   p {
     font-size: 14px;
+  }
+
+  .error-container .status-code {
+    font-size: 11px;
   }
 }
 
