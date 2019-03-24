@@ -60,7 +60,7 @@ class MainController @Inject()(cached: Cached,
     Action.apply {
       implicit request =>
         // send landing page to the player (host)
-        Ok(views.html.index(Resources.UserForm, Resources.Colors, Resources.MakeUrl))
+        Ok(views.html.index(Resources.UserForm, Resources.Colors, Resources.InitialFormPostUrl))
     }
   }
 

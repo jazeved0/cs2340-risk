@@ -3,6 +3,7 @@ version := "1.0"
 maintainer := "cs2340-team10"
 
 scalaVersion := "2.12.8"
+scalacOptions += "-target:jvm-1.8"
 
 crossScalaVersions := Seq("2.11.12", "2.12.7")
 

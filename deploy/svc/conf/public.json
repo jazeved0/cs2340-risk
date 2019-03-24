@@ -1,0 +1,15 @@
+{
+	"settings": {
+		"colors": [ "2980b9", "27ae60", "8e44ad", "e67e22", "c0392b", "16a085" ],
+		"territoryColors": [ "C5C7CF", "C8E5C1", "A0B394", "F3E4D4", "EAE7C4", "B4CDE2", "F2F2F2", "DBA9A9", "FFD8B3" ],
+		"nameRegex": "^[a-zA-Z0-9]+$",
+		"playerIdLength": 16,
+		"minNameLength": 2,
+		"maxNameLength": 16,
+		"errorMessageTimeout": 4000
+	},
+	"gameplay": {
+		"minPlayers": 1,
+		"maxPlayers": 6
+	}
+}
