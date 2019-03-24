@@ -1,13 +1,13 @@
-h1, p, .error-icon {
+.error-container h1, .error-container p, .error-container .error-icon {
   color: #362A4D;
 }
 
-h1 {
+.error-container h1 {
   font-size: 36px;
   font-family: Roboto Slab, serif;
 }
 
-p {
+.error-container p {
   font-size: 18px;
   font-family: Roboto, sans-serif;
   opacity: 0.9;
@@ -31,11 +31,11 @@ p {
 }
 
 @media (max-width: 399px) {
-  h1 {
+  .error-container h1 {
     font-size: 28px;
   }
 
-  p {
+  .error-container p {
     font-size: 14px;
   }
 
