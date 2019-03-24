@@ -2,6 +2,8 @@ package controllers
 
 import java.io.File
 
+import common.Resources.StatusCodes
+import common.Resources
 import actors.GameSupervisor.{CanHost, CanJoin, MakeGame}
 import actors._
 import akka.actor.{ActorRef, ActorSystem}
@@ -9,8 +11,6 @@ import akka.pattern.ask
 import akka.stream.scaladsl.{Flow, GraphDSL, Merge, Sink, Source}
 import akka.stream.{FlowShape, OverflowStrategy}
 import akka.util.Timeout
-import common.Resources
-import common.Resources.StatusCodes
 import javax.inject.{Inject, Named}
 import models._
 import play.api.cache.Cached

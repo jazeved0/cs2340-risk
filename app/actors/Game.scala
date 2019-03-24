@@ -7,17 +7,17 @@ import actors.GameSupervisor.{CanHost, CanJoin}
 import akka.actor.{Actor, ActorRef, Cancellable, PoisonPill, Props}
 import common.{Resources, UniqueIdProvider, UniqueValueManager, Util}
 import controllers._
-import game.GameState
 import game.mode.GameMode
 import game.mode.GameMode._
-import models.GameLobbyState.State
-import models.{GameLobbyState, Player, PlayerSettings}
+import game.state.GameState
+import models.{Player, PlayerSettings}
 import play.api.libs.json.Json
 
 import scala.collection.immutable.{HashSet, WrappedString}
 import scala.collection.mutable
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.language.postfixOps
+import scala.util.control.Exception._
 
 object Game extends UniqueIdProvider[WrappedString] {
   // Methods for UniqueIdProvider
@@ -28,13 +28,19 @@ object Game extends UniqueIdProvider[WrappedString] {
   override protected def isIdChar(c: Char): Boolean = IdCharsSet.contains(c)
 
   // Actor factory methods
+  /** Defines default actor factory props for a Game instance */
   def props: Props = Props[Game]
+  /** Creates actor factory props given the settings and id */
   def apply(id: String, hostInfo: PlayerSettings): Props =
     Props({
       new Game(Resources.GameMode, id, hostInfo)
     })
 
+  /** Forwarded message asking whether the game can be hosted, expecting a
+    * GameSupervisor.CanHost in response */
   case class CanBeHosted()
+  /** Forwarded message asking whether the game can be joined, expecting a
+    * GameSupervisor.CanJoin in response */
   case class CanBeJoined()
 }
 
@@ -53,52 +59,59 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
   // Mutable state
   // *************
 
-  // The PlayerSettings of the initial host (submitted through the form
-  // on the landing page)
+  /** The PlayerSettings of the initial host (submitted through the form
+    * on the landing page) */
   var initialHostSettings: Option[PlayerSettings] = Some(hostInfo)
-  // List of players who have joined the game
+  /** List of players who have joined the game */
   val players: mutable.LinkedHashMap[String, PlayerWithActor] =
     mutable.LinkedHashMap[String, PlayerWithActor]()
-  // List of players who have established a ws connection, but not in lobby)
+  /** List of players who have established a ws connection, but not in lobby) */
   val connected: mutable.LinkedHashMap[String, PlayerWithActor] =
     mutable.LinkedHashMap[String, PlayerWithActor]()
-
-  val stream = new FileInputStream("conf/public.json")
-  val config: String = try {
-    Json.parse(stream).toString
-  } finally {
-    stream.close()
+  /** String containing the serialized config file, or empty if parsing failed */
+  val configData: String = {
+    val configStream = new FileInputStream(Resources.PublicConfigPath)
+    (allCatch opt {
+      Json.parse(configStream).toString
+    }).getOrElse("")
   }
 
-  // Optional object here stores the scheduler that checks ping times; needs to
-  // be here so cancelling it is an option when all players have disconnected
-  // HashMap maps PlayerWithActor to millis time of last ping
+  /** Optional object here stores the scheduler that checks ping times; needs to
+    * be here so cancelling it is an option when all players have disconnected */
   var pingCheckingTask: Option[Cancellable] = None
+  /** Maps PlayerWithActor to millis time of last ping */
   val currentResponseTimes: mutable.LinkedHashMap[String, Long] =
     mutable.LinkedHashMap[String, Long]()
-  // Always a member of players
+  /** Always a member of players, can be empty if and only if the lobby is empty */
   var host: Option[PlayerWithActor] = None
-  // Current state of the game
-  var state: State = GameLobbyState.Lobby
+  /** Current state of the game as an enum value (used for the state machine) */
+  var state: StateMachine.Type = StateMachine.Lobby
+  /** Current gamestate as a data object (only used when the state machine is in game) */
   var gameState: Option[GameState] = None
-
+  /** Whether or not the initial host joined the game and cleared the initial
+    * host settings */
   def hasInitialHostJoined: Boolean = initialHostSettings.isEmpty
-  def hasHost: Boolean = host.isEmpty
 
+  /**
+    * Moves the state machine to in game and initialized the gamestate object
+    * according to the current gameMode
+    */
   def startGame(): Unit = {
     // Update GameLobbyState enum and delegate to GameMode
-    this.state = GameLobbyState.InGame
+    this.state = StateMachine.InGame
     gameState = Some(gameMode.initializeGame(
       players.values.toList,
-      Callback(broadcastCallback,
-      sendCallback)))
+      Callback(broadcastCallback, sendCallback)))
   }
 
-  // Receive incoming packets and turn them into internal state
-  // changes and/or outgoing packets (returns partial function)
+  /**
+    * Receive incoming packets or incoming messages and turn them into internal state
+    * changes and/or outgoing packets/reply messages
+    * @return a partial function defining the behavior upon message reception
+    */
   override def receive: Receive = {
     case _: CanBeHosted =>
-      if (this.state == GameLobbyState.InGame) {
+      if (this.state == StateMachine.InGame) {
         sender() ! CanHost.Started
       } else if (hasInitialHostJoined) {
         sender() ! CanHost.Hosted
@@ -106,7 +119,7 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
         sender() ! CanHost.Yes
       }
     case _: CanBeJoined =>
-      if (this.state == GameLobbyState.InGame) {
+      if (this.state == StateMachine.InGame) {
         sender() ! CanJoin.Started
       } else {
         sender() ! CanJoin.Yes
@@ -119,7 +132,10 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
       receiveInGame(p)
   }
 
-  // Handle incoming packets in either state
+  /**
+    * Handle incoming packets in either state
+    * @param globalPacket The packet object
+    */
   def receiveGlobal(globalPacket: GlobalPacket): Unit = {
     globalPacket match {
       case PlayerDisconnect(_, id: String) => playerDisconnect(id)
@@ -142,7 +158,10 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
     }
   }
 
-  // Handle incoming packets in the lobby state
+  /**
+    * Handle incoming packets in the lobby state (according to the state machine)
+    * @param lobbyPacket The packet object
+    */
   def receiveLobby(lobbyPacket: LobbyPacket): Unit = {
     lobbyPacket match {
       case PlayerConnect(_, id: String, actor: ActorRef) =>
@@ -156,7 +175,11 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
     }
   }
 
-  // Handle incoming packets during the InGame state
+
+  /**
+    * Handle incoming packets during the InGame state (according to the state machine)
+    * @param inGamePacket The packet object
+    */
   def receiveInGame(inGamePacket: InGamePacket): Unit = {
     inGamePacket match {
       case p if gameState.isDefined =>
@@ -166,19 +189,44 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
     }
   }
 
+  /**
+    * Callback function to broadcast an OutPacket to the entire game of connected
+    * players, optionally excluding a certain player (gets hoisted to a function
+    * literal)
+    * @param packet The packet object to broadcast
+    * @param exclude An optional value of a player Id to exclude
+    */
   def broadcastCallback(packet: OutPacket, exclude: Option[String] = None): Unit =
     notifyGame(packet, exclude
       .filter(id => players.isDefinedAt(id))
       .map(id => players(id).actor))
 
+  /**
+    * Callback function to send an OutPacket to a specific player by their Id
+    * (gets hoisted to a function literal)
+    * @param packet The packet object to send
+    * @param target The player id of the client to send this packet to
+    */
   def sendCallback(packet: OutPacket, target: String): Unit =
     players.get(id)
       .map(p => p.actor)
       .foreach(a => a ! packet)
 
+  /**
+    * Handles an incoming PlayerConnect message. If the host has already joined,
+    * simply adds the player to the list of connected players and sends them:
+    *
+    * > the config data from the public config json file, a game update with all
+    * players who have joined the lobby, and a ping packet (after a short delay)
+    *
+    * If the host hasn't joined (and this is the host), then it initializes the
+    * lobby and its host in addition to initializing the ping timeout watchdog
+    * @param playerId The player Id of the connecting player
+    * @param actor The indirect actor reference used to later send them packets
+    */
   def playerConnect(playerId: String, actor: ActorRef): Unit = {
     if (players.get(playerId).isEmpty && connected.get(playerId).isEmpty) {
-      actor ! SendConfig(config)
+      actor ! SendConfig(configData)
 
       if (!hasInitialHostJoined) {
         // Add the initial host to the list of players
@@ -188,25 +236,7 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
         add(initialHostSettings.get)
         initialHostSettings = None
 
-        pingCheckingTask = Some[Cancellable](
-          this.context.system.scheduler.schedule(
-            initialDelay = Resources.PingTimeoutCheckDelay,
-            interval = Resources.PingTimeoutCheckInterval) {
-            currentResponseTimes.foreach(
-              pair => {
-                val playerOption = players.get(playerId) orElse connected.get(playerId)
-                playerOption.foreach { p =>
-                  if (Math.abs(pair._2 - System.currentTimeMillis()) > Resources.PingTimeout.toMillis) {
-                    p.actor ! PoisonPill
-                    playerDisconnect(p.id)
-                    currentResponseTimes -= pair._1
-                  }
-                }
-              }
-            )
-          }
-        )
-
+        initializePingChecker()
         currentResponseTimes += playerId -> System.currentTimeMillis()
 
         notifyGame(constructGameUpdate)
@@ -224,6 +254,40 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
     }
   }
 
+  /**
+    * Initializes the ping timeout watchdog object. Gets triggered every
+    * <code>Resources.PingTimeoutCheckInterval</code>
+    */
+  def initializePingChecker(): Unit = {
+    pingCheckingTask = Some[Cancellable](
+      this.context.system.scheduler.schedule(
+        initialDelay = Resources.PingTimeoutCheckDelay,
+        interval = Resources.PingTimeoutCheckInterval) {
+        currentResponseTimes.foreach(
+          pair => {
+            val playerId = pair._1
+            val playerOption = players.get(playerId) orElse connected.get(playerId)
+            playerOption.foreach { p =>
+              if (Math.abs(pair._2 - System.currentTimeMillis()) >
+                  Resources.PingTimeout.toMillis) {
+                p.actor ! PoisonPill
+                playerDisconnect(p.id)
+                currentResponseTimes -= pair._1
+              }
+            }
+          }
+        )
+      }
+    )
+  }
+
+  /**
+    * Validates a player requesting to join the game after putting in their settings,
+    * and if letting them join, adds them to the list of players and notifies the game
+    * of the new lobby state
+    * @param playerId The player id of the player attempting to join
+    * @param withSettings The PlayerSettings dto constructed from form data
+    */
   def requestPlayerJoin(playerId: String, withSettings: PlayerSettings): Unit = {
     if (connected.isDefinedAt(playerId)) {
       if (!PlayerSettings.isValid(withSettings)) {
@@ -254,6 +318,13 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
     }
   }
 
+  /**
+    * Handles a RequestStartGame packet. Validates its source as being the game
+    * host and makes sure there are sufficient players in the game to start. If
+    * both of these checks pass, notifies the game of a StartGame() packet and
+    * calls the <code>startGame</code> function to finish state transition
+    * @param playerId The source player id of this packet
+    */
   def requestStartGame(playerId: String): Unit = {
     if (host.exists(_.id == playerId)) {
       if (players.size >= Resources.MinimumPlayers) {
@@ -282,10 +353,16 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
     }
   }
 
+  /**
+    * Handles the internal message spawned when a player disconnects. Stops
+    * the ping checking task and removes them from the list of connected/joined.
+    * If they were the host, appoints a new one if possible
+    * @param playerId The player id that is being disconnected
+    */
   def playerDisconnect(playerId: String): Unit = {
     currentResponseTimes -= playerId
     this.state match {
-      case GameLobbyState.Lobby =>
+      case StateMachine.Lobby =>
         if (players.isDefinedAt(playerId)) {
           removePotentialHost(playerId)
         } else {
@@ -293,7 +370,7 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
           connected -= playerId
         }
 
-      case GameLobbyState.InGame =>
+      case StateMachine.InGame =>
         if (players.isDefinedAt(playerId)) {
           gameState.foreach(s => gameMode.playerDisconnect(
             players(playerId), Callback(broadcastCallback, sendCallback))(s))
@@ -302,6 +379,11 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
     }
   }
 
+  /**
+    * Removes a player, appointing a new one to be the host as necessary and if
+    * possible
+    * @param playerId The player id to remove
+    */
   def removePotentialHost(playerId: String): Unit = {
     if (host.exists(_.id == playerId)) {
       // Host disconnecting
@@ -318,8 +400,8 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
 
   /**
     * Sends a message to all players connected to the game (connected
-    * AND players)
-    *
+    * AND players
+    * @param packet The packet object to send
     * @param exclude Optional player ActorRef to exclude sending the
     *                message to (used when accepting RequestPlayerJoins)
     */
@@ -329,6 +411,11 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
       .foreach(_.actor ! packet)
   }
 
+  /**
+    * Constructs a Game Update packet including information about those
+    * who have joined as well as the lobby's host (if it has one)
+    * @return
+    */
   def constructGameUpdate: OutPacket = {
     val playerList = players.valuesIterator
       .map(_.player.settings)
@@ -338,20 +425,44 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
       host.fold(-1)(_.player.settings.fold(-1)(playerList.indexOf(_))))
   }
 
+  /**
+    * Constructs a packet in response to one sent in an invalid state according
+    * to the state machine
+    * @param p The original packet
+    */
   def packetInvalidState(p: InPacket): Unit = {
     connected.get(p.playerId).orElse(players.get(p.playerId)).foreach(
       actor => actor.actor ! BadPacket(s"Bad/unknown InPacket received: $p")
     )
   }
 
+  /**
+    * Constructs a packet in response to an otherwise bad packet(malformed or
+    * otherwise invalid)
+    * @param p The original packet
+    */
   def badPacket(p: InPacket): Unit = {
     connected.get(p.playerId).orElse(players.get(p.playerId)).foreach(
       actor => actor.actor ! BadPacket(s"Bad/unknown InPacket received: $p")
     )
   }
 
+  /**
+    * Directly removes a player from the list of connected players as well as
+    * releases their settings from the Unique Value Manager
+    * @param id The player Id to remove
+    */
   def removePlayer(id: String): Unit = {
     players.get(id).foreach(_.player.settings.foreach(remove))
     players -= id
+  }
+
+  /**
+    * Possible values for the state machine defining the current state
+    * (InGame/Lobby of the game actor)
+    */
+  object StateMachine extends Enumeration {
+    type Type = Value
+    val Lobby, InGame = Value
   }
 }

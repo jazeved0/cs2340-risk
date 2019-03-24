@@ -87,10 +87,14 @@ export default {
       return -1;
     },
     boardStates(state) {
+      // territory index -> owned army
       const stateMap = {};
+      // Turn matrix sub-arrays into key-value mappings
       state.boardStateList.forEach((state) => stateMap[state[0]] = state[1]);
       const resolveMapping = (territory, index) => {
+        // ensure key is in map
         if (index.toString() in stateMap) {
+          // get OwnedArmy subArray; format of [amount, player index]
           const stateArr = stateMap[index.toString()];
           return {
             territory: index,
@@ -99,6 +103,7 @@ export default {
           };
         } else return {};
       };
+      // apply mapping function and then filter by those that succeeded
       return state.gameboard.territories.map(resolveMapping).filter(obj => obj !== {});
     }
   }

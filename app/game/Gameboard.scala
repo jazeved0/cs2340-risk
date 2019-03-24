@@ -1,16 +1,22 @@
 package game
 
-import game.Gameboard.{Location, Node}
+import models.{Connection, Location, Node}
 
-object Gameboard {
-  object Location {
-    def apply(tup: (Float, Float)): Location = Location(tup._1, tup._2)
-  }
-  case class Location(a: Float, b: Float)
-  case class Node(path: String, iconPath: String, center: Location, dto: Territory)
-}
+import scala.collection.immutable.Range.Inclusive
 
-// Gameboard DTO
-case class Gameboard(nodes: Seq[Node], regions: Seq[Range], waterConnections: Seq[Connection], size: Location) {
+/**
+  * Gameboard wrapper object
+  *
+  * @param nodes A list of Node DTOs that exist in the connection graph
+  * @param regions A list of inclusive ranges that define the regions
+  * @param waterConnections The water connections that exist on the map,
+  *                         including optional display information
+  * @param size The bounds (width/height) of the gameboard
+  */
+case class Gameboard(nodes: Seq[Node], regions: Seq[Inclusive],
+                     waterConnections: Seq[Connection], size: Location) {
+  /**
+    * @return The size of the nodes list
+    */
   def nodeCount: Int = nodes.length
 }

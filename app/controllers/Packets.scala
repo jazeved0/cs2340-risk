@@ -2,10 +2,9 @@ package controllers
 
 import akka.actor.ActorRef
 import controllers.RequestResponse.Response
-import game.Gameboard.{Location, Node}
-import game.PlayerState.{State, TurnState}
-import game.{Connection, _}
-import models.{Player, PlayerSettings}
+import game.Gameboard
+import game.state.{GameState, PlayerState, TurnState}
+import models._
 import play.api.libs.json._
 
 /** Incoming packets from the network */
@@ -99,7 +98,7 @@ object JsonMarshallers {
   implicit val playerSettingsW: Writes[PlayerSettings] = Json.writes[PlayerSettings]
   implicit val armyW: Writes[Army] = Json.writes[Army]
   implicit val playerW: Writes[Player] = Json.writes[Player]
-  implicit val stateW: Writes[State] = (s: State) => JsString(State.unapply(s).getOrElse(""))
+  implicit val stateW: Writes[TurnState.State] = (s: TurnState.State) => JsString(TurnState.State.unapply(s).getOrElse(""))
   implicit val payloadW: Writes[Seq[(String, Any)]] = new PayloadWrites
   implicit val turnStateW: Writes[TurnState] = Json.writes[TurnState]
   implicit val playerStateW: Writes[PlayerState] = Json.writes[PlayerState]
