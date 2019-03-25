@@ -23,13 +23,15 @@
     props: {
       overdraw: Number
     },
-    methods: {
-      localTurn: function (name) {
-        const turnIndex = this.$store.state.game.turnIndex;
-        if (turnIndex === -1) {
-          return false;
+    computed: {
+      localTurn: function () {
+        return (name) => {
+          const turnIndex = this.$store.state.game.turnIndex;
+          if (turnIndex === -1) {
+            return false;
+          }
+          return name === this.$store.state.game.playerStateList[turnIndex].player.settings.name;
         }
-        return name === this.$store.state.game.playerStateList[turnIndex].player.settings.name;
       }
     }
   }
@@ -51,6 +53,7 @@
   }
 
   .glow {
+    transition: box-shadow 0.3s;
     box-shadow: 0px 0px 15px yellow;
   }
 
