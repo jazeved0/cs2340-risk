@@ -3,6 +3,7 @@
     <div class="flex-fill d-flex name-list">
       <div v-for="player in this.$store.getters.playerStates"
           :key='player.name'
+          v-bind:class="{'glow': localTurn(player.name)}"
           class="info-card frosted-glass-dark">
         <div class="d-flex">
           <fa-icon class="color" icon="circle" v-bind:style="{ color: player.color }"></fa-icon>
@@ -21,6 +22,15 @@
   export default {
     props: {
       overdraw: Number
+    },
+    methods: {
+      localTurn: function (name) {
+        const turnIndex = this.$store.state.game.turnIndex;
+        if (turnIndex === -1) {
+          return false;
+        }
+        return name === this.$store.state.game.playerStateList[turnIndex].player.settings.name;
+      }
     }
   }
 </script>
@@ -38,6 +48,10 @@
     margin-left: -$card-margin;
     margin-right: -$card-margin;
     pointer-events: none;
+  }
+
+  .glow {
+    box-shadow: 0px 0px 15px yellow;
   }
 
   .info-card {

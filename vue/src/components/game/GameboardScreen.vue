@@ -6,6 +6,13 @@
         <!-- TODO Should not be wrapping h1 in span -->
         <h1 style="color:white">RISK</h1>
       </span>
+      <div slot="right-element" v-if="localTurn">
+        <div class="button">
+          <div class="button-title">
+            <p2>End turn</p2>
+          </div>
+        </div>
+      </div>
     </tool-bar>
     <div class="stage-wrapper flex-fill" ref="stageWrapper">
       <v-stage :config="stageConfig" ref="stage">
@@ -71,6 +78,13 @@
       'territory-assignment-modal': TerritoryAssignmentModal
     },
     computed: {
+      localTurn: function() {
+        const turnIndex = this.$store.state.game.turnIndex;
+        if (turnIndex === -1) {
+          return false;
+        }
+        return this.$store.state.current === this.$store.state.game.playerStateList[turnIndex].player.settings.name;
+      },
       armyData: function () {
         const store = this.$store;
         return store.getters.boardStates.filter(
@@ -397,6 +411,18 @@
 
   .stage-wrapper {
     overflow: hidden;
+  }
+
+  .button {
+    border-radius: 5px;
+    background: #5B78BB;
+  }
+
+  .button-title {
+    padding: 10px;
+    color: $light-shades;
+    font-family: $roboto-font;
+    font-size: 20px;
   }
 
   .players {

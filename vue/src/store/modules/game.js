@@ -10,6 +10,7 @@ export default {
   state: {
     playerStateList: [],
     boardStateList: [],
+    turnIndex: -1,
     gameboard: {
       nodeCount: 0,
       pathData: [],
@@ -31,10 +32,12 @@ export default {
       if ('seq' in data) {
         state.playerStateList = data.seq;
         // TODO Update the current turn
-        //  data.turn // index of current turn
         // TODO Update the initial allocation if in reinforcement
         //  data.seq[n].turnState.state === "reinforcement"
         //  data.seq[n].turnState.payload.amount // initial allocation
+      }
+      if ('turn' in data) {
+        state.turnIndex = data.turn // index of current turn
       }
     },
     [ON_SEND_GAMEBOARD](state, data) {
