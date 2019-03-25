@@ -29,9 +29,9 @@ export default {
   },
   mutations: {
     [ON_UPDATE_PLAYER_STATE](state, data) {
+      console.log(data);
       if ('seq' in data) {
         state.playerStateList = data.seq;
-        // TODO Update the current turn
         // TODO Update the initial allocation if in reinforcement
         //  data.seq[n].turnState.state === "reinforcement"
         //  data.seq[n].turnState.payload.amount // initial allocation
