@@ -6,11 +6,14 @@
         <!-- TODO Should not be wrapping h1 in span -->
         <h1 style="color:white">RISK</h1>
       </span>
+      <div slot="middle-element" class="turn-text">
+        <p>{{ getBannerText }}</p>
+      </div>
       <div slot="right-element" v-if="localTurn">
         <div class="button">
-          <div class="button-title">
+          <button class="button-title btn btn-primary my-2 my-sm-0 mr-2 white dark_accent" v-on:click="endTurn">
             <p2>End turn</p2>
-          </div>
+          </button>
         </div>
       </div>
     </tool-bar>
@@ -58,18 +61,6 @@
   // noinspection JSUnresolvedFunction
   Vue.use(VueKonva);
 
-  // TODO once army placement is complete, send packet to websocket:
-  //  this.$socket.sendObj({
-  //  _type: "controllers.RequestPlaceReinforcements",
-  //    gameId: this.$store.state.gameId,
-  //    playerId: this.$store.state.playerId,
-  //    assignments: [
-  //      [0, 4], // 0 is the index of the territory, 4 is the amount
-  //      ...
-  //    ]
-  //  }
-  //  );
-
   export default {
     components: {
       'tool-bar': Toolbar,
@@ -78,6 +69,15 @@
       'territory-assignment-modal': TerritoryAssignmentModal
     },
     computed: {
+      getBannerText: function() {
+        const turnIndex = this.$store.state.game.turnIndex;
+        const playerObj = this.$store.state.game.playerStateList[turnIndex];
+        if (turnIndex === -1) {
+          return "";
+        }
+        return playerObj.player.settings.name
+            + " is in their " + playerObj.turnState.state + " turn!";
+      },
       localTurn: function() {
         const turnIndex = this.$store.state.game.turnIndex;
         if (turnIndex === -1) {
@@ -172,6 +172,15 @@
       }
     },
     methods: {
+      endTurn: function () {
+        this.$socket.sendObj({
+              _type: "controllers.RequestPlaceReinforcements",
+              gameId: this.$store.state.gameId,
+              playerId: this.$store.state.playerId,
+              assignments: []
+            }
+        );
+      },
       territoryMouseOver: function (num) {
         this.mouseOver = num;
       },
@@ -419,7 +428,7 @@
   }
 
   .button-title {
-    padding: 10px;
+    padding: 7px;
     color: $light-shades;
     font-family: $roboto-font;
     font-size: 20px;
@@ -428,5 +437,12 @@
   .players {
     position: absolute;
     bottom: 0;
+  }
+
+  .turn-text {
+    color: $light-shades;
+    font-family: $roboto-font;
+    font-size: 24px;
+    padding-top: 15px;
   }
 </style>
