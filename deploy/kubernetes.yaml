@@ -1,19 +1,24 @@
-apiVersion: apps/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: risk-main
 spec:
-  replicas: 2
+  replicas: 1
   strategy:
+    type: RollingUpdate
     rollingUpdate:
       maxSurge: 1
-      maxUnavailable: 1
-  minReadySeconds: 5
+      maxUnavailable: 90%
+  # minReadySeconds: 5
+  selector:
+    matchLabels:
+      app: risk-main
   template:
     metadata:
       labels:
         app: risk-main
     spec:
+      terminationGracePeriodSeconds: 30
       containers:
         - name: risk-main
           imagePullPolicy: Always
@@ -24,13 +29,21 @@ spec:
             httpGet:
               path: /
               port: 9000
-            initialDelaySeconds: 5
+            initialDelaySeconds: 15
             periodSeconds: 5
+            successThreshold: 1
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 9000
+            initialDelaySeconds: 15
+            periodSeconds: 3
           resources:
             requests:
-              cpu: 250m
+              cpu: "250m"
             limits:
-              cpu: 500m
+              cpu: "500m"
+              memory: "512Mi"
 ---
 apiVersion: v1
 kind: Service
@@ -39,6 +52,13 @@ metadata:
 spec:
   type: LoadBalancer
   ports:
-    - port: 9000
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: 9000
+    - name: https
+      protocol: TCP
+      port: 443
+      targetPort: 9443
   selector:
     app: risk-main

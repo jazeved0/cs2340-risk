@@ -14,10 +14,12 @@ set error_prefix_=%red%%bld%[Deployment Script]%clr%%clr%
 set script_prefix_=%grn%%bld%[Deployment Script]%clr%%clr%
 set "lines_========================================"
 
-REM parameters
+REM scripts
 set binary_build=scripts\binary-build.bat
 set docker_build=scripts\docker-build.bat
 set docker_push=scripts\docker-push.bat
+
+REM parameters
 set registry_name=riskreg
 set registry_server=%registry_name%.azurecr.io
 set local_image=risk-main
@@ -61,21 +63,18 @@ if "%nobuild%"=="false" (
   call :command_check "powershell"
   call :command_check "docker"
   call :command_check "javac"
-  call :inter_message
 ) else (
   if "%nopush%"=="false" (
     call :command_check "docker"
-    call :inter_message
   )
 )
 if "%login%"=="true" (
   call :command_check "az"
-  call :command_check "kubectl"
-) else (
-  if "%deploy%"=="true" (
-    call :command_check "kubectl"
-  )
 )
+if "%deploy%"=="true" (
+  call :command_check "kubectl"
+)
+call :inter_message
 
 if "!commands_found!"=="false" (
   call :exit_message
@@ -103,10 +102,19 @@ if "%nopush%"=="false" (
 if "%deploy%"=="true" (
   echo %script_prefix_% Preparing to update image on deployment/%deployment_name%
   set image_command=call kubectl set image deployments/%deployment_name% %remote_image_name%=%registry_server%/%remote_image_name%
-  if "%init%"=="true" (
-    set image_command=%image_command%:%remote_image_tag%
+  set image_command_tag=!image_command!:%remote_image_tag%
+  call :capture_output "!image_command!"
+  if "!out!"=="" (
+    echo %script_prefix_% Image update ineffective, trying deploy with tag
+    call :capture_output "!image_command_tag!"
+    if "!out!"=="" (
+      echo %error_prefix_% Image update failed
+    ) else (
+      call :update_success
+    )
+  ) else (
+    call :update_success
   )
-  call %image_command%
   call :inter_message
 )
 echo %script_prefix_% Finished
@@ -115,6 +123,11 @@ call :exit_message
 exit /b2
 
 REM ---------------------------------------
+
+:update_success
+  echo !out!
+  echo %script_prefix_% Image updated successfully
+  exit /b
 
 :command_check
   set command_found=true
@@ -125,6 +138,17 @@ REM ---------------------------------------
     set commands_found=false
   ) else (
     echo %script_prefix_% Check for %1 passed
+  )
+  exit /b
+
+:capture_output
+  set lf=-
+  for /F "delims=" %%i in ('%1') do (
+    if "!out!"=="" (
+      set out=%%i
+    ) else (
+      set out=!out!%lf%%%i
+    )
   )
   exit /b
 

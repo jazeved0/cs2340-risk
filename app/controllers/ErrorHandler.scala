@@ -5,7 +5,7 @@ import play.api.http.DefaultHttpErrorHandler
 import play.api.mvc.Results._
 import play.api.mvc._
 import play.api.routing.Router
-import play.api.{Configuration, Environment, OptionalSourceMapper, UsefulException}
+import play.api._
 
 import scala.concurrent._
 
@@ -43,6 +43,8 @@ object ErrorHandler {
     * @return A Result object containing the rendered page
     */
   def renderErrorPage(statusCode: Int, message: String): Result = {
+    val logger = Logger(this.getClass).logger
+    logger.error(s"Error response: {code: $statusCode message: $message}")
     Status(statusCode)(views.html.error(message)(statusToString(statusCode)))
   }
 
