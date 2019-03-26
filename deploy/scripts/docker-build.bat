@@ -15,7 +15,7 @@ set dist_origin=target\universal
 set dist_target=deploy\svc
 set start_folder=bin
 set dockerfile=deploy\Dockerfile
-set image_name=risk-main
+set image_name=%1
 set start_script=bootstrap
 
 echo %script_prefix% Unzipping distribution files

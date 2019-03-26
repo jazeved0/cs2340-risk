@@ -12,59 +12,106 @@ set clr=[0m
 REM command prefixes
 set error_prefix_=%red%%bld%[Deployment Script]%clr%%clr%
 set script_prefix_=%grn%%bld%[Deployment Script]%clr%%clr%
+set "lines_========================================"
 
 REM parameters
 set binary_build=scripts\binary-build.bat
 set docker_build=scripts\docker-build.bat
 set docker_push=scripts\docker-push.bat
 set registry_name=riskreg
+set registry_server=%registry_name%.azurecr.io
+set local_image=risk-main
+set remote_image_name=risk-main
+set remote_image_tag=latest
+set resource_group=cs2340-risk
+set cluster_name=cs2340-risk
+set deployment_name=risk-main
 
 REM arguments
-set arguments_=%*
 set login=false
-for /f "tokens=1*" %%a in ('echo %arguments_%') do (
+set nopush=false
+set deploy=false
+set nobuild=false
+set init=false
+for %%a in (%*) do (
   if "%%a"=="--login" (
     set login=true
+  )
+  if "%%a"=="--deploy" (
+    set deploy=true
+  )
+  if "%%a"=="--nobuild" (
+    set nobuild=true
+  )
+  if "%%a"=="--nopush" (
+    set nopush=true
+  )
+  if "%%a"=="--init" (
+    set init=true
   )
 )
 
 call :start_message
 
 set commands_found=true
-call :command_check "npm"
-call :command_check "sbt"
-call :command_check "docker"
-call :command_check "powershell"
-call :command_check "javac"
+
+if "%nobuild%"=="false" (
+  call :command_check "npm"
+  call :command_check "sbt"
+  call :command_check "powershell"
+  call :command_check "docker"
+  call :command_check "javac"
+  call :inter_message
+) else (
+  if "%nopush%"=="false" (
+    call :command_check "docker"
+    call :inter_message
+  )
+)
+if "%login%"=="true" (
+  call :command_check "az"
+  call :command_check "kubectl"
+) else (
+  if "%deploy%"=="true" (
+    call :command_check "kubectl"
+  )
+)
 
 if "!commands_found!"=="false" (
   call :exit_message
   exit /b %errorlevel%
 )
 
-call :inter_message
-call %binary_build%
-call :inter_message
-call %docker_build%
-call :inter_message
+if "%nobuild%"=="false" (
+  call %binary_build%
+  call :inter_message
+  call %docker_build% %local_image%
+  call :inter_message
+)
 if "%login%"=="true" (
-  set commands_found=true
-  call :command_check "az"
-  if "!commands_found!"=="false" (
-    call :exit_message
-    exit /b %errorlevel%
-  )
   echo %script_prefix_% Preparing to log into container registry
   call az login
   call az acr login --name %registry_name%
+  echo %script_prefix_% Preparing to attach to Kubernetes cluster
+  call az aks get-credentials --resource-group %resource_group% --name %cluster_name%
   call :inter_message
 )
-call %docker_push%
-call :inter_message
+if "%nopush%"=="false" (
+  call %docker_push% %local_image% %registry_server% %remote_image_name%:%remote_image_tag%
+  call :inter_message
+)
+if "%deploy%"=="true" (
+  echo %script_prefix_% Preparing to update image on deployment/%deployment_name%
+  set image_command=call kubectl set image deployments/%deployment_name% %remote_image_name%=%registry_server%/%remote_image_name%
+  if "%init%"=="true" (
+    set image_command=%image_command%:%remote_image_tag%
+  )
+  call %image_command%
+  call :inter_message
+)
 echo %script_prefix_% Finished
 
 call :exit_message
-
 exit /b2
 
 REM ---------------------------------------
@@ -82,15 +129,15 @@ REM ---------------------------------------
   exit /b
 
 :inter_message
-  echo %blu%==================================================================================================%clr%
+  echo %blu%--------------------------------------------------------------------------------------------------%clr%
   exit /b
 
 :start_message
-  echo %blu%---------------------------------------%clr%%bld%^< Deployment Script^>%clr%%blu%---------------------------------------%clr%
+  echo %blu%%lines_%%clr%%bld%^< Deployment Script^>%clr%%blu%%lines_%%clr%
   exit /b
 
 :exit_message
-  echo %blu%---------------------------------------%clr%%bld%^</Deployment Script^>%clr%%blu%---------------------------------------%clr%
+  echo %blu%%lines_%%clr%%bld%^</Deployment Script^>%clr%%blu%%lines_%%clr%
   exit /b
 
 REM ---------------------------------------

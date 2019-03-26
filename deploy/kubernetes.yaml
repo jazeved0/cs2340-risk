@@ -1,37 +1,9 @@
 apiVersion: apps/v1beta1
 kind: Deployment
 metadata:
-  name: azure-vote-back
+  name: risk-main
 spec:
-  replicas: 1
-  template:
-    metadata:
-      labels:
-        app: azure-vote-back
-    spec:
-      containers:
-        - name: azure-vote-back
-          image: redis
-          ports:
-            - containerPort: 6379
-              name: redis
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: azure-vote-back
-spec:
-  ports:
-    - port: 6379
-  selector:
-    app: azure-vote-back
----
-apiVersion: apps/v1beta1
-kind: Deployment
-metadata:
-  name: azure-vote-front
-spec:
-  replicas: 1
+  replicas: 2
   strategy:
     rollingUpdate:
       maxSurge: 1
@@ -40,29 +12,33 @@ spec:
   template:
     metadata:
       labels:
-        app: azure-vote-front
+        app: risk-main
     spec:
       containers:
-        - name: azure-vote-front
-          image: microsoft/azure-vote-front:v1
+        - name: risk-main
+          imagePullPolicy: Always
+          image: riskreg.azurecr.io/risk-main:latest
           ports:
-            - containerPort: 80
+            - containerPort: 9000
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 9000
+            initialDelaySeconds: 5
+            periodSeconds: 5
           resources:
             requests:
               cpu: 250m
             limits:
               cpu: 500m
-          env:
-            - name: REDIS
-              value: "azure-vote-back"
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: azure-vote-front
+  name: risk-main
 spec:
   type: LoadBalancer
   ports:
-    - port: 80
+    - port: 9000
   selector:
-    app: azure-vote-front
+    app: risk-main
