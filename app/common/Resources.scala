@@ -51,6 +51,7 @@ object Resources {
     val DocsEnabled = "app.controllers.docsEnabled"
     val DocsRoot = "app.controllers.docsRoot"
     val InitialFormPostUrl = "app.controllers.initialFormPostUrl"
+    val DocsIconPath = "app.controllers.docsIconPath"
 
     val Colors = "app.settings.colors"
     val GameIdChars = "app.settings.gameIdChars"
@@ -88,6 +89,7 @@ object Resources {
   var DocsEnabled: Boolean = _
   var DocsRoot: String = _
   var InitialFormPostUrl: Call = _
+  var DocsIconPath: String = _
 
   var Colors: Seq[Color] = _
   var GameIdChars: Seq[Char] = _
@@ -138,6 +140,7 @@ object Resources {
       Resources.DocsRoot = config.get[String](Resources.ConfigKeys.DocsRoot)
       Resources.DocsEnabled = config.get[Boolean](Resources.ConfigKeys.DocsEnabled)
       Resources.InitialFormPostUrl = Call("POST", config.get[String](Resources.ConfigKeys.InitialFormPostUrl))
+      Resources.DocsIconPath = config.get[String](Resources.ConfigKeys.DocsIconPath)
 
       Resources.Colors = config.get[Seq[String]](Resources.ConfigKeys.Colors).map(Color)
       Resources.GameIdChars = config.get[String](Resources.ConfigKeys.GameIdChars).toLowerCase.toList

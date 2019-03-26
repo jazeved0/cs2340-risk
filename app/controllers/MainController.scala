@@ -238,6 +238,8 @@ class MainController @Inject()(cached: Cached,
     implicit val filepath: String = path
     path match {
       case p if p.startsWith("static") => formatFilepath("public")
+      // Called from auto-generated docs
+      case p if p == "favicon.ico" => formatFilepath(Resources.DocsIconPath)
       case p if p.startsWith("docs") =>
         if (Resources.DocsEnabled) {
           formatDocsFilepath(Resources.DocsRoot)
