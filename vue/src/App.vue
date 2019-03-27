@@ -6,6 +6,7 @@
       <b-alert v-if="this.$store.state.errorMessage.length > 0"
           class="mx-2 mx-sm-auto"
           show
+          dismissible
           variant="danger"
           id="error-button"
           fade>

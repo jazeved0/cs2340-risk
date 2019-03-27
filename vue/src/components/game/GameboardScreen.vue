@@ -6,13 +6,13 @@
         <!-- TODO Should not be wrapping h1 in span -->
         <h1 style="color:white">RISK</h1>
       </span>
-      <div slot="middle-element" class="turn-text">
+      <div slot="middle-element" class="turn-text text-center">
         <p>{{ getBannerText }}</p>
       </div>
-      <div slot="right-element" v-if="localTurn">
+      <div slot="right-element" class="pb-2" v-if="localTurn">
         <div class="button">
           <button class="button-title btn btn-primary my-2 my-sm-0 mr-2 white dark_accent" v-on:click="turnEvent">
-            <p>{{ buttonText }}</p>
+            <p6>{{ buttonText }}</p6>
           </button>
         </div>
       </div>
@@ -41,9 +41,20 @@
     <player-info-bar class="players" :overdraw="playerInfoBarOverdraw" ref="playerInfo">
     </player-info-bar>
     <territory-assignment-modal
+        class="territories"
         v-bind:visible="showAssignmentModal"
         @hide="this.hasSeenAssignments = true">
     </territory-assignment-modal>
+    <b-alert
+        show
+        dismissible
+        variant="info"
+        fade
+        class="turn-alert"
+        v-if="localTurn">
+      <p2 class="turn-alert-text">It's Your Turn!</p2>
+      <p> {{ getInstructions }}</p>
+    </b-alert>
   </div>
 </template>
 
@@ -69,6 +80,19 @@
       'territory-assignment-modal': TerritoryAssignmentModal
     },
     computed: {
+      getInstructions: function() {
+        const turnIndex = this.$store.state.game.turnIndex;
+        const playerObj = this.$store.state.game.playerStateList[turnIndex];
+        if (turnIndex === -1) {
+          return "";
+        }
+        else if (playerObj.turnState.state === "reinforcement") {
+          return "You are currently in the reinforcement phase of your turn. " +
+              "Click on specific territories to add a single reinforcement unit to that territory. " +
+              "After you have applied all your reinforcements, end your turn!";
+        }
+        return "";
+      },
       buttonText: function() {
         if (this.turnOver) {
           return "End Turn"
@@ -128,7 +152,6 @@
             if (i === mouseOver) {
               return ColorLuminance(color, 0.15);
             } else if (highlightSelectable == true && selectable.includes(i)) {
-              console.log(highlightSelectable);
               return colorSaturation(color, 2.5);
             } else {
               return '#' + color;
@@ -207,7 +230,7 @@
       },
       assignArmy: function() {
         this.highlightSelectable = !this.highlightSelectable;
-        turnOver = true;
+        this.turnOver = true;
       },
       endTurn: function () {
         this.$socket.sendObj({
@@ -476,6 +499,26 @@
   .players {
     position: absolute;
     bottom: 0;
+  }
+
+  .turn-alert {
+    width: 80%;
+    position: absolute;
+    top: 9%;
+    left: 50%;
+    transform: translate(-50%,0);
+    z-index: 1000;
+  }
+
+  .territories {
+    z-index: 1001;
+  }
+
+  .turn-alert-text {
+    font-family: $roboto-font;
+    font-size: 30px;
+    text-align: center;
+    width: 75%;
   }
 
   .turn-text {
