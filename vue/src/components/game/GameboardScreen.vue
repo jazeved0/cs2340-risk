@@ -11,8 +11,8 @@
       </div>
       <div slot="right-element" v-if="localTurn">
         <div class="button">
-          <button class="button-title btn btn-primary my-2 my-sm-0 mr-2 white dark_accent" v-on:click="endTurn">
-            <p2>End turn</p2>
+          <button class="button-title btn btn-primary my-2 my-sm-0 mr-2 white dark_accent" v-on:click="turnEvent">
+            <p>{{ buttonText }}</p>
           </button>
         </div>
       </div>
@@ -55,7 +55,7 @@
   import VueKonva from 'vue-konva';
   // noinspection ES6UnusedImports
   import Vue from "vue";
-  import {clamp, ColorLuminance, distance} from './../../util'
+  import {clamp, ColorLuminance, distance, colorSaturation} from './../../util'
   import {GUI_CTX} from "../../store/modules/game/InitializeGameboardScreen";
 
   // noinspection JSUnresolvedFunction
@@ -69,6 +69,13 @@
       'territory-assignment-modal': TerritoryAssignmentModal
     },
     computed: {
+      buttonText: function() {
+        if (this.turnOver) {
+          return "End Turn"
+        } else {
+          return "Assign Army"
+        }
+      },
       getBannerText: function() {
         const turnIndex = this.$store.state.game.turnIndex;
         const playerObj = this.$store.state.game.playerStateList[turnIndex];
@@ -108,6 +115,8 @@
       },
       pathConfigs: function () {
         const mouseOver = this.mouseOver;
+        let selectable = this.selectable;
+        let highlightSelectable = this.highlightSelectable;
         const state = this.$store.state;
         return state.game.gameboard.pathData.map(function (item, index) {
           const region = state.game.gameboard.regions.findIndex(r => r.includes(index));
@@ -115,11 +124,21 @@
           if (state.settings.settings.territoryColors.length > region) {
             color = state.settings.settings.territoryColors[region];
           }
+          const resolveColor = (i) => {
+            if (i === mouseOver) {
+              return ColorLuminance(color, 0.15);
+            } else if (highlightSelectable == true && selectable.includes(i)) {
+              console.log(highlightSelectable);
+              return colorSaturation(color, 2.5);
+            } else {
+              return '#' + color;
+            }
+          }
           return {
             x: 0,
             y: 0,
             data: item,
-            fill: mouseOver === index ? ColorLuminance(color, 0.15) : ('#' + color),
+            fill: resolveColor(index),
             scale: {
               x: 1,
               y: 1
@@ -128,6 +147,13 @@
             num: index
           };
         });
+      },
+      selectable: function() {
+        let selectableTerritories = this.$store.getters.boardStates.filter(ter => ter.owner === this.$store.getters.getPlayerIndex);
+        //console.log(this.$store.getters.boardStates);
+        //console.log(this.selectable);
+        return selectableTerritories.map(ter => ter.territory)
+        //this.selectable = this.$store.getters.boardStates.filter(ter => ter.owner == 0 || ter.owner == 1 || ter.owner == 2);
       },
       waterConnectionConfigs: function () {
         const gameState = this.$store.state.game;
@@ -172,6 +198,17 @@
       }
     },
     methods: {
+      turnEvent: function() {
+        if (this.turnOver) {
+          this.endTurn();
+        } else {
+          this.assignArmy();
+        }
+      },
+      assignArmy: function() {
+        this.highlightSelectable = !this.highlightSelectable;
+        turnOver = true;
+      },
       endTurn: function () {
         this.$socket.sendObj({
               _type: "controllers.RequestPlaceReinforcements",
@@ -350,7 +387,9 @@
     },
     data() {
       return {
+        turnOver: false,
         mouseOver: -1,
+        highlightSelectable: false,
         navHeight: 62,
         playerInfoBarOverdraw: 32,
         stageDimensions: {
