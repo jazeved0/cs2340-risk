@@ -7,7 +7,7 @@
         <h1 style="color:white">RISK</h1>
       </span>
       <div slot="middle-element" class="turn-text text-center">
-        <p>{{ getBannerText }}</p>
+        <p class="banner-text">{{ getBannerText }}</p>
       </div>
       <div slot="right-element" class="pb-2" v-if="localTurn">
         <div class="button">
@@ -494,6 +494,17 @@
     color: $light-shades;
     font-family: $roboto-font;
     font-size: 20px;
+  }
+
+  @media screen and (max-width: 600px) {
+    .banner-text {
+      font-family: $roboto-font;
+      font-size: 12px;
+    }
+
+    .button-title {
+      font-size: 12px;
+    }
   }
 
   .players {

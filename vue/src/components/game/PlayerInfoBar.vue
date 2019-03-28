@@ -114,8 +114,7 @@
 
       -webkit-flex-grow: 1;
       flex-grow: 1;
-      min-width: min-content;
-      max-width: 100%;
+      width: min-content;
       height: min-content;
       overflow: hidden;
     }
