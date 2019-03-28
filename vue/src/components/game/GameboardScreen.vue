@@ -7,12 +7,12 @@
         <h1 style="color:white">RISK</h1>
       </span>
       <div slot="middle-element" class="turn-text text-center">
-        <p class="banner-text">{{ getBannerText }}</p>
+        <p class="banner-text font-weight-bold">{{ getBannerText }}</p>
       </div>
       <div slot="right-element" class="pb-2" v-if="localTurn">
         <div class="button">
-          <button class="button-title btn btn-primary my-2 my-sm-0 mr-2 white dark_accent" v-on:click="turnEvent">
-            <p6>{{ buttonText }}</p6>
+          <button class="button-title btn btn-primary text-center my-2 my-sm-0 ml-2 mr-2 white dark_accent" v-on:click="turnEvent">
+            <p6 class="ml-auto mr-auto">{{ buttonText }}</p6>
           </button>
         </div>
       </div>
@@ -499,11 +499,11 @@
   @media screen and (max-width: 600px) {
     .banner-text {
       font-family: $roboto-font;
-      font-size: 12px;
+      font-size: 17px;
     }
 
     .button-title {
-      font-size: 12px;
+      font-size: 17px;
     }
   }
 

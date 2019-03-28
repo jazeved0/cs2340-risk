@@ -7,12 +7,12 @@
           class="info-card frosted-glass-dark">
         <div class="d-flex pb-3">
           <fa-icon class="color" icon="circle" v-bind:style="{ color: player.color }"></fa-icon>
-          <p class="name mb-2">
+          <p1 class="name mb">
             {{ player.name }}
-          </p>
+          </p1>
         </div>
         <hr class="mt-0 divider-bar">
-        <p class="army-text">{{ player.armies !== 1 ? player.armies + ' armies' : '1 army' }}</p>
+        <p1 class="army-text">{{ player.armies !== 1 ? player.armies + ' armies' : '1 army' }}</p1>
       </div>
     </div>
   </div>
