@@ -1,18 +1,18 @@
 <template>
-  <div class="d-flex outer-info-bar" style="width: 100%">
+  <div class="d-flex outer-info-bar ml-auto mr-auto" style="width: 100%">
     <div class="flex-fill d-flex name-list">
       <div v-for="player in this.$store.getters.playerStates"
           :key='player.name'
           v-bind:class="{'glow': localTurn(player.name)}"
           class="info-card frosted-glass-dark">
-        <div class="d-flex">
+        <div class="d-flex pb-3">
           <fa-icon class="color" icon="circle" v-bind:style="{ color: player.color }"></fa-icon>
-          <p class="name mb-2">
+          <p1 class="name mb">
             {{ player.name }}
-          </p>
+          </p1>
         </div>
         <hr class="mt-0 divider-bar">
-        <p class="army-text">{{ player.armies !== 1 ? player.armies + ' armies' : '1 army' }}</p>
+        <p1 class="army-text">{{ player.armies !== 1 ? player.armies + ' armies' : '1 army' }}</p1>
       </div>
     </div>
   </div>
@@ -93,6 +93,8 @@
     .name-list {
       flex-wrap: wrap-reverse;
       flex-direction: row-reverse;
+      align-items: center;
+      justify-content: center;
       height: min-content;
     }
 
@@ -112,8 +114,7 @@
 
       -webkit-flex-grow: 1;
       flex-grow: 1;
-      min-width: min-content;
-      max-width: 100%;
+      width: min-content;
       height: min-content;
       overflow: hidden;
     }

@@ -6,13 +6,13 @@
         <!-- TODO Should not be wrapping h1 in span -->
         <h1 style="color:white">RISK</h1>
       </span>
-      <div slot="middle-element" class="turn-text">
-        <p>{{ getBannerText }}</p>
+      <div slot="middle-element" class="turn-text text-center">
+        <p class="banner-text font-weight-bold">{{ getBannerText }}</p>
       </div>
-      <div slot="right-element" v-if="localTurn">
+      <div slot="right-element" class="pb-2" v-if="localTurn">
         <div class="button">
-          <button class="button-title btn btn-primary my-2 my-sm-0 mr-2 white dark_accent" v-on:click="endTurn">
-            <p2>End turn</p2>
+          <button class="button-title btn btn-primary text-center my-2 my-sm-0 ml-2 mr-2 white dark_accent" v-on:click="turnEvent">
+            <p6 class="ml-auto mr-auto">{{ buttonText }}</p6>
           </button>
         </div>
       </div>
@@ -36,26 +36,43 @@
               :data="army"
               :key="army.num"></v-army-shape>
         </v-layer>
+        <v-layer>
+          <v-castle-icon v-for="castle in castleData"
+              :data="castle"
+              :key="castle.num"></v-castle-icon>
+        </v-layer>
       </v-stage>
     </div>
     <player-info-bar class="players" :overdraw="playerInfoBarOverdraw" ref="playerInfo">
     </player-info-bar>
     <territory-assignment-modal
+        class="territories"
         v-bind:visible="showAssignmentModal"
         @hide="this.hasSeenAssignments = true">
     </territory-assignment-modal>
+    <b-alert
+        show
+        dismissible
+        variant="info"
+        fade
+        class="turn-alert"
+        v-if="localTurn">
+      <p2 class="turn-alert-text">It's Your Turn!</p2>
+      <p> {{ getInstructions }}</p>
+    </b-alert>
   </div>
 </template>
 
 <script>
   import PlayerInfoBar from './PlayerInfoBar'
   import ArmyShape from './ArmyShape';
+  import CastleIcon from './CastleIcon';
   import TerritoryAssignmentModal from './TerritoryAssignmentModal';
   import Toolbar from './../Toolbar'
   import VueKonva from 'vue-konva';
   // noinspection ES6UnusedImports
   import Vue from "vue";
-  import {clamp, ColorLuminance, distance} from './../../util'
+  import {clamp, ColorLuminance, distance, colorSaturation} from './../../util'
   import {GUI_CTX} from "../../store/modules/game/InitializeGameboardScreen";
 
   // noinspection JSUnresolvedFunction
@@ -66,9 +83,30 @@
       'tool-bar': Toolbar,
       'player-info-bar': PlayerInfoBar,
       'v-army-shape': ArmyShape,
+      'v-castle-icon': CastleIcon,
       'territory-assignment-modal': TerritoryAssignmentModal
     },
     computed: {
+      getInstructions: function() {
+        const turnIndex = this.$store.state.game.turnIndex;
+        const playerObj = this.$store.state.game.playerStateList[turnIndex];
+        if (turnIndex === -1) {
+          return "";
+        }
+        else if (playerObj.turnState.state === "reinforcement") {
+          return "You are currently in the reinforcement phase of your turn. " +
+              "Click on specific territories to add a single reinforcement unit to that territory. " +
+              "After you have applied all your reinforcements, end your turn!";
+        }
+        return "";
+      },
+      buttonText: function() {
+        if (this.turnOver) {
+          return "End Turn"
+        } else {
+          return "Assign Army"
+        }
+      },
       getBannerText: function() {
         const turnIndex = this.$store.state.game.turnIndex;
         const playerObj = this.$store.state.game.playerStateList[turnIndex];
@@ -84,6 +122,19 @@
           return false;
         }
         return this.$store.state.current === this.$store.state.game.playerStateList[turnIndex].player.settings.name;
+      },
+      castleData: function() {
+        const store = this.$store;
+        return store.getters.boardStates.filter(
+          ts => 'owner' in ts
+            && 'amount' in ts
+            && 'territory' in ts
+            && store.state.game.gameboard.castles.length > ts.territory
+        ).map(ter => {
+          return {
+            position: ter.territory
+          }
+        })
       },
       armyData: function () {
         const store = this.$store;
@@ -108,6 +159,8 @@
       },
       pathConfigs: function () {
         const mouseOver = this.mouseOver;
+        let selectable = this.selectable;
+        let highlightSelectable = this.highlightSelectable;
         const state = this.$store.state;
         return state.game.gameboard.pathData.map(function (item, index) {
           const region = state.game.gameboard.regions.findIndex(r => r.includes(index));
@@ -115,11 +168,20 @@
           if (state.settings.settings.territoryColors.length > region) {
             color = state.settings.settings.territoryColors[region];
           }
+          const resolveColor = (i) => {
+            if (i === mouseOver) {
+              return ColorLuminance(color, 0.15);
+            } else if (highlightSelectable == true && selectable.includes(i)) {
+              return colorSaturation(color, 2.5);
+            } else {
+              return '#' + color;
+            }
+          }
           return {
             x: 0,
             y: 0,
             data: item,
-            fill: mouseOver === index ? ColorLuminance(color, 0.15) : ('#' + color),
+            fill: resolveColor(index),
             scale: {
               x: 1,
               y: 1
@@ -128,6 +190,13 @@
             num: index
           };
         });
+      },
+      selectable: function() {
+        let selectableTerritories = this.$store.getters.boardStates.filter(ter => ter.owner === this.$store.getters.getPlayerIndex);
+        //console.log(this.$store.getters.boardStates);
+        //console.log(this.selectable);
+        return selectableTerritories.map(ter => ter.territory)
+        //this.selectable = this.$store.getters.boardStates.filter(ter => ter.owner == 0 || ter.owner == 1 || ter.owner == 2);
       },
       waterConnectionConfigs: function () {
         const gameState = this.$store.state.game;
@@ -172,6 +241,17 @@
       }
     },
     methods: {
+      turnEvent: function() {
+        if (this.turnOver) {
+          this.endTurn();
+        } else {
+          this.assignArmy();
+        }
+      },
+      assignArmy: function() {
+        this.highlightSelectable = !this.highlightSelectable;
+        this.turnOver = true;
+      },
       endTurn: function () {
         this.$socket.sendObj({
               _type: "controllers.RequestPlaceReinforcements",
@@ -350,7 +430,9 @@
     },
     data() {
       return {
+        turnOver: false,
         mouseOver: -1,
+        highlightSelectable: false,
         navHeight: 62,
         playerInfoBarOverdraw: 32,
         stageDimensions: {
@@ -434,9 +516,40 @@
     font-size: 20px;
   }
 
+  @media screen and (max-width: 600px) {
+    .banner-text {
+      font-family: $roboto-font;
+      font-size: 17px;
+    }
+
+    .button-title {
+      font-size: 17px;
+    }
+  }
+
   .players {
     position: absolute;
     bottom: 0;
+  }
+
+  .turn-alert {
+    width: 80%;
+    position: absolute;
+    top: 9%;
+    left: 50%;
+    transform: translate(-50%,0);
+    z-index: 1000;
+  }
+
+  .territories {
+    z-index: 1001;
+  }
+
+  .turn-alert-text {
+    font-family: $roboto-font;
+    font-size: 30px;
+    text-align: center;
+    width: 75%;
   }
 
   .turn-text {
