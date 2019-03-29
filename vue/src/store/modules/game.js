@@ -17,6 +17,7 @@ export default {
       iconData: [],
       waterConnections: [],
       centers: [],
+      castles: [],
       regions: [],
       territories: [],
       size: []
@@ -52,8 +53,7 @@ export default {
         // noinspection JSUnresolvedVariable
         state.gameboard.iconData = data.gameboard.nodes.map((n) => n.iconPath);
         state.gameboard.centers = data.gameboard.nodes.map((n) => n.center);
-        // TODO Add castle parsing & bind to GameboardScreen
-        //  data.gameboard.nodes.filter((n) => 'castle' in n.dto).map((n) => n.dto.castle)
+        state.gameboard.castles = data.gameboard.nodes.filter((n) => 'castle' in n.dto).map((n) => n.dto.castle)
         //  // gives [{ a: float, b: float }, ...]
       }
       initializeGameboardScreen(NETWORK_CTX);
@@ -94,6 +94,7 @@ export default {
       const stateMap = {};
       // Turn matrix sub-arrays into key-value mappings
       state.boardStateList.forEach((state) => stateMap[state[0]] = state[1]);
+      console.log(stateMap);
       const resolveMapping = (territory, index) => {
         // ensure key is in map
         if (index.toString() in stateMap) {

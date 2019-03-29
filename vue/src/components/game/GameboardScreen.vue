@@ -36,6 +36,11 @@
               :data="army"
               :key="army.num"></v-army-shape>
         </v-layer>
+        <v-layer>
+          <v-castle-icon v-for="castle in castleData"
+              :data="castle"
+              :key="castle.num"></v-castle-icon>
+        </v-layer>
       </v-stage>
     </div>
     <player-info-bar class="players" :overdraw="playerInfoBarOverdraw" ref="playerInfo">
@@ -61,6 +66,7 @@
 <script>
   import PlayerInfoBar from './PlayerInfoBar'
   import ArmyShape from './ArmyShape';
+  import CastleIcon from './CastleIcon';
   import TerritoryAssignmentModal from './TerritoryAssignmentModal';
   import Toolbar from './../Toolbar'
   import VueKonva from 'vue-konva';
@@ -77,6 +83,7 @@
       'tool-bar': Toolbar,
       'player-info-bar': PlayerInfoBar,
       'v-army-shape': ArmyShape,
+      'v-castle-icon': CastleIcon,
       'territory-assignment-modal': TerritoryAssignmentModal
     },
     computed: {
@@ -115,6 +122,19 @@
           return false;
         }
         return this.$store.state.current === this.$store.state.game.playerStateList[turnIndex].player.settings.name;
+      },
+      castleData: function() {
+        const store = this.$store;
+        return store.getters.boardStates.filter(
+          ts => 'owner' in ts
+            && 'amount' in ts
+            && 'territory' in ts
+            && store.state.game.gameboard.castles.length > ts.territory
+        ).map(ter => {
+          return {
+            position: ter.territory
+          }
+        })
       },
       armyData: function () {
         const store = this.$store;
