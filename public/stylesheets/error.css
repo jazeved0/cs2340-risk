@@ -30,6 +30,14 @@
   top: 2px;
 }
 
+main {
+  margin: 80px 0 0 0;
+}
+
+.error-container {
+  padding: 80px 0;
+}
+
 @media (max-width: 399px) {
   .error-container h1 {
     font-size: 28px;
@@ -42,11 +50,10 @@
   .error-container .status-code {
     font-size: 11px;
   }
-}
 
-.error-container {
-  padding-top: 120px;
-  padding-bottom: 65px;
+  .error-container {
+    padding: 40px 0;
+  }
 }
 
 .nav-title {

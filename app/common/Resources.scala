@@ -3,10 +3,8 @@ package common
 import java.util
 
 import com.typesafe.config.{Config, ConfigObject}
-import controllers.routes
 import game.Gameboard
 import game.mode.GameMode
-import game.state.GameState
 import models._
 import play.api.data.Form
 import play.api.data.Forms._
@@ -46,12 +44,14 @@ object Resources {
     val PingTimeoutCheckDelay = "app.controllers.pingTimeoutCheckDelay"
     val PingTimeoutCheckInterval = "app.controllers.pingTimeoutCheckInterval"
     val PublicConfigPath = "app.controllers.publicConfigPath"
-    val SpaFileRoot = "app.controllers.spaFileRoot"
+    val FileSpecialMappings = "app.controllers.reroute.files"
+    val DirectorySpecialMappings = "app.controllers.reroute.folders"
     val SpaEntryPoint = "app.controllers.spaEntryPoint"
     val DocsEnabled = "app.controllers.docsEnabled"
     val DocsRoot = "app.controllers.docsRoot"
     val InitialFormPostUrl = "app.controllers.initialFormPostUrl"
-    val DocsIconPath = "app.controllers.docsIconPath"
+
+    val AskTimeout = "app.actors.askTimeout"
 
     val Colors = "app.settings.colors"
     val GameIdChars = "app.settings.gameIdChars"
@@ -84,12 +84,16 @@ object Resources {
   var PingTimeoutCheckDelay: FiniteDuration = _
   var PingTimeoutCheckInterval: FiniteDuration = _
   var PublicConfigPath: String = _
-  var SpaFileRoot: String = _
   var SpaEntryPoint: String = _
   var DocsEnabled: Boolean = _
   var DocsRoot: String = _
   var InitialFormPostUrl: Call = _
   var DocsIconPath: String = _
+
+  var AskTimeout: FiniteDuration = _
+
+  var DirectorySpecialMappings: Map[String, String] = _
+  var FileSpecialMappings: Map[String, String] = _
 
   var Colors: Seq[Color] = _
   var GameIdChars: Seq[Char] = _
@@ -135,12 +139,12 @@ object Resources {
       Resources.PingTimeoutCheckDelay = config.get[FiniteDuration](Resources.ConfigKeys.PingTimeoutCheckDelay)
       Resources.PingTimeoutCheckInterval = config.get[FiniteDuration](Resources.ConfigKeys.PingTimeoutCheckInterval)
       Resources.PublicConfigPath = config.get[String](Resources.ConfigKeys.PublicConfigPath)
-      Resources.SpaFileRoot = config.get[String](Resources.ConfigKeys.SpaFileRoot)
       Resources.SpaEntryPoint = config.get[String](Resources.ConfigKeys.SpaEntryPoint)
       Resources.DocsRoot = config.get[String](Resources.ConfigKeys.DocsRoot)
       Resources.DocsEnabled = config.get[Boolean](Resources.ConfigKeys.DocsEnabled)
       Resources.InitialFormPostUrl = Call("POST", config.get[String](Resources.ConfigKeys.InitialFormPostUrl))
-      Resources.DocsIconPath = config.get[String](Resources.ConfigKeys.DocsIconPath)
+
+      Resources.AskTimeout = config.get[FiniteDuration](Resources.ConfigKeys.AskTimeout)
 
       Resources.Colors = config.get[Seq[String]](Resources.ConfigKeys.Colors).map(Color)
       Resources.GameIdChars = config.get[String](Resources.ConfigKeys.GameIdChars).toLowerCase.toList
@@ -162,6 +166,9 @@ object Resources {
         Resources.ConfigKeys.SkirmishGameboard))
       Resources.SkirmishReinforcementDivisor = config.get[Int](Resources.ConfigKeys.SkirmishReinforcementDivisor)
       Resources.SkirmishReinforcementBase = config.get[Int](Resources.ConfigKeys.SkirmishReinforcementBase)
+
+      Resources.DirectorySpecialMappings = config.get[Map[String, String]](Resources.ConfigKeys.DirectorySpecialMappings)
+      Resources.FileSpecialMappings = config.get[Map[String, String]](Resources.ConfigKeys.FileSpecialMappings)
     }
   }
 
