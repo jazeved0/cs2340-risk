@@ -158,7 +158,7 @@ class SkirmishGameMode extends GameMode {
       }
     } else {
       callback.send(RequestReply(RequestResponse.Rejected, "Invalid state to " +
-        "place reinforcements"))
+        "place reinforcements"), actor.id)
       false
     }
   }
