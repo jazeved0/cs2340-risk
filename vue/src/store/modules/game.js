@@ -1,7 +1,9 @@
 // noinspection ES6UnusedImports
 import Vue from 'vue';
 import Vuex from 'vuex';
-import {ON_SEND_GAMEBOARD, ON_UPDATE_PLAYER_STATE, ON_UPDATE_BOARD_STATE, ADD_TROOPS} from '.././mutation-types';
+import {ON_SEND_GAMEBOARD, ON_UPDATE_PLAYER_STATE, ON_UPDATE_BOARD_STATE,
+        INCREMENT_TROOP, SUBMIT_REINFORCEMENTS, UNSUBMIT_REINFORCEMENTS} from '.././mutation-types';
+import {ADD_TROOPS} from '.././action-types';
 import {initializeGameboardScreen, NETWORK_CTX} from "./game/InitializeGameboardScreen";
 
 Vue.use(Vuex);
@@ -26,34 +28,20 @@ export default {
       w: 320,
       h: 200
     },
+    placement: {
+      total: 0,
+      territories: {},
+      submitted: false
+    },
     tryInitializeGameboardScreen: initializeGameboardScreen
   },
   mutations: {
     [ON_UPDATE_PLAYER_STATE](state, data) {
-      // console.log(data);
       if ('seq' in data) {
         state.playerStateList = data.seq;
-        // TODO Update the initial allocation if in reinforcement
-        //  data.seq[n].turnState.state === "reinforcement"
-        //  data.seq[n].turnState.payload.amount // initial allocation
       }
       if ('turn' in data) {
         state.turnIndex = data.turn // index of current turn
-      }
-    },
-    [ADD_TROOPS](state, data) {
-      const territoryNumber = data.territoryNumber;
-      const territoryFilter = state.boardStateList.filter((value => value[0] === territoryNumber));
-      if (territoryFilter.length > 0) {
-        const territory = territoryFilter[0];
-        console.log(territory);
-      }
-      console.log(state.getters.getPlayerState);
-      console.log(territoryNumber);
-      console.log(state.boardStateList);
-      console.log(state.boardStateList[territoryNumber]);
-      if (state.boardStateList[territoryNumber][1] === state.getters.getPlayerIndex) {
-        ++state.boardStateList[territoryNumber][0]
       }
     },
     [ON_SEND_GAMEBOARD](state, data) {
@@ -77,6 +65,24 @@ export default {
       if ('armies' in data) {
         state.boardStateList = data.armies;
       }
+    },
+    [INCREMENT_TROOP](state, index) {
+      const oldTerritory = state.boardStateList[index];
+      const newTerritory = [oldTerritory[0], [oldTerritory[1][0] + 1, oldTerritory[1][1]]];
+      state.boardStateList.splice(index, 1, newTerritory);
+      const key = oldTerritory[0].toString();
+      if (key in state.placement.territories) {
+        ++state.placement.territories[key];
+      } else {
+        state.placement.territories[key] = 1;
+      }
+      ++state.placement.total;
+    },
+    [SUBMIT_REINFORCEMENTS](state) {
+      state.placement.submitted = true;
+    },
+    [UNSUBMIT_REINFORCEMENTS](state) {
+      state.placement.submitted = false;
     }
   },
   getters: {
@@ -109,7 +115,6 @@ export default {
       const stateMap = {};
       // Turn matrix sub-arrays into key-value mappings
       state.boardStateList.forEach((state) => stateMap[state[0]] = state[1]);
-      // console.log(stateMap);
       const resolveMapping = (territory, index) => {
         // ensure key is in map
         if (index.toString() in stateMap) {
@@ -124,6 +129,19 @@ export default {
       };
       // apply mapping function and then filter by those that succeeded
       return state.gameboard.territories.map(resolveMapping).filter(obj => obj !== {});
+    }
+  },
+  actions: {
+    [ADD_TROOPS]({ commit, getters, state}, territoryNumber) {
+      const territoryFilter = state.boardStateList.filter(value => value[0] === territoryNumber);
+      if (territoryFilter.length > 0) {
+        const territory = territoryFilter[0];
+        const territoryIndex = state.boardStateList.indexOf(territory);
+        const owner = territory[1][1];
+        if (owner === getters.getPlayerIndex) {
+          commit(INCREMENT_TROOP, territoryIndex);
+        }
+      }
     }
   }
 };

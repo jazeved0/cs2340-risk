@@ -145,7 +145,7 @@ class SkirmishGameMode extends GameMode {
     val calculated = calculateReinforcement(actor.player)
     val totalPlaced = assignments.map(tup => tup._2).sum
     if (state.isInState(actor.player, TurnState.Reinforcement)) {
-      if (totalPlaced != calculated) {
+      if (totalPlaced == calculated) {
         // Valid
         true
       } else {

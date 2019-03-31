@@ -208,7 +208,7 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
     * @param target The player id of the client to send this packet to
     */
   def sendCallback(packet: OutPacket, target: String): Unit =
-    players.get(id)
+    players.get(target)
       .map(p => p.actor)
       .foreach(a => a ! packet)
 
