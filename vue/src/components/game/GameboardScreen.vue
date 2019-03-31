@@ -9,11 +9,17 @@
       <div slot="middle-element" class="turn-text text-center">
         <p class="banner-text font-weight-bold">{{ getBannerText }}</p>
       </div>
-      <div slot="right-element" class="pb-2" v-if="localTurn">
+      <div slot="right-element" v-if="localTurn">
         <div class="button">
-          <button class="button-title btn btn-primary text-center my-2 my-sm-0 ml-2 mr-2 white dark_accent" v-on:click="turnEvent">
-            <h6 class="ml-auto mr-auto">{{ buttonText }}</h6>
-          </button>
+          <b-button class="button-title btn btn-primary text-center my-2 my-sm-0 ml-2 mr-2 white dark_accent"
+                    v-on:click="turnEvent"
+                    :disabled="!turnEventEnabled">
+            <div style="min-width: 80px; min-height: 34px;">
+              <!--suppress XmlUnboundNsPrefix -->
+              <div v-if="!showTurnEventLoading" class="p-1">{{ buttonText }}</div>
+              <b-spinner v-else variant="light"/>
+            </div>
+          </b-button>
         </div>
       </div>
     </tool-bar>
@@ -30,7 +36,7 @@
               :config="pathConfig"
               @mouseover="territoryMouseOver(pathConfig.num)"
               @mouseout="territoryMouseOut(pathConfig.num)"
-                  @mousedown="addTerritory(pathConfig.num)"
+              @mousedown="territoryClick(pathConfig.num)"
           ></v-path>
 
         </v-layer>
@@ -77,7 +83,9 @@
   import Vue from "vue";
   import {clamp, ColorLuminance, distance, colorSaturation} from './../../util'
   import {GUI_CTX} from "../../store/modules/game/InitializeGameboardScreen";
-  import {ADD_TROOPS} from  "../../store/mutation-types.js"
+  import {ADD_TROOPS} from  "../../store/action-types.js"
+  import {SUBMIT_REINFORCEMENTS, UNSUBMIT_REINFORCEMENTS, START_RESPONSE_WAIT,
+          STOP_RESPONSE_WAIT, SET_ERROR_MESSAGE} from "../../store/mutation-types.js"
 
   // noinspection JSUnresolvedFunction
   Vue.use(VueKonva);
@@ -105,20 +113,22 @@
         return "";
       },
       buttonText: function() {
-        if (this.turnOver) {
-          return "End Turn"
+        if (this.isInReinforcement) {
+          return "Assign Army";
         } else {
-          return "Assign Army"
+          return "";
         }
       },
       getBannerText: function() {
         const turnIndex = this.$store.state.game.turnIndex;
-        const playerObj = this.$store.state.game.playerStateList[turnIndex];
         if (turnIndex === -1) {
           return "";
         }
+        const playerObj = this.$store.state.game.playerStateList[turnIndex];
+        let suffix = '';
+        if (this.isInReinforcement) suffix = '; ' + (this.allocation - this.$store.state.game.placement.total) + ' troops left';
         return playerObj.player.settings.name
-            + " is in their " + playerObj.turnState.state + " turn!";
+            + " is in their " + playerObj.turnState.state + " turn" + suffix;
       },
       localTurn: function() {
         const turnIndex = this.$store.state.game.turnIndex;
@@ -126,6 +136,36 @@
           return false;
         }
         return this.$store.state.current === this.$store.state.game.playerStateList[turnIndex].player.settings.name;
+      },
+      isInReinforcement: function() {
+         const turnIndex = this.$store.state.game.turnIndex;
+         if (turnIndex === -1) {
+           return false;
+         }
+         return this.localTurn && this.$store.state.game.playerStateList[turnIndex].turnState.state === 'reinforcement';
+      },
+      allocation: function() {
+        const turnIndex = this.$store.state.game.turnIndex;
+        if (turnIndex === -1) {
+          return 0;
+        }
+        return this.isInReinforcement
+            ? parseInt(this.$store.state.game.playerStateList[turnIndex].turnState.payload.amount)
+            : 0;
+      },
+      highlightSelectable: function() {
+        return this.isInReinforcement && this.$store.state.game.placement.total < this.allocation;
+      },
+      turnEventEnabled: function() {
+        if (this.isInReinforcement) {
+          return this.allocation === this.$store.state.game.placement.total
+              && !this.$store.state.game.placement.submitted;
+        } else return true;
+      },
+      showTurnEventLoading: function() {
+        if (this.isInReinforcement) {
+          return this.$store.state.game.placement.submitted;
+        } else return false;
       },
       castleData: function() {
         const store = this.$store;
@@ -150,7 +190,7 @@
           let color = territoryState.owner < store.state.game.playerStateList.length
             ? store.state.game.playerStateList[territoryState.owner]
             : null;
-          if ('player' in color && color !== null) {
+          if (color !== null && 'player' in color) {
             color = color.player.settings.ordinal;
           } else color = 0;
           return {
@@ -243,24 +283,33 @@
     },
     methods: {
       turnEvent: function() {
-        if (this.turnOver) {
-          this.endTurn();
-        } else {
+        if (this.isInReinforcement) {
           this.assignArmy();
+        } else {
+          // do nothing
         }
       },
       assignArmy: function() {
-        this.highlightSelectable = !this.highlightSelectable;
-        this.turnOver = true;
-      },
-      endTurn: function () {
-        this.$socket.sendObj({
-              _type: "controllers.RequestPlaceReinforcements",
-              gameId: this.$store.state.gameId,
-              playerId: this.$store.state.playerId,
-              assignments: []
+        const territories = this.$store.state.game.placement.territories;
+        const store = this.$store;
+        const packet = {
+          _type: "controllers.RequestPlaceReinforcements",
+          gameId: store.state.gameId,
+          playerId: store.state.playerId,
+          assignments: Object.keys(territories).map(key => [parseInt(key), territories[key]])
+        };
+        store.commit(SUBMIT_REINFORCEMENTS);
+        this.$socket.sendObj(packet);
+        const thisObj = this;
+        store.commit(START_RESPONSE_WAIT, function (data) {
+          if ('response' in data) {
+            store.commit(STOP_RESPONSE_WAIT);
+            if (data.response === "Rejected") {
+              store.commit(UNSUBMIT_REINFORCEMENTS);
+              thisObj.responseFailed(data.message);
             }
-        );
+          }
+        });
       },
       territoryMouseOver: function (num) {
         this.mouseOver = num;
@@ -428,18 +477,24 @@
           scale: k
         };
       },
+      territoryClick: function (num) {
+        if (this.isInReinforcement) {
+          if (this.$store.state.game.placement.total < this.allocation) {
+            this.addTerritory(num);
+          }
+        }
+      },
       addTerritory: function (num) {
-        this.$store.commit('ADD_TROOPS',{
-          state: this.$store,
-          territoryNumber: num
-        });
-      }
+        // noinspection JSIgnoredPromiseFromCall
+        this.$store.dispatch(ADD_TROOPS, num);
+      },
+      responseFailed: function (message) {
+        this.$store.commit(SET_ERROR_MESSAGE, message);
+      },
     },
     data() {
       return {
-        turnOver: false,
         mouseOver: -1,
-        highlightSelectable: false,
         navHeight: 62,
         playerInfoBarOverdraw: 32,
         stageDimensions: {
