@@ -1,7 +1,7 @@
 // noinspection ES6UnusedImports
 import Vue from 'vue';
 import Vuex from 'vuex';
-import {ON_SEND_GAMEBOARD, ON_UPDATE_PLAYER_STATE, ON_UPDATE_BOARD_STATE} from '.././mutation-types';
+import {ON_SEND_GAMEBOARD, ON_UPDATE_PLAYER_STATE, ON_UPDATE_BOARD_STATE, ADD_TROOPS} from '.././mutation-types';
 import {initializeGameboardScreen, NETWORK_CTX} from "./game/InitializeGameboardScreen";
 
 Vue.use(Vuex);
@@ -39,6 +39,13 @@ export default {
       }
       if ('turn' in data) {
         state.turnIndex = data.turn // index of current turn
+      }
+    },
+    [ADD_TROOPS](state, territoryNumber) {
+      for (let i = 0; i < state.boardStateList.length; i++) {
+        if (state.boardStateList[i][0] === territoryNumber) {
+          state.boardStateList[i][0][1][0]++;
+        }
       }
     },
     [ON_SEND_GAMEBOARD](state, data) {

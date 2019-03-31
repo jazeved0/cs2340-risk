@@ -10,7 +10,7 @@ export const SET_ERROR_MESSAGE = 'SET_ERROR_MESSAGE';
 export const CLEAR_ERROR_MESSAGE = 'CLEAR_ERROR_MESSAGE';
 export const ADD_PLAYER = 'ADD_PLAYER';
 export const UPDATE_HOST = 'UPDATE_HOST';
-
+export const ADD_TROOPS = 'ADD_TROOPS';
 // Websocket handling
 export const SOCKET_ONOPEN = 'SOCKET_ONOPEN';
 export const SOCKET_ONCLOSE = 'SOCKET_ONCLOSE';
