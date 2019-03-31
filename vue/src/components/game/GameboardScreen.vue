@@ -29,7 +29,10 @@
               :key="pathConfig.num"
               :config="pathConfig"
               @mouseover="territoryMouseOver(pathConfig.num)"
-              @mouseout="territoryMouseOut(pathConfig.num)"></v-path>
+              @mouseout="territoryMouseOut(pathConfig.num)"
+                  @mousedown="addTerritory(pathConfig.num)"
+          ></v-path>
+
         </v-layer>
         <v-layer>
           <v-army-shape v-for="army in armyData"
@@ -74,6 +77,7 @@
   import Vue from "vue";
   import {clamp, ColorLuminance, distance, colorSaturation} from './../../util'
   import {GUI_CTX} from "../../store/modules/game/InitializeGameboardScreen";
+  import {ADD_TROOPS} from  "../../store/mutation-types.js"
 
   // noinspection JSUnresolvedFunction
   Vue.use(VueKonva);
@@ -426,6 +430,12 @@
           y: (totalH - (size.b * k)) / 2,
           scale: k
         };
+      },
+      addTerritory: function (num) {
+        this.$store.commit('ADD_TROOPS',{
+          state: this.$store,
+          territoryNumber: num
+        });
       }
     },
     data() {
