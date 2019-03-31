@@ -2,24 +2,19 @@ package controllers
 
 import java.io.File
 
-import common.Resources.StatusCodes
-import common.Resources
 import actors.GameSupervisor.{CanHost, CanJoin, MakeGame}
-import actors._
 import akka.actor.{ActorRef, ActorSystem}
 import akka.pattern.ask
-import akka.stream.scaladsl.{Flow, GraphDSL, Merge, Sink, Source}
-import akka.stream.{FlowShape, OverflowStrategy}
 import akka.util.Timeout
+import common.Resources
+import common.Resources.StatusCodes
 import javax.inject.{Inject, Named}
 import models._
+import play.api.Configuration
 import play.api.cache.Cached
 import play.api.data.Form
-import play.api.mvc.WebSocket.MessageFlowTransformer
 import play.api.mvc._
-import play.api.{Configuration, Logger}
 
-import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 
 /**
@@ -41,9 +36,10 @@ class MainController @Inject()(cached: Cached,
                                actorSystem: ActorSystem,
                                @Named("game-supervisor") gameSupervisor: ActorRef)
                               (implicit ec: ExecutionContext)
-  extends MessagesAbstractController(cc) with SameOriginCheck {
-  val logger: Logger = Logger(this.getClass)
-  implicit val timeout: Timeout = 5.seconds
+  extends MessagesAbstractController(cc) {
+  val files = new FileController(cc)
+  val webSocket = new WebSocketController(cc, gameSupervisor)
+  implicit val timeout: Timeout = Resources.AskTimeout
 
   // ***************
   // Host HTTP calls
@@ -163,10 +159,6 @@ class MainController @Inject()(cached: Cached,
       id, httpOnly = false)
   }
 
-  // **************
-  // ERROR HANDLING
-  // **************
-
   /**
     * Redirects user to host index page if they do /lobby by mistake
     * @return a redirect to "/"
@@ -177,112 +169,12 @@ class MainController @Inject()(cached: Cached,
   }
 
   /**
-    * Exposes the public JSON config file to the client
-    * @return a file send action (Ok) with the config file as the payload
-    */
-  def publicConfig: Action[AnyContent] = Action {
-    Ok.sendFile(new File(Resources.PublicConfigPath))
-  }
-
-  /**
-    * Builds a path by removing the first folder if it exists
-    * @param root The base folder to replace the old one with (gets prepended)
-    * @param base The original string to process
-    * @return A modified filepath wrapped in a RelativeFile object
-    */
-  def formatFilepath(root: String)(implicit base: String): RelativeFile =
-    RelativeFile(root + (base.indexOf('/') match {
-      case -1 => base
-      case i => base.substring(i)
-    }))
-
-  /**
-    * Builds a path for the docs file
-    * @param root The base folder to replace the old one with ("docs")
-    * @param base The original string to process
-    * @return A heavily modified filepath wrapped in a RelativeFile object,
-    *         or a UrlRedirect if a redirect is necessary
-    */
-  def formatDocsFilepath(root: String)(implicit base: String): InitialFileResponse = {
-    val substr = formatFilepath("").path
-    if (substr == "docs") {
-      UrlRedirect("docs/")
-    } else {
-      RelativeFile(root + (if (substr.indexOf('.') == -1) {
-        substr + (if (substr.last == '/') "index.html" else ".html")
-      } else {
-        substr
-      }))
-    }
-  }
-
-  /** Represents the result of the initial file resolution stage */
-  sealed trait InitialFileResponse
-  /** Represents the result of the final file resolution stage */
-  sealed trait FileResponse
-  /** Represents a parsed and transformed relative filepath */
-  case class RelativeFile(path: String) extends InitialFileResponse
-  /** Represents a redirect response */
-  case class UrlRedirect(to: String) extends FileResponse with InitialFileResponse
-  /** Represents an error response */
-  case class Error(message: String, code: Int = StatusCodes.NOT_FOUND) extends FileResponse with InitialFileResponse
-  /** Represents a file that exists; wraps a file object */
-  case class ResolvedFile(obj: File) extends FileResponse
-
-  /**
-    * Transforms a raw file path to the initial result of file resolution
-    * @param path The raw file path included with the HTTP request
-    * @return the result
-    */
-  def resolveFilepath(path: String): InitialFileResponse = {
-    implicit val filepath: String = path
-    path match {
-      case p if p.startsWith("static") => formatFilepath("public")
-      // Called from auto-generated docs
-      case p if p == "favicon.ico" => formatFilepath(Resources.DocsIconPath)
-      case p if p.startsWith("docs") =>
-        if (Resources.DocsEnabled) {
-          formatDocsFilepath(Resources.DocsRoot)
-        } else {
-          Error("Docs are not enabled", StatusCodes.MOVED_PERMANENTLY)
-        }
-      case p => RelativeFile(Resources.SpaFileRoot + p)
-    }
-  }
-
-  /**
-    * Transforms a raw file path to the final result of a file resolution
-    * by chaining a call with <code>resolveFilePath(...)</code>
-    * @param path The raw file path included with the HTTP request
-    * @return the result
-    */
-  def resolveFile(path: String): FileResponse = {
-    resolveFilepath(path) match {
-      case e: Error => e
-      case r: UrlRedirect => r
-      case RelativeFile(filename) =>
-        val file = new File(filename)
-        if (file.exists) ResolvedFile(file) else Error(s"Can't find $path")
-    }
-  }
-
-  /**
     * Router method to route file requests (default) to their proper targets
     * @param path The raw file path included with the HTTP request
     * @return either an error page in HTML, a redirect to another resource,
     *         or the actual file (if it was successfully resolved)
     */
-  def routeFiles(path: String): Action[AnyContent] = Action {
-    resolveFile(path) match {
-      case Error(m, c) => ErrorHandler.renderErrorPage(c, m)
-      case ResolvedFile(file) => Ok.sendFile(file)
-      case UrlRedirect(to) => Redirect(to)
-    }
-  }
-
-  // ***********
-  // WEB SOCKETS
-  // ***********
+  def routeFiles(path: String): Action[AnyContent] = files.route(path)
 
   /**
     * Builds a websocket connection and its associated flow graph if the
@@ -293,91 +185,5 @@ class MainController @Inject()(cached: Cached,
     * @param playerId The pseudo-secret unique ID of the connecting client
     * @return
     */
-  def webSocket(gameId: String, playerId: String): WebSocket = {
-    WebSocket.acceptOrResult[InPacket, OutPacket] {
-      // validate supplied ids
-      case _ if !Player.isValidId(playerId) =>
-        Future.successful {
-          Left(BadRequest(s"Invalid player id $playerId supplied"))
-        }
-      case _ if !Game.isValidId(gameId) =>
-        Future.successful {
-          Left(BadRequest(s"Invalid app id $gameId supplied"))
-        }
-      case header if sameOriginCheck(header) =>
-        Future.successful(flow(gameId, playerId)).map { flow =>
-          Right(flow)
-        }.recover {
-          case _: Exception =>
-            Left(InternalServerError("Cannot create websocket"))
-        }
-      case _ =>
-        Future.successful {
-          Left(Forbidden("forbidden"))
-        }
-    }
-  }
-
-  import controllers.JsonMarshallers._
-
-  /**
-    * Uses <code>JsonMarshallers</code> to transform incoming websocket JSON
-    * to InPackets, and outgoing OutPackets to outgoing websocket JSON implicitly
-    * within the actor flow
-    */
-  implicit val messageFlowTransformer: MessageFlowTransformer[InPacket, OutPacket] =
-    MessageFlowTransformer.jsonMessageFlowTransformer[InPacket, OutPacket]
-  /** Defines the creation method for ActorRefs that get attached to player DTOs */
-  val playerActorSource: Source[OutPacket, ActorRef] =
-    Source.actorRef[OutPacket](Resources.IncomingPacketBufferSize, OverflowStrategy.fail)
-
-  /**
-    * Builds a flow graph for each WebSocket connection, forming a closure with
-    * the parameters for the graph creation & processing functions
-    *
-    * Graph diagram
-    *
-    * --------------------------------------------------------------------------
-    *
-    * connect ^^\
-    *
-    *            o merge o---> gameSupervisor.receive() --- (...) ---> OutPacket
-    *
-    * InPacket _/              [can degrade to PlayerDisconnect]
-    *
-    * --------------------------------------------------------------------------
-    * @param gameId The game ID to create a websocket flow for
-    * @param playerId The pseudo-secret unique ID of the connecting client
-    * @return A flow graph taking in an InPacket, outputting an OutPacket, and
-    *         using an ActorRef as the intermediate processing type
-    */
-  def flow(gameId: String, playerId: String): Flow[InPacket, OutPacket, ActorRef] = {
-    Flow.fromGraph(GraphDSL.create(playerActorSource) {
-      implicit builder =>
-        playerActor =>
-          import akka.stream.scaladsl.GraphDSL.Implicits._
-
-          // Join & Network entry points for InPackets
-          val materialization = builder.materializedValue.map(playerActor =>
-            PlayerConnect(gameId, playerId, playerActor))
-          val incomingRouter: FlowShape[InPacket, InPacket] = builder.add(Flow[InPacket])
-
-          // Merge Join & Network sources
-          val merge = builder.add(Merge[InPacket](2))
-          materialization ~> merge
-          incomingRouter ~> merge
-
-          // Output for messages (with default for ones that don't get processed
-          // (dead connection))
-          val gameSupervisorSink = Sink.actorRef[InPacket](gameSupervisor,
-            PlayerDisconnect(gameId, playerId))
-          merge ~> gameSupervisorSink
-
-          // Set the WebSocket points of ingress and egress
-          FlowShape(incomingRouter.in, playerActor.out)
-    })
-  }
-
-  override def validOrigin(path: String): Boolean =
-    Resources.Origins.exists(path.contains(_))
+  def webSocket(gameId: String, playerId: String): WebSocket = webSocket.build(gameId, playerId)
 }

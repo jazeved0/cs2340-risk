@@ -8,7 +8,6 @@ import game.mode.GameMode._
 import game.state.TurnState._
 import game.state.{GameState, PlayerState, TurnState}
 import models.{Army, OwnedArmy, Player}
-import play.api.Logger
 
 import scala.util.Random
 
@@ -101,7 +100,7 @@ class SkirmishGameMode extends GameMode {
     state.turnOrder.find(a => a.id == packet.playerId).foreach { player =>
       packet match {
         case RequestPlaceReinforcements(_, _, assignments) =>
-          requestReplaceReinforcements(callback, player, assignments)
+          requestPlaceReinforcements(callback, player, assignments)
       }
     }
   }
@@ -118,14 +117,50 @@ class SkirmishGameMode extends GameMode {
     * @param assignments The proposed assignments Seq[(territory index -> amount)]
     * @param state The GameState context object
     */
-  def requestReplaceReinforcements(callback: GameMode.Callback, actor: PlayerWithActor,
-                                   assignments: Seq[(Int, Int)])
-                                  (implicit state: GameState): Unit = {
+  def requestPlaceReinforcements(callback: GameMode.Callback, actor: PlayerWithActor,
+                                 assignments: Seq[(Int, Int)])
+                                (implicit state: GameState): Unit = {
+    import play.api.Logger
     val logger = Logger(this.getClass).logger
-    // TODO remove debug message
     val name = actor.player.settings.fold("")(ps => ps.name)
     logger.error(s"reinforcements received from $name: $assignments")
-    // TODO validate and generate response, if successful, move turn ahead
+    if (validateReinforcements(callback, actor, assignments)) {
+      // TODO logic
+    }
+  }
+
+  /**
+    * Validates the reinforcement request given by the player
+    *
+    * @param callback The Callback object providing a means of sending outgoing
+    *                 packets to either the entire lobby or to one player
+    * @param actor The player that initiated the request
+    * @param assignments The proposed assignments Seq[(territory index -> amount)]
+    * @param state The GameState context object
+    * @return
+    */
+  def validateReinforcements(callback: GameMode.Callback, actor: PlayerWithActor,
+                             assignments: Seq[(Int, Int)])
+                            (implicit state: GameState): Boolean = {
+    val calculated = calculateReinforcement(actor.player)
+    val totalPlaced = assignments.map(tup => tup._2).sum
+    if (state.isInState(actor.player, TurnState.Reinforcement)) {
+      if (totalPlaced != calculated) {
+        // Valid
+        true
+      } else {
+        // Invalid
+        val descriptor = if (calculated > totalPlaced) "many" else "few"
+        callback.send(RequestReply(RequestResponse.Rejected, s"Too $descriptor " +
+          s"reinforcements in attempted placement $totalPlaced for " +
+          s"allocation $calculated"), actor.id)
+        false
+      }
+    } else {
+      callback.send(RequestReply(RequestResponse.Rejected, "Invalid state to " +
+        "place reinforcements"), actor.id)
+      false
+    }
   }
 
   override def playerDisconnect(actor: PlayerWithActor, callback: Callback)

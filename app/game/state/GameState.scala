@@ -3,7 +3,7 @@ package game.state
 import actors.PlayerWithActor
 import common.Util
 import game.state.TurnState.Idle
-import models.{Army, OwnedArmy}
+import models.{Army, OwnedArmy, Player}
 
 import scala.collection.mutable
 
@@ -47,4 +47,21 @@ class GameState(private var _turnOrder: Seq[PlayerWithActor], territories: Int) 
     playerStates = Util.buffer(newOrder.map(actor => playerStates(oldStates(actor))))
     _turnOrder = newOrder
   }
+
+  /**
+    * Finds the state for the corresponding player
+    * @param player The player object
+    * @return An option giving Some(PlayerState) if successful, or None otherwise
+    */
+  def stateOf(player: Player): Option[PlayerState] =
+    playerStates.find(p => p.player == player)
+
+  /**
+    * Determines whether the given player is within the turn substate
+    * @param player The player object
+    * @param state The turn state machine enum case object
+    * @return True if the player is in the substate, false otherwise
+    */
+  def isInState(player: Player, state: TurnState.State): Boolean =
+    stateOf(player).exists(ps => ps.turnState == state)
 }

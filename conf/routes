@@ -12,8 +12,5 @@ GET     /ws/:gameId/:playerId             controllers.MainController.webSocket(g
 # Deafult Redirect (in case you accidentally type /lobby instead of /lobby/:id
 GET     /lobby                            controllers.MainController.redirectIndex
 
-# Expose public configuration for consumption on the frontend
-GET     /assets/public.json               controllers.MainController.publicConfig
-
 # Map static resources from the /public folder to the /assets URL path
 GET     /*file                            controllers.MainController.routeFiles(file: String)
