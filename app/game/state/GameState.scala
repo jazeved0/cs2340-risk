@@ -63,5 +63,5 @@ class GameState(private var _turnOrder: Seq[PlayerWithActor], territories: Int) 
     * @return True if the player is in the substate, false otherwise
     */
   def isInState(player: Player, state: TurnState.State): Boolean =
-    stateOf(player).exists(ps => ps.turnState == state)
+    stateOf(player).exists(ps => ps.turnState.state == state)
 }
