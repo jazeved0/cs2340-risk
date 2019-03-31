@@ -12,7 +12,7 @@
       <div slot="right-element" class="pb-2" v-if="localTurn">
         <div class="button">
           <button class="button-title btn btn-primary text-center my-2 my-sm-0 ml-2 mr-2 white dark_accent" v-on:click="turnEvent">
-            <p6 class="ml-auto mr-auto">{{ buttonText }}</p6>
+            <h6 class="ml-auto mr-auto">{{ buttonText }}</h6>
           </button>
         </div>
       </div>
@@ -60,7 +60,7 @@
         fade
         class="turn-alert"
         v-if="localTurn">
-      <p2 class="turn-alert-text">It's Your Turn!</p2>
+      <h2 class="turn-alert-text">It's Your Turn!</h2>
       <p> {{ getInstructions }}</p>
     </b-alert>
   </div>
@@ -175,12 +175,12 @@
           const resolveColor = (i) => {
             if (i === mouseOver) {
               return ColorLuminance(color, 0.15);
-            } else if (highlightSelectable == true && selectable.includes(i)) {
+            } else if (highlightSelectable === true && selectable.includes(i)) {
               return colorSaturation(color, 2.5);
             } else {
               return '#' + color;
             }
-          }
+          };
           return {
             x: 0,
             y: 0,
@@ -197,10 +197,7 @@
       },
       selectable: function() {
         let selectableTerritories = this.$store.getters.boardStates.filter(ter => ter.owner === this.$store.getters.getPlayerIndex);
-        //console.log(this.$store.getters.boardStates);
-        //console.log(this.selectable);
         return selectableTerritories.map(ter => ter.territory)
-        //this.selectable = this.$store.getters.boardStates.filter(ter => ter.owner == 0 || ter.owner == 1 || ter.owner == 2);
       },
       waterConnectionConfigs: function () {
         const gameState = this.$store.state.game;

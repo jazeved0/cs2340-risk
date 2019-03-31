@@ -30,7 +30,7 @@ export default {
   },
   mutations: {
     [ON_UPDATE_PLAYER_STATE](state, data) {
-      console.log(data);
+      // console.log(data);
       if ('seq' in data) {
         state.playerStateList = data.seq;
         // TODO Update the initial allocation if in reinforcement
@@ -41,11 +41,19 @@ export default {
         state.turnIndex = data.turn // index of current turn
       }
     },
-    [ADD_TROOPS](state, territoryNumber) {
-      for (let i = 0; i < state.boardStateList.length; i++) {
-        if (state.boardStateList[i][0] === territoryNumber) {
-          state.boardStateList[i][0][1][0]++;
-        }
+    [ADD_TROOPS](state, data) {
+      const territoryNumber = data.territoryNumber;
+      const territoryFilter = state.boardStateList.filter((value => value[0] === territoryNumber));
+      if (territoryFilter.length > 0) {
+        const territory = territoryFilter[0];
+        console.log(territory);
+      }
+      console.log(state.getters.getPlayerState);
+      console.log(territoryNumber);
+      console.log(state.boardStateList);
+      console.log(state.boardStateList[territoryNumber]);
+      if (state.boardStateList[territoryNumber][1] === state.getters.getPlayerIndex) {
+        ++state.boardStateList[territoryNumber][0]
       }
     },
     [ON_SEND_GAMEBOARD](state, data) {
@@ -101,7 +109,7 @@ export default {
       const stateMap = {};
       // Turn matrix sub-arrays into key-value mappings
       state.boardStateList.forEach((state) => stateMap[state[0]] = state[1]);
-      console.log(stateMap);
+      // console.log(stateMap);
       const resolveMapping = (territory, index) => {
         // ensure key is in map
         if (index.toString() in stateMap) {
