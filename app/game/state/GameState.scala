@@ -57,6 +57,27 @@ class GameState(private var _turnOrder: Seq[PlayerWithActor], territories: Int) 
     playerStates.find(p => p.player == player)
 
   /**
+    * Advances the turn state of the current player, optionally moving the turn
+    * along according to the state machine
+    */
+  def advanceTurnState(): Unit = {
+    stateOf(currentPlayer).map(_.turnState.advanceState).foreach {
+      nextState => {
+        this(currentPlayer) = constructPlayerState(currentPlayer, nextState)
+        if (nextState.state == TurnState.Idle) {
+          advanceTurn()
+          this(currentPlayer) = constructPlayerState(currentPlayer, nextState.advanceState)
+        }
+      }
+    }
+  }
+
+  def currentPlayer: Player = turnOrder(turn).player
+  def advanceTurn(): Unit = turn = (turn + 1) % gameSize
+  def constructPlayerState(player: Player, turnState: TurnState): PlayerState =
+    PlayerState(player, stateOf(player).get.units, turnState)
+
+  /**
     * Determines whether the given player is within the turn substate
     * @param player The player object
     * @param state The turn state machine enum case object
@@ -64,4 +85,16 @@ class GameState(private var _turnOrder: Seq[PlayerWithActor], territories: Int) 
     */
   def isInState(player: Player, state: TurnState.State): Boolean =
     stateOf(player).exists(ps => ps.turnState.state == state)
+
+  /**
+    * Updates the player state internal collection
+    * @param player The player key
+    * @param newState The new state
+    */
+  def update(player: Player, newState: PlayerState): Unit = {
+    playerStates.indexWhere(ps => ps.player == player) match {
+      case -1 =>
+      case i => playerStates(i) = newState
+    }
+  }
 }

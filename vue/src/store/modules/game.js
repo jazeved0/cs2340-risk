@@ -57,7 +57,6 @@ export default {
         state.gameboard.iconData = data.gameboard.nodes.map((n) => n.iconPath);
         state.gameboard.centers = data.gameboard.nodes.map((n) => n.center);
         state.gameboard.castles = data.gameboard.nodes.filter((n) => 'castle' in n.dto).map((n) => n.dto.castle)
-        //  // gives [{ a: float, b: float }, ...]
       }
       initializeGameboardScreen(NETWORK_CTX);
     },
@@ -102,8 +101,8 @@ export default {
     },
     getPlayerIndex(state, getters, rootState) {
       if (rootState.current !== "") {
-        for (let i = 0; i < rootState.playersList.length; i++) {
-          if (rootState.playersList[i].name === rootState.current) {
+        for (let i = 0; i < state.playerStateList.length; i++) {
+          if (state.playerStateList[i].player.settings.name === rootState.current) {
             return i;
           }
         }

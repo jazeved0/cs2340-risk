@@ -304,8 +304,8 @@
         store.commit(START_RESPONSE_WAIT, function (data) {
           if ('response' in data) {
             store.commit(STOP_RESPONSE_WAIT);
+            store.commit(UNSUBMIT_REINFORCEMENTS);
             if (data.response === "Rejected") {
-              store.commit(UNSUBMIT_REINFORCEMENTS);
               thisObj.responseFailed(data.message);
             }
           }

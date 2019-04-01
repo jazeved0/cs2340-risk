@@ -120,12 +120,22 @@ class SkirmishGameMode extends GameMode {
   def requestPlaceReinforcements(callback: GameMode.Callback, actor: PlayerWithActor,
                                  assignments: Seq[(Int, Int)])
                                 (implicit state: GameState): Unit = {
-    import play.api.Logger
-    val logger = Logger(this.getClass).logger
-    val name = actor.player.settings.fold("")(ps => ps.name)
-    logger.error(s"reinforcements received from $name: $assignments")
     if (validateReinforcements(callback, actor, assignments)) {
-      // TODO logic
+      callback.send(RequestReply(RequestResponse.Accepted), actor.id)
+      assignments.foreach(tuple => {
+        val index = tuple._1
+        val increment = tuple._2
+        val oldArmy = state.boardState(index)
+        oldArmy.foreach(army => state.boardState(index) =
+          Some(OwnedArmy(army.army += increment, army.owner)))
+      })
+      val total = assignments.map(_._2).sum
+      val oldState = state.stateOf(actor.player)
+      oldState.foreach(ps => state(actor.player) =
+        PlayerState(actor.player, ps.units += total, ps.turnState))
+      state.advanceTurnState()
+      callback.broadcast(UpdateBoardState(state), None)
+      callback.broadcast(UpdatePlayerState(state), None)
     }
   }
 
@@ -144,8 +154,18 @@ class SkirmishGameMode extends GameMode {
                             (implicit state: GameState): Boolean = {
     val calculated = calculateReinforcement(actor.player)
     val totalPlaced = assignments.map(tup => tup._2).sum
+    val invalidAssignment = assignments.exists(
+      assignment => state.boardState(assignment._1).exists(army => army.owner != actor.player)
+    )
+
     if (state.isInState(actor.player, TurnState.Reinforcement)) {
-      if (totalPlaced == calculated) {
+      if (invalidAssignment) {
+        callback.send(RequestReply(RequestResponse.Rejected,
+          s"Invalid territory placement; either a selected territory is undefined" +
+            s" or that player does not own one of the territories."
+        ), actor.id)
+        false
+      } else if (totalPlaced == calculated) {
         // Valid
         true
       } else {
@@ -165,6 +185,14 @@ class SkirmishGameMode extends GameMode {
 
   override def playerDisconnect(actor: PlayerWithActor, callback: Callback)
                                (implicit state: GameState): Unit = {
+    // This solution assumes that playerStates *hasn't* removed the player yet
+    if (state.currentPlayer == actor.player) {
+      state.advanceTurn()
+    }
+    // We assume that prevTurnState is *always* TurnState.Idle
+    val newTurnState = state.stateOf(state.currentPlayer).get.turnState.advanceState
+    state(state.currentPlayer) = state.constructPlayerState(state.currentPlayer, newTurnState)
+
     // Release all owned territories
     state.boardState.zipWithIndex
       .filter { case (armyOption, _) => armyOption.forall(oa => oa.owner == actor.player) }
