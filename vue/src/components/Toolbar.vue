@@ -1,9 +1,9 @@
 <template>
   <div>
     <nav class="navbar navbar-fixed-bottom navbar-dark bg-dark">
-      <div class="d-flex flex-auto flex-row justify-content-between flexbox align-items-center">
+      <div class="d-flex flex-auto justify-content-between flexbox align-items-center">
         <div>
-          <div class="d-flex flex-auto flex-row justify-content-start flexbox align-items-center">
+          <div class="d-flex flex-auto flex-row justify-content-start flexbox align-items-center ">
             <div>
               <div id="repo-logo" class="d-inline">
                 <a class="navbar-brand pr-2" href="https://github.gatech.edu/achafos3/CS2340Sp19Team10" name="github" target="_blank" rel="noopener">
@@ -38,7 +38,17 @@
     position: relative;
     top: 1px;
   }
+
   .flexbox {
     width: 100%;
+    flex-direction: row;
+  }
+
+  @media screen and (max-width: 600px) {
+    .flexbox {
+      width: 100%;
+      flex-direction: column;
+      align-items: center;
+    }
   }
 </style>

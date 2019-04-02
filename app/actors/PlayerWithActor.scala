@@ -6,7 +6,7 @@ import models.Player
 /**
   * Player actor that is supervised by a Game
   *
-  * @param id Player ID (server secret)
+  * @param id     Player ID (server secret shared only with one client)
   * @param player Player DTO
   * @param actor  Actor reference
   */

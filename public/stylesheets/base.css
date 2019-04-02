@@ -93,3 +93,35 @@ nav {
   z-index: 10;
   box-shadow: 0 0 72px rgba(0, 0, 0, .37);
 }
+
+/* Increases upper margin */
+.page-footer {
+  margin-top: 80px;
+  color: rgba(245, 242, 242, 0.6);
+}
+
+.page-footer p, .page-footer h1, .page-footer h2, .page-footer h3, .page-footer h4, .page-footer h5, .page-footer h6 {
+  color: rgba(245, 242, 242, 0.6);
+}
+
+.page-footer a {
+  color: rgba(245, 242, 242, 0.9);
+  opacity: 1;
+  font-weight: 500;
+}
+
+/* Forces footer to float bottom if content is short */
+.footer-content-wrapper {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+  justify-content: space-between
+}
+
+.primary-accent {
+  border-top-color: #D9B34F;
+}
+
+.bg-lighter {
+  background-color: rgb(35, 35, 35) !important;
+}

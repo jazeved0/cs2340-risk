@@ -43,6 +43,7 @@ EXP_FIX_REGEX = '([0-9]+(?:[.][0-9]+)(?:e-([0-9]+))+)'
 ICON_ACCURACY = 2
 # Important because of zooming in
 MAP_ACCURACY = 4
+SIZE_ACCURACY = 2
 
 
 def main():
@@ -71,7 +72,7 @@ def main():
             for group in groups:
                 children = list(filter(lambda n: n.nodeType != n.TEXT_NODE, group.childNodes))
                 if children:
-                    text_elements = list(filter(lambda t: t.nodeName == 'text', children))
+                    text_elements = list(filter(lambda text: text.nodeName == 'text', children))
                     if text_elements:
                         territory_count += 1
                         territory = parse_territory(children)
@@ -82,6 +83,13 @@ def main():
             if territories:
                 print('    - Successfully parsed {} out of {} territories'.format(
                     len(territories), territory_count))
+
+            castle_count = 0
+            for t in territories:
+                if t[5] is not None:
+                    castle_count += 1
+            if castle_count > 0:
+                print('    - Successfully parsed {} castles'.format(castle_count))
 
             edges = []
             water_connections = []
@@ -114,7 +122,7 @@ def main():
                                      in edge_group_styles_map if style != water_class}
                 edge_nodes = [item for sublist in connection_styles.values() for item in sublist]
                 edge_count = len(edge_nodes)
-                centers = dict(list(map(lambda t: (t[0], t[1]), territories)))
+                centers = dict(list(map(lambda ter: (ter[0], ter[1]), territories)))
 
                 # parse edges
                 for edge_node in edge_nodes:
@@ -138,6 +146,7 @@ def main():
             # parse size
             size = parse_size(source_dom.getElementsByTagName('svg')[0])
             if size[0] != 0 and size[1] != 0:
+                size = list(map(lambda f: round_numbers(f, SIZE_ACCURACY), size))
                 print('    - Successfully parsed map bounds [{} x {}]'.format(
                     size[0], size[1]))
 
@@ -163,16 +172,7 @@ def write_to_file(path, territories, edges, water_connections, size, regions):
         print('Writing output to {}'.format(path))
         print()
         data = {
-            'nodeCount': len(territories),
-            'nodes': list(map(lambda t: {
-                'node': t[0],
-                'center': {
-                    'x': t[1][0],
-                    'y': t[1][1]
-                },
-                'data': t[2],
-                'iconData': t[4]
-            }, territories)),
+            'nodes': list(map(lambda t: serialize_territory(t), territories)),
             'edges': list(map(lambda e: {
                 'a': e[0],
                 'b': e[1]
@@ -188,6 +188,24 @@ def write_to_file(path, territories, edges, water_connections, size, regions):
             'waterConnections': list(map(serialize_water_connection, water_connections))
         }
         json.dump(data, output_file, indent=2)
+
+
+def serialize_territory(territory):
+    base = {
+        'node': territory[0],
+        'center': {
+            'x': territory[1][0],
+            'y': territory[1][1]
+        },
+        'data': territory[2],
+        'iconData': territory[4]
+    }
+    add = {}
+    if territory[5] is not None:
+        add = {
+            'castle': territory[5]
+        }
+    return {**base, **add}
 
 
 def serialize_water_connection(water_connection):
@@ -256,8 +274,16 @@ def parse_territory(children):
     circle_tag = next(filter(lambda t: t.tagName == 'circle', children), None)
     if circle_tag:
         if circle_tag.attributes['cx'] and circle_tag.attributes['cy']:
-            center = (float(circle_tag.attributes['cx'].value),
-                      float(circle_tag.attributes['cy'].value))
+            center = (round_numbers(circle_tag.attributes['cx'].value, MAP_ACCURACY),
+                      round_numbers(circle_tag.attributes['cy'].value, MAP_ACCURACY))
+
+    # parse castle
+    castle = None
+    rect_tag = next(filter(lambda t: t.tagName == 'rect', children), None)
+    if rect_tag:
+        if rect_tag.attributes['x'] and rect_tag.attributes['y']:
+            castle = (round_numbers(rect_tag.attributes['x'].value, MAP_ACCURACY),
+                      round_numbers(rect_tag.attributes['y'].value, MAP_ACCURACY))
 
     # parse text
     number = None
@@ -267,7 +293,7 @@ def parse_territory(children):
             number = int(text_tag.firstChild.nodeValue)
 
     if number is not None and center is not None and data is not None:
-        return number, center, data, class_value, icon_data
+        return number, center, data, class_value, icon_data, castle
     else:
         print('    - Failed to parse node {} with center at ({}, {}) and path data [{}]'
               .format(number, center[0], center[1], data))
@@ -379,7 +405,7 @@ def parse_size(svg_node):
             max_bounds = (coords[2], coords[3])
             width = max_bounds[0] - min_bounds[0]
             height = max_bounds[1] - min_bounds[1]
-            return math.ceil(width), math.ceil(height)
+            return width, height
         else:
             print('    - Failed parsing viewBox: invalid value {}'.format(view_box))
     return 0, 0
@@ -436,6 +462,9 @@ def polygon_to_path(polygon_data):
 
 
 def round_numbers(text, places):
+    if isinstance(text, float):
+        text = str(text)
+
     def round_match(match):
         return pretty_float(("{:." + str(places) + "f}").format(float(match.group())))
     return re.sub(DECIMAL_REGEX, round_match, text)

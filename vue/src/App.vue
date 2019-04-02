@@ -6,6 +6,7 @@
       <b-alert v-if="this.$store.state.errorMessage.length > 0"
           class="mx-2 mx-sm-auto"
           show
+          dismissible
           variant="danger"
           id="error-button"
           fade>
@@ -40,7 +41,8 @@
   window.history.replaceState('', 'Lobby', '/lobby/' + store.state.gameId);
 
   // Initialize the websocket
-  const webSocketUrl = 'ws://' + document.location.host + '/ws/' +
+  const protocol = location.protocol === 'http:' ? 'ws:' : 'wss:';
+  const webSocketUrl = protocol + '//' + document.location.host + '/ws/' +
     store.state.gameId + '/' + store.state.playerId;
   // Open the websocket and set it to propagate message events to the store
   Vue.use(VueNativeSock, webSocketUrl, {

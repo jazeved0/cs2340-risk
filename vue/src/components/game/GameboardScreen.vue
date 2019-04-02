@@ -6,6 +6,22 @@
         <!-- TODO Should not be wrapping h1 in span -->
         <h1 style="color:white">RISK</h1>
       </span>
+      <div slot="middle-element" class="turn-text text-center">
+        <p class="banner-text font-weight-bold">{{ getBannerText }}</p>
+      </div>
+      <div slot="right-element" v-if="localTurn">
+        <div class="button">
+          <b-button class="button-title btn btn-primary text-center my-2 my-sm-0 ml-2 mr-2 white dark_accent"
+                    v-on:click="turnEvent"
+                    :disabled="!turnEventEnabled">
+            <div style="min-width: 80px; min-height: 34px;">
+              <!--suppress XmlUnboundNsPrefix -->
+              <div v-if="!showTurnEventLoading" class="p-1">{{ buttonText }}</div>
+              <b-spinner v-else variant="light"/>
+            </div>
+          </b-button>
+        </div>
+      </div>
     </tool-bar>
     <div class="stage-wrapper flex-fill" ref="stageWrapper">
       <v-stage :config="stageConfig" ref="stage">
@@ -19,34 +35,57 @@
               :key="pathConfig.num"
               :config="pathConfig"
               @mouseover="territoryMouseOver(pathConfig.num)"
-              @mouseout="territoryMouseOut(pathConfig.num)"></v-path>
+              @mouseout="territoryMouseOut(pathConfig.num)"
+              @mousedown="territoryClick(pathConfig.num)"
+          ></v-path>
+
         </v-layer>
         <v-layer>
           <v-army-shape v-for="army in armyData"
               :data="army"
               :key="army.num"></v-army-shape>
         </v-layer>
+        <v-layer>
+          <v-castle-icon v-for="castle in castleData"
+              :data="castle"
+              :key="castle.num"></v-castle-icon>
+        </v-layer>
       </v-stage>
     </div>
     <player-info-bar class="players" :overdraw="playerInfoBarOverdraw" ref="playerInfo">
     </player-info-bar>
     <territory-assignment-modal
+        class="territories"
         v-bind:visible="showAssignmentModal"
         @hide="this.hasSeenAssignments = true">
     </territory-assignment-modal>
+    <b-alert
+        show
+        dismissible
+        variant="info"
+        fade
+        class="turn-alert"
+        v-if="localTurn">
+      <h2 class="turn-alert-text">It's Your Turn!</h2>
+      <p> {{ getInstructions }}</p>
+    </b-alert>
   </div>
 </template>
 
 <script>
   import PlayerInfoBar from './PlayerInfoBar'
   import ArmyShape from './ArmyShape';
+  import CastleIcon from './CastleIcon';
   import TerritoryAssignmentModal from './TerritoryAssignmentModal';
   import Toolbar from './../Toolbar'
   import VueKonva from 'vue-konva';
   // noinspection ES6UnusedImports
   import Vue from "vue";
-  import {clamp, ColorLuminance, distance} from './../../util'
+  import {clamp, ColorLuminance, distance, colorSaturation} from './../../util'
   import {GUI_CTX} from "../../store/modules/game/InitializeGameboardScreen";
+  import {ADD_TROOPS} from  "../../store/action-types.js"
+  import {SUBMIT_REINFORCEMENTS, UNSUBMIT_REINFORCEMENTS, START_RESPONSE_WAIT,
+          STOP_RESPONSE_WAIT, SET_ERROR_MESSAGE} from "../../store/mutation-types.js"
 
   // noinspection JSUnresolvedFunction
   Vue.use(VueKonva);
@@ -56,9 +95,91 @@
       'tool-bar': Toolbar,
       'player-info-bar': PlayerInfoBar,
       'v-army-shape': ArmyShape,
+      'v-castle-icon': CastleIcon,
       'territory-assignment-modal': TerritoryAssignmentModal
     },
     computed: {
+      getInstructions: function() {
+        const turnIndex = this.$store.state.game.turnIndex;
+        const playerObj = this.$store.state.game.playerStateList[turnIndex];
+        if (turnIndex === -1) {
+          return "";
+        }
+        else if (playerObj.turnState.state === "reinforcement") {
+          return "You are currently in the reinforcement phase of your turn. " +
+              "Click on specific territories to add a single reinforcement unit to that territory. " +
+              "After you have applied all your reinforcements, end your turn!";
+        }
+        return "";
+      },
+      buttonText: function() {
+        if (this.isInReinforcement) {
+          return "Assign Army";
+        } else {
+          return "";
+        }
+      },
+      getBannerText: function() {
+        const turnIndex = this.$store.state.game.turnIndex;
+        if (turnIndex === -1) {
+          return "";
+        }
+        const playerObj = this.$store.state.game.playerStateList[turnIndex];
+        let suffix = '';
+        if (this.isInReinforcement) suffix = '; ' + (this.allocation - this.$store.state.game.placement.total) + ' troops left';
+        return playerObj.player.settings.name
+            + " is in their " + playerObj.turnState.state + " turn" + suffix;
+      },
+      localTurn: function() {
+        const turnIndex = this.$store.state.game.turnIndex;
+        if (turnIndex === -1) {
+          return false;
+        }
+        return this.$store.state.current === this.$store.state.game.playerStateList[turnIndex].player.settings.name;
+      },
+      isInReinforcement: function() {
+         const turnIndex = this.$store.state.game.turnIndex;
+         if (turnIndex === -1) {
+           return false;
+         }
+         return this.localTurn && this.$store.state.game.playerStateList[turnIndex].turnState.state === 'reinforcement';
+      },
+      allocation: function() {
+        const turnIndex = this.$store.state.game.turnIndex;
+        if (turnIndex === -1) {
+          return 0;
+        }
+        return this.isInReinforcement
+            ? parseInt(this.$store.state.game.playerStateList[turnIndex].turnState.payload.amount)
+            : 0;
+      },
+      highlightSelectable: function() {
+        return this.isInReinforcement && this.$store.state.game.placement.total < this.allocation;
+      },
+      turnEventEnabled: function() {
+        if (this.isInReinforcement) {
+          return this.allocation === this.$store.state.game.placement.total
+              && !this.$store.state.game.placement.submitted;
+        } else return true;
+      },
+      showTurnEventLoading: function() {
+        if (this.isInReinforcement) {
+          return this.$store.state.game.placement.submitted;
+        } else return false;
+      },
+      castleData: function() {
+        const store = this.$store;
+        return store.getters.boardStates.filter(
+          ts => 'owner' in ts
+            && 'amount' in ts
+            && 'territory' in ts
+            && store.state.game.gameboard.castles.length > ts.territory
+        ).map(ter => {
+          return {
+            position: ter.territory
+          }
+        })
+      },
       armyData: function () {
         const store = this.$store;
         return store.getters.boardStates.filter(
@@ -69,7 +190,7 @@
           let color = territoryState.owner < store.state.game.playerStateList.length
             ? store.state.game.playerStateList[territoryState.owner]
             : null;
-          if ('player' in color && color !== null) {
+          if (color !== null && 'player' in color) {
             color = color.player.settings.ordinal;
           } else color = 0;
           return {
@@ -82,6 +203,8 @@
       },
       pathConfigs: function () {
         const mouseOver = this.mouseOver;
+        let selectable = this.selectable;
+        let highlightSelectable = this.highlightSelectable;
         const state = this.$store.state;
         return state.game.gameboard.pathData.map(function (item, index) {
           const region = state.game.gameboard.regions.findIndex(r => r.includes(index));
@@ -89,11 +212,20 @@
           if (state.settings.settings.territoryColors.length > region) {
             color = state.settings.settings.territoryColors[region];
           }
+          const resolveColor = (i) => {
+            if (i === mouseOver) {
+              return ColorLuminance(color, 0.15);
+            } else if (highlightSelectable === true && selectable.includes(i)) {
+              return colorSaturation(color, 2.5);
+            } else {
+              return '#' + color;
+            }
+          };
           return {
             x: 0,
             y: 0,
             data: item,
-            fill: mouseOver === index ? ColorLuminance(color, 0.2) : ('#' + color),
+            fill: resolveColor(index),
             scale: {
               x: 1,
               y: 1
@@ -103,6 +235,10 @@
           };
         });
       },
+      selectable: function() {
+        let selectableTerritories = this.$store.getters.boardStates.filter(ter => ter.owner === this.$store.getters.getPlayerIndex);
+        return selectableTerritories.map(ter => ter.territory)
+      },
       waterConnectionConfigs: function () {
         const gameState = this.$store.state.game;
         return gameState.gameboard.waterConnections.map(function (item, index) {
@@ -110,14 +246,14 @@
           const node2 = gameState.gameboard.centers[item.b];
           let bezier = 'bz' in item ? item.bz : false;
           let tension = 'tension' in item ? item.tension : 0;
-          let points = [node1[0], node1[1]];
+          let points = [node1.a, node1.b];
           if ('midpoints' in item && item.midpoints.length > 0) {
             item.midpoints.forEach(function (point) {
               points.push(point[0]);
               points.push(point[1])
             });
           }
-          points.push(node2[0], node2[1]);
+          points.push(node2.a, node2.b);
           return {
             x: 0,
             y: 0,
@@ -146,6 +282,35 @@
       }
     },
     methods: {
+      turnEvent: function() {
+        if (this.isInReinforcement) {
+          this.assignArmy();
+        } else {
+          // do nothing
+        }
+      },
+      assignArmy: function() {
+        const territories = this.$store.state.game.placement.territories;
+        const store = this.$store;
+        const packet = {
+          _type: "controllers.RequestPlaceReinforcements",
+          gameId: store.state.gameId,
+          playerId: store.state.playerId,
+          assignments: Object.keys(territories).map(key => [parseInt(key), territories[key]])
+        };
+        store.commit(SUBMIT_REINFORCEMENTS);
+        this.$socket.sendObj(packet);
+        const thisObj = this;
+        store.commit(START_RESPONSE_WAIT, function (data) {
+          if ('response' in data) {
+            store.commit(STOP_RESPONSE_WAIT);
+            store.commit(UNSUBMIT_REINFORCEMENTS);
+            if (data.response === "Rejected") {
+              thisObj.responseFailed(data.message);
+            }
+          }
+        });
+      },
       territoryMouseOver: function (num) {
         this.mouseOver = num;
       },
@@ -154,6 +319,7 @@
       },
       resizeCanvas: function () {
         if (this.$refs && 'stageWrapper' in this.$refs) {
+          // noinspection JSUnresolvedVariable
           this.stageDimensions = {
             w: this.$refs.stageWrapper.clientWidth,
             h: this.$refs.stageWrapper.clientHeight
@@ -274,8 +440,8 @@
         const bounds = this.stageDimensions;
         const size = this.$store.state.game.gameboard.size;
         return {
-          x: this.axisBounds(size[0] * scale.x, bounds.w),
-          y: this.axisBounds(size[1] * scale.y, bounds.h)
+          x: this.axisBounds(size.a * scale.x, bounds.w),
+          y: this.axisBounds(size.b * scale.y, bounds.h)
         };
       },
       axisBounds: function (size, bound) {
@@ -302,15 +468,29 @@
         const size = this.$store.state.game.gameboard.size;
         // make initial map take up 3/4 of smaller dimension
         const margin = Math.min(totalW, totalH) / 8;
-        const kw = (totalW - 2 * margin) / size[0];
-        const kh = (totalH - 2 * margin) / size[1];
+        const kw = (totalW - 2 * margin) / size.a;
+        const kh = (totalH - 2 * margin) / size.b;
         const k = Math.min(kw, kh);
         return {
-          x: (totalW - (size[0] * k)) / 2,
-          y: (totalH - (size[1] * k)) / 2,
+          x: (totalW - (size.a * k)) / 2,
+          y: (totalH - (size.b * k)) / 2,
           scale: k
         };
-      }
+      },
+      territoryClick: function (num) {
+        if (this.isInReinforcement) {
+          if (this.$store.state.game.placement.total < this.allocation) {
+            this.addTerritory(num);
+          }
+        }
+      },
+      addTerritory: function (num) {
+        // noinspection JSIgnoredPromiseFromCall
+        this.$store.dispatch(ADD_TROOPS, num);
+      },
+      responseFailed: function (message) {
+        this.$store.commit(SET_ERROR_MESSAGE, message);
+      },
     },
     data() {
       return {
@@ -375,16 +555,69 @@
 </script>
 
 <style lang="scss">
+  @import '../../assets/stylesheets/include';
+
   .gameboard {
     height: 100vh;
+    background-color: $ocean-color;
   }
 
   .stage-wrapper {
     overflow: hidden;
   }
 
+  .button {
+    border-radius: 5px;
+    background: #5B78BB;
+  }
+
+  .button-title {
+    padding: 7px;
+    color: $light-shades;
+    font-family: $roboto-font;
+    font-size: 20px;
+  }
+
+  @media screen and (max-width: 600px) {
+    .banner-text {
+      font-family: $roboto-font;
+      font-size: 17px;
+    }
+
+    .button-title {
+      font-size: 17px;
+    }
+  }
+
   .players {
     position: absolute;
     bottom: 0;
+  }
+
+  .turn-alert {
+    width: 80%;
+    position: absolute;
+    top: 9%;
+    left: 50%;
+    transform: translate(-50%,0);
+    z-index: 1000;
+  }
+
+  .territories {
+    z-index: 1001;
+  }
+
+  .turn-alert-text {
+    font-family: $roboto-font;
+    font-size: 30px;
+    text-align: center;
+    width: 75%;
+  }
+
+  .turn-text {
+    color: $light-shades;
+    font-family: $roboto-font;
+    font-size: 24px;
+    padding-top: 15px;
   }
 </style>

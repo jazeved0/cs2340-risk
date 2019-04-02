@@ -1,16 +1,26 @@
-h1, p, .error-icon {
+.error-container h1, .error-container p, .error-container .error-icon {
   color: #362A4D;
 }
 
-h1 {
+.error-container h1 {
   font-size: 36px;
   font-family: Roboto Slab, serif;
 }
 
-p {
+.error-container p {
   font-size: 18px;
   font-family: Roboto, sans-serif;
   opacity: 0.9;
+}
+
+.status-wrapper {
+  margin: -20px 0 16px 0;
+}
+
+.error-container .status-wrapper .status-code {
+  font-weight: bold;
+  font-size: 13px;
+  margin: 0;
 }
 
 .error-icon {
@@ -20,19 +30,30 @@ p {
   top: 2px;
 }
 
-@media (max-width: 399px) {
-  h1 {
-    font-size: 28px;
-  }
-
-  p {
-    font-size: 14px;
-  }
+main {
+  margin: 80px 0 0 0;
 }
 
 .error-container {
-  padding-top: 120px;
-  padding-bottom: 65px;
+  padding: 80px 0;
+}
+
+@media (max-width: 399px) {
+  .error-container h1 {
+    font-size: 28px;
+  }
+
+  .error-container p {
+    font-size: 14px;
+  }
+
+  .error-container .status-code {
+    font-size: 11px;
+  }
+
+  .error-container {
+    padding: 40px 0;
+  }
 }
 
 .nav-title {

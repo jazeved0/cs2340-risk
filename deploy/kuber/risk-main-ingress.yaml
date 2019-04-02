@@ -1,0 +1,30 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: www
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: 'true'
+    kubernetes.io/ingress.class: nginx
+    kubernetes.io/tls-acme: 'true'
+spec:
+  tls:
+    - hosts:
+        - riskgame.ga
+        - www.riskgame.ga
+      secretName: tls-secret
+  rules:
+    - host: riskgame.ga
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: risk-main
+              servicePort: 9000
+
+    - host: www.riskgame.ga
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: risk-main
+              servicePort: 9000

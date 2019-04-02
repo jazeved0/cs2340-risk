@@ -234,7 +234,7 @@
 
   .url {
     font-size: 28px;
-    font-weight: 100;
+    font-weight: 300;
     font-family: Roboto Slab, serif;
     margin-bottom: 0;
   }

@@ -61,7 +61,7 @@ sbt ~run
 - [Play Framework](https://www.playframework.com/) - Scala back-end framework
 - [Akka](https://akka.io/) - Scala network runtime/webserver
 - [Guice](https://github.com/google/guice) - JVM Dependency Injection library
-- [Caffeine](https://github.com/ben-manes/caffeine) - JVM Caching library]
+- [Caffeine](https://github.com/ben-manes/caffeine) - JVM Caching library
 
 ## Credits
 

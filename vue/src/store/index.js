@@ -144,11 +144,13 @@ export default new Vuex.Store({
     },
     [ON_PING_PLAYER](state, data) {
       // Send back a ping response
-      data._callback({
-        _type: 'controllers.PingResponse',
-        gameId: state.gameId,
-        playerId: state.playerId
-      });
+      if ('_callback' in data) {
+        data._callback({
+          _type: 'controllers.PingResponse',
+          gameId: state.gameId,
+          playerId: state.playerId
+        });
+      }
     },
     [ON_SEND_CONFIG](state, data) {
       // Load public config from the websocket

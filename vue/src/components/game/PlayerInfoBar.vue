@@ -1,17 +1,18 @@
 <template>
-  <div class="d-flex outer-info-bar" style="width: 100%">
+  <div class="d-flex outer-info-bar ml-auto mr-auto" style="width: 100%">
     <div class="flex-fill d-flex name-list">
       <div v-for="player in this.$store.getters.playerStates"
           :key='player.name'
+          v-bind:class="{'glow': localTurn(player.name)}"
           class="info-card frosted-glass-dark">
-        <div class="d-flex">
+        <div class="d-flex pb-3">
           <fa-icon class="color" icon="circle" v-bind:style="{ color: player.color }"></fa-icon>
-          <p class="name mb-2">
+          <p class="name mb">
             {{ player.name }}
           </p>
         </div>
         <hr class="mt-0 divider-bar">
-        <p class="army-text">{{ player.armies !== 1 ? player.armies + ' armies' : '1 army' }}</p>
+        <h1 class="army-text">{{ player.armies !== 1 ? player.armies + ' armies' : '1 army' }}</h1>
       </div>
     </div>
   </div>
@@ -21,6 +22,17 @@
   export default {
     props: {
       overdraw: Number
+    },
+    computed: {
+      localTurn: function () {
+        return (name) => {
+          const turnIndex = this.$store.state.game.turnIndex;
+          if (turnIndex === -1) {
+            return false;
+          }
+          return name === this.$store.state.game.playerStateList[turnIndex].player.settings.name;
+        }
+      }
     }
   }
 </script>
@@ -38,6 +50,11 @@
     margin-left: -$card-margin;
     margin-right: -$card-margin;
     pointer-events: none;
+  }
+
+  .glow {
+    transition: box-shadow 0.3s;
+    box-shadow: 0px 0px 15px yellow;
   }
 
   .info-card {
@@ -76,6 +93,8 @@
     .name-list {
       flex-wrap: wrap-reverse;
       flex-direction: row-reverse;
+      align-items: center;
+      justify-content: center;
       height: min-content;
     }
 
@@ -95,8 +114,7 @@
 
       -webkit-flex-grow: 1;
       flex-grow: 1;
-      min-width: min-content;
-      max-width: 100%;
+      width: min-content;
       height: min-content;
       overflow: hidden;
     }
