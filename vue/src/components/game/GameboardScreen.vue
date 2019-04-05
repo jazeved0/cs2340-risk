@@ -104,6 +104,7 @@
     },
     computed: {
       getInstructions: function() {
+        console.log(this.$store.getters.boardStates);
         const turnIndex = this.$store.state.game.turnIndex;
         const playerObj = this.$store.state.game.playerStateList[turnIndex];
         if (turnIndex === -1) {
@@ -349,6 +350,8 @@
         });
       },
       territoryMouseOver: function (num) {
+        console.log(this.$store.state.game.defendingTerritory);
+        console.log(this.$store.state.game.attackingTerritory);
         this.mouseOver = num;
       },
       territoryMouseOut: function (num) {
@@ -522,7 +525,7 @@
         } else if (this.isInAttacking) {
           const turnIndex = this.$store.state.game.turnIndex;
           const owned = this.$store.getters.boardStates[num].owner === turnIndex;
-          if (owned) {
+          if (owned && this.$store.getters.boardStates[num].amount > 1) {
             this.$store.commit(UPDATE_ATTACK_TERRITORY, num);
           } else {
             if (this.$store.state.game.attackingTerritory !== -1) {

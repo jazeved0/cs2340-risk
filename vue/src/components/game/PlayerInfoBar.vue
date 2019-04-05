@@ -12,7 +12,7 @@
           </p>
         </div>
         <hr class="mt-0 divider-bar">
-        <h10 class="army-text">{{ player.armies !== 1 ? player.armies + ' armies' : '1 army' }}</h10>
+        <h1 class="army-text">{{ player.armies !== 1 ? player.armies + ' armies' : '1 army' }}</h1>
       </div>
     </div>
   </div>
