@@ -5,14 +5,14 @@
           :key='player.name'
           v-bind:class="{'glow': localTurn(player.name)}"
           class="info-card frosted-glass-dark">
-        <div class="d-flex pb-3">
+        <div class="d-flex">
           <fa-icon class="color" icon="circle" v-bind:style="{ color: player.color }"></fa-icon>
           <p class="name mb">
             {{ player.name }}
           </p>
         </div>
         <hr class="mt-0 divider-bar">
-        <h1 class="army-text">{{ player.armies !== 1 ? player.armies + ' armies' : '1 army' }}</h1>
+        <h10 class="army-text">{{ player.armies !== 1 ? player.armies + ' armies' : '1 army' }}</h10>
       </div>
     </div>
   </div>

@@ -2,7 +2,8 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
 import {ON_SEND_GAMEBOARD, ON_UPDATE_PLAYER_STATE, ON_UPDATE_BOARD_STATE,
-        INCREMENT_TROOP, SUBMIT_REINFORCEMENTS, UNSUBMIT_REINFORCEMENTS} from '.././mutation-types';
+        INCREMENT_TROOP, SUBMIT_REINFORCEMENTS, UNSUBMIT_REINFORCEMENTS, UPDATE_ATTACK_TERRITORY,
+        UPDATE_DEFEND_TERRITORY} from '.././mutation-types';
 import {ADD_TROOPS} from '.././action-types';
 import {initializeGameboardScreen, NETWORK_CTX} from "./game/InitializeGameboardScreen";
 
@@ -13,6 +14,8 @@ export default {
     playerStateList: [],
     boardStateList: [],
     turnIndex: -1,
+    attackingTerritory: -1,
+    defendingTerritory: -1,
     gameboard: {
       nodeCount: 0,
       pathData: [],
@@ -36,6 +39,12 @@ export default {
     tryInitializeGameboardScreen: initializeGameboardScreen
   },
   mutations: {
+    [UPDATE_ATTACK_TERRITORY](state, territory) {
+      state.attackingTerritory = territory;
+    },
+    [UPDATE_DEFEND_TERRITORY](state, territory) {
+      state.defendingTerritory = territory;
+    },
     [ON_UPDATE_PLAYER_STATE](state, data) {
       if ('seq' in data) {
         state.playerStateList = data.seq;

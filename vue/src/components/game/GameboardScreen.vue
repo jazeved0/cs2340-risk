@@ -38,7 +38,6 @@
               @mouseout="territoryMouseOut(pathConfig.num)"
               @mousedown="territoryClick(pathConfig.num)"
           ></v-path>
-
         </v-layer>
         <v-layer>
           <v-army-shape v-for="army in armyData"
@@ -59,6 +58,9 @@
         v-bind:visible="showAssignmentModal"
         @hide="this.hasSeenAssignments = true">
     </territory-assignment-modal>
+    <attack-popup
+      v-if="displayAttackingPopup"
+    ></attack-popup>
     <b-alert
         show
         dismissible
@@ -73,11 +75,12 @@
 </template>
 
 <script>
-  import PlayerInfoBar from './PlayerInfoBar'
+  import AttackPopup from './AttackPopup';
+  import PlayerInfoBar from './PlayerInfoBar';
   import ArmyShape from './ArmyShape';
   import CastleIcon from './CastleIcon';
   import TerritoryAssignmentModal from './TerritoryAssignmentModal';
-  import Toolbar from './../Toolbar'
+  import Toolbar from './../Toolbar';
   import VueKonva from 'vue-konva';
   // noinspection ES6UnusedImports
   import Vue from "vue";
@@ -85,13 +88,14 @@
   import {GUI_CTX} from "../../store/modules/game/InitializeGameboardScreen";
   import {ADD_TROOPS} from  "../../store/action-types.js"
   import {SUBMIT_REINFORCEMENTS, UNSUBMIT_REINFORCEMENTS, START_RESPONSE_WAIT,
-          STOP_RESPONSE_WAIT, SET_ERROR_MESSAGE} from "../../store/mutation-types.js"
+          STOP_RESPONSE_WAIT, SET_ERROR_MESSAGE, UPDATE_DEFEND_TERRITORY, UPDATE_ATTACK_TERRITORY} from "../../store/mutation-types.js"
 
   // noinspection JSUnresolvedFunction
   Vue.use(VueKonva);
 
   export default {
     components: {
+      'attack-popup': AttackPopup,
       'tool-bar': Toolbar,
       'player-info-bar': PlayerInfoBar,
       'v-army-shape': ArmyShape,
@@ -109,12 +113,33 @@
           return "You are currently in the reinforcement phase of your turn. " +
               "Click on specific territories to add a single reinforcement unit to that territory. " +
               "After you have applied all your reinforcements, end your turn!";
+        } else if (playerObj.turnState.state === "attack") {
+          return "You are currently in the attacking phase of your turn. " +
+              "Click on one of your territories (which has at least 2 armies on it ) to chose where you are attacking from." +
+              "Click on a neutral/enemy territory, that is connected to the your attacking territory, to attack that land." +
+              "Then decide how many armies to commit to your attack. You must always leave at least one army in your attacking territory!";
+
         }
         return "";
+      },
+      getAdjacentEnemyTerritories: function() {
+        if (this.isInAttacking) {
+          const attacker = this.$store.state.game.attackingTerritory;
+          if (attacker !== -1) {
+            const turnIndex = this.$store.state.game.turnIndex;
+            return this.$store.state.game.gameboard.territories[attacker].connections.filter(territory => this.$store.getters.boardStates[territory].owner !== turnIndex);
+          }
+        }
+        return [];
+      },
+      displayAttackingPopup: function() {
+        return (this.$store.state.game.attackingTerritory !== -1) && (this.$store.state.game.defendingTerritory !== -1) && this.isInAttacking
       },
       buttonText: function() {
         if (this.isInReinforcement) {
           return "Assign Army";
+        } else if (this.isInAttacking) {
+          return "End Attacking Turn";
         } else {
           return "";
         }
@@ -144,6 +169,13 @@
          }
          return this.localTurn && this.$store.state.game.playerStateList[turnIndex].turnState.state === 'reinforcement';
       },
+      isInAttacking: function() {
+        const turnIndex = this.$store.state.game.turnIndex;
+        if (turnIndex === -1) {
+          return false;
+        }
+        return this.localTurn && this.$store.state.game.playerStateList[turnIndex].turnState.state === 'attack';
+      },
       allocation: function() {
         const turnIndex = this.$store.state.game.turnIndex;
         if (turnIndex === -1) {
@@ -154,7 +186,8 @@
             : 0;
       },
       highlightSelectable: function() {
-        return this.isInReinforcement && this.$store.state.game.placement.total < this.allocation;
+        return (this.isInReinforcement && this.$store.state.game.placement.total < this.allocation)
+            || (this.isInAttacking);
       },
       turnEventEnabled: function() {
         if (this.isInReinforcement) {
@@ -204,6 +237,10 @@
       pathConfigs: function () {
         const mouseOver = this.mouseOver;
         let selectable = this.selectable;
+        if (this.isInAttacking && this.$store.state.game.attackingTerritory !== -1) {
+          selectable = this.getAdjacentEnemyTerritories;
+        }
+        console.log(selectable);
         let highlightSelectable = this.highlightSelectable;
         const state = this.$store.state;
         return state.game.gameboard.pathData.map(function (item, index) {
@@ -481,6 +518,18 @@
         if (this.isInReinforcement) {
           if (this.$store.state.game.placement.total < this.allocation) {
             this.addTerritory(num);
+          }
+        } else if (this.isInAttacking) {
+          const turnIndex = this.$store.state.game.turnIndex;
+          const owned = this.$store.getters.boardStates[num].owner === turnIndex;
+          if (owned) {
+            this.$store.commit(UPDATE_ATTACK_TERRITORY, num);
+          } else {
+            if (this.$store.state.game.attackingTerritory !== -1) {
+              if (this.$store.state.game.gameboard.territories[this.$store.state.game.attackingTerritory].connections.includes(num)) {
+                this.$store.commit(UPDATE_DEFEND_TERRITORY, num);
+              }
+            }
           }
         }
       },
