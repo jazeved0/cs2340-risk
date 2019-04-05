@@ -104,6 +104,7 @@
     },
     computed: {
       getInstructions: function() {
+        console.log(this.$store.state);
         console.log(this.$store.getters.boardStates);
         const turnIndex = this.$store.state.game.turnIndex;
         const playerObj = this.$store.state.game.playerStateList[turnIndex];
@@ -241,7 +242,6 @@
         if (this.isInAttacking && this.$store.state.game.attackingTerritory !== -1) {
           selectable = this.getAdjacentEnemyTerritories;
         }
-        console.log(selectable);
         let highlightSelectable = this.highlightSelectable;
         const state = this.$store.state;
         return state.game.gameboard.pathData.map(function (item, index) {
@@ -350,8 +350,6 @@
         });
       },
       territoryMouseOver: function (num) {
-        console.log(this.$store.state.game.defendingTerritory);
-        console.log(this.$store.state.game.attackingTerritory);
         this.mouseOver = num;
       },
       territoryMouseOut: function (num) {
