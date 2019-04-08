@@ -63,6 +63,8 @@ sbt ~run
 - [Guice](https://github.com/google/guice) - JVM Dependency Injection library
 - [Caffeine](https://github.com/ben-manes/caffeine) - JVM Caching library
 
+## [Proof of Design Process (UML Diagram)](http://cs2340-risk.ga/docs/backend.uml.pdf)
+
 ## Credits
 
 - Jake Paul
