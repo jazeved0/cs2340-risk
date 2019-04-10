@@ -1,6 +1,6 @@
 <template>
   <div>
-    <b-modal class="flex justify-content-center ml-auto mr-auto" size="lg" ok-title="Attack" title="Attack Turn Control" v-bind:visible="true" @ok="resetAttackingTerritories"
+    <b-modal class="flex justify-content-center ml-auto mr-auto" size="lg" ok-title="Attack" title="Attack Turn Control" v-bind:visible="true" @ok="resetAttackingTerritories" @cancel="resetAttackingTerritories"
              no-close-on-esc no-close-on-backdrop hide-header-close>
 
       <div class="territory-images ml-auto mr-auto">
