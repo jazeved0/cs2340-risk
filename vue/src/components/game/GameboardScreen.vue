@@ -61,6 +61,9 @@
     <attack-popup
       v-if="displayAttackingPopup"
     ></attack-popup>
+    <defender-popup
+      v-if= "displayDefenderPopup"
+    ></defender-popup>
     <b-alert
         show
         dismissible
@@ -76,6 +79,7 @@
 
 <script>
   import AttackPopup from './AttackPopup';
+  import DefenderPopup from './DefenderPopup'
   import PlayerInfoBar from './PlayerInfoBar';
   import ArmyShape from './ArmyShape';
   import CastleIcon from './CastleIcon';
@@ -96,6 +100,7 @@
   export default {
     components: {
       'attack-popup': AttackPopup,
+      'defender-popup': DefenderPopup,
       'tool-bar': Toolbar,
       'player-info-bar': PlayerInfoBar,
       'v-army-shape': ArmyShape,
@@ -136,6 +141,9 @@
       },
       displayAttackingPopup: function() {
         return (this.$store.state.game.attackingTerritory !== -1) && (this.$store.state.game.defendingTerritory !== -1) && this.isInAttacking
+      },
+      displayDefenderPopup: function() {
+        return (this.$store.state.game.attackingTerritory !== -1) && (this.$store.state.game.defendingTerritory !== -1)
       },
       buttonText: function() {
         if (this.isInReinforcement) {
