@@ -1,6 +1,6 @@
 <template>
     <div>
-        <b-modal class="flex justify-content-center ml-auto mr-auto" size="lg" ok-title="Attack" title="Attack Turn Control" v-bind:visible="true" @ok="resetAttackingTerritories"
+        <b-modal class="flex justify-content-center ml-auto mr-auto" size="lg" ok-title="Defend" title="Defend Turn Control" v-bind:visible="true" @ok="resetAttackingTerritories"
                  no-close-on-esc no-close-on-backdrop hide-header-close>
 
             <div class="territory-images ml-auto mr-auto">
@@ -20,7 +20,7 @@
                         <p3 class="territory-text text-center">Is Attacking</p3>
                     </div>
                     <div>
-                        <p3 class="territory-text text-center">{{DefenderPlayerName}}</p3>
+                        <p3 class="territory-text text-center">You!</p3>
                     </div>
                 </div>
                 <div class="territory-portrait">
@@ -32,12 +32,12 @@
                     <p2 class="army-text"> {{ getDefendingArmies }} Armies </p2>
                 </div>
             </div>
-            <p class="army-text mt-4">Attack with: </p>
+            <p class="army-text mt-4">Defend with: </p>
             <div class="flex-buttons">
-                <b-button-group v-if="getAttackingArmies > 1">
+                <b-button-group v-if="getDefendingArmies > 1">
                     <b-button class="mr-4 mr-4" variant="primary">One Army</b-button>
-                    <b-button v-if="getAttackingArmies > 2" variant="primary" class="mr-4 mr-4">Two Armies</b-button>
-                    <b-button v-if="getAttackingArmies > 3" variant="primary" class="mr-4 mr-4">Three Armies</b-button>
+                    <b-button v-if="getDefendingArmies > 2" variant="primary" class="mr-4 mr-4">Two Armies</b-button>
+                    <b-button v-if="getDefendingArmies > 3" variant="primary" class="mr-4 mr-4">Three Armies</b-button>
                 </b-button-group>
             </div>
         </b-modal>
@@ -121,7 +121,7 @@
                 } else return 'lightgray'
             }
         },
-        name: "AttackPopup"
+        name: "DefenderPopup"
     };
 </script>
 
