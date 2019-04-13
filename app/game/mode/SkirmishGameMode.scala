@@ -8,6 +8,7 @@ import game.mode.GameMode._
 import game.state.TurnState._
 import game.state.{GameState, PlayerState, TurnState}
 import models.{Army, OwnedArmy, Player}
+import play.api.Logger
 
 import scala.util.Random
 
@@ -101,9 +102,12 @@ class SkirmishGameMode extends GameMode {
       packet match {
         case RequestPlaceReinforcements(_, _, assignments) =>
           requestPlaceReinforcements(callback, player, assignments)
+        case RequestEndTurn(_, _) =>
+          requestEndTurn(callback, player)
       }
     }
   }
+
 
   /**
     * Handles incoming request place reinforcements packet. Validates the
@@ -120,6 +124,8 @@ class SkirmishGameMode extends GameMode {
   def requestPlaceReinforcements(callback: GameMode.Callback, actor: PlayerWithActor,
                                  assignments: Seq[(Int, Int)])
                                 (implicit state: GameState): Unit = {
+    val logger = Logger(this.getClass).logger
+    logger.error("henlo")
     if (validateReinforcements(callback, actor, assignments)) {
       callback.send(RequestReply(RequestResponse.Accepted), actor.id)
       assignments.foreach(tuple => {
@@ -137,6 +143,21 @@ class SkirmishGameMode extends GameMode {
       callback.broadcast(UpdateBoardState(state), None)
       callback.broadcast(UpdatePlayerState(state), None)
     }
+  }
+
+  //TODO: add attack data and docs
+  def requestEndTurn(callback: GameMode.Callback, actor: PlayerWithActor,
+                     )
+                     (implicit state: GameState): Unit = {
+    //TODO: validate attack
+    val logger = Logger(this.getClass).logger
+    logger.error("hello")
+    logger.error(state.turn.toString)
+    state.advanceTurnState();
+    state.advanceTurnState();
+    logger.error(state.turn.toString)
+    callback.broadcast(UpdateBoardState(state), None)
+    callback.broadcast(UpdatePlayerState(state), None)
   }
 
   /**

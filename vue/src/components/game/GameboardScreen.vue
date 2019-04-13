@@ -78,6 +78,7 @@
 </template>
 
 <script>
+  import DiceRollModal from './DiceRollModal'
   import AttackPopup from './AttackPopup';
   import DefenderPopup from './DefenderPopup'
   import PlayerInfoBar from './PlayerInfoBar';
@@ -92,13 +93,15 @@
   import {GUI_CTX} from "../../store/modules/game/InitializeGameboardScreen";
   import {ADD_TROOPS} from  "../../store/action-types.js"
   import {SUBMIT_REINFORCEMENTS, UNSUBMIT_REINFORCEMENTS, START_RESPONSE_WAIT,
-          STOP_RESPONSE_WAIT, SET_ERROR_MESSAGE, UPDATE_DEFEND_TERRITORY, UPDATE_ATTACK_TERRITORY} from "../../store/mutation-types.js"
+          STOP_RESPONSE_WAIT, SET_ERROR_MESSAGE, UPDATE_DEFEND_TERRITORY, UPDATE_ATTACK_TERRITORY,
+          } from "../../store/mutation-types.js"
 
   // noinspection JSUnresolvedFunction
   Vue.use(VueKonva);
 
   export default {
     components: {
+      'dice-roll-modal': DiceRollModal,
       'attack-popup': AttackPopup,
       'defender-popup': DefenderPopup,
       'tool-bar': Toolbar,
@@ -109,8 +112,8 @@
     },
     computed: {
       getInstructions: function() {
-        console.log(this.$store.state);
-        console.log(this.$store.getters.boardStates);
+        //console.log(this.$store.state);
+        //console.log(this.$store.getters.boardStates);
         const turnIndex = this.$store.state.game.turnIndex;
         const playerObj = this.$store.state.game.playerStateList[turnIndex];
         if (turnIndex === -1) {
@@ -333,6 +336,7 @@
           this.assignArmy();
         } else {
           // do nothing
+          this.endTurn();
         }
       },
       assignArmy: function() {
@@ -356,6 +360,26 @@
             }
           }
         });
+      },
+      endTurn: function() {
+        console.log('uwu')
+        const store = this.$store;
+        const packet = {
+          _type: "controllers.RequestEndTurn",
+          gameId: store.state.gameId,
+          playerId: store.state.playerId,
+        };
+        this.$socket.sendObj(packet);
+        const thisObj = this;
+        store.commit(START_RESPONSE_WAIT, function(data) {
+          if ('response' in data) {
+            store.commit(STOP_RESPONSE_WAIT);
+            if (data.response === "Rejected") {
+              thisObj.responseFailed(data.message);
+            }
+          }
+        })
+        console.log('owo')
       },
       territoryMouseOver: function (num) {
         this.mouseOver = num;
@@ -552,6 +576,7 @@
     },
     data() {
       return {
+        showDiceRoll: false,
         mouseOver: -1,
         navHeight: 62,
         playerInfoBarOverdraw: 32,

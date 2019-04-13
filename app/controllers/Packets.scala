@@ -33,6 +33,9 @@ case class RequestStartGame(gameId: String, playerId: String) extends LobbyPacke
 case class PingResponse(gameId: String, playerId: String) extends GlobalPacket
 /** Requests to place reinforcements at the given territories */
 case class RequestPlaceReinforcements(gameId: String, playerId: String, assignments: Seq[(Int, Int)]) extends InGamePacket
+/** Requests to end the current turn and validate army assignment and attack data */
+//TODO: add attack data to this request
+case class RequestEndTurn(gameId: String, playerId: String) extends InGamePacket
 
 /** Outgoing packets to the network */
 sealed trait OutPacket
@@ -114,6 +117,7 @@ object JsonMarshallers {
   implicit val requestStartGame: Reads[RequestStartGame] = Json.reads[RequestStartGame]
   implicit val pingResponse: Reads[PingResponse] = Json.reads[PingResponse]
   implicit val requestPlaceReinforcements: Reads[RequestPlaceReinforcements] = Json.reads[RequestPlaceReinforcements]
+  implicit val requestEndTurn: Reads[RequestEndTurn] = Json.reads[RequestEndTurn]
 
   // Unused Deserializers; necessary for macros to work
   implicit val playerConnect: Reads[PlayerConnect] = new UnusedFormat[PlayerConnect]
