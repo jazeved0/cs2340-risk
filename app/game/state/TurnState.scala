@@ -26,6 +26,8 @@ object TurnState {
   case object Maneuver extends State
   /** Default idle state, active whenever it isn't the player's "turn" */
   case object Idle extends State
+  /** Temporary state that a non-current player is placed in when someone is attacking them */
+  case object Defense extends State
 
   /**
     * Returns the next logical State in the game for a player
@@ -41,6 +43,12 @@ object TurnState {
     case Attack => Maneuver
     case Maneuver => Idle
   }
+
+  def nextDefendingState(prev: State): State = prev match {
+    case Idle => Defense
+    case Defense => Idle
+  }
+
 }
 
 /**
@@ -52,4 +60,6 @@ object TurnState {
 case class TurnState(state: State, payload: (String, Any)*) {
   def advanceState: TurnState =
     TurnState(TurnState.nextState(this.state), this.payload:_*)
+  def advanceDefenseState: TurnState =
+    TurnState(TurnState.nextDefendingState(this.state), payload:_*)
 }

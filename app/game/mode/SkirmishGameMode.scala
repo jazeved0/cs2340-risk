@@ -102,6 +102,8 @@ class SkirmishGameMode extends GameMode {
       packet match {
         case RequestPlaceReinforcements(_, _, assignments) =>
           requestPlaceReinforcements(callback, player, assignments)
+        case RequestAttack(_, _, attack) =>
+          requestAttack(callback, player, attack)
         case RequestEndTurn(_, _) =>
           requestEndTurn(callback, player)
       }
@@ -139,22 +141,57 @@ class SkirmishGameMode extends GameMode {
       val oldState = state.stateOf(actor.player)
       oldState.foreach(ps => state(actor.player) =
         PlayerState(actor.player, ps.units += total, ps.turnState))
-      state.advanceTurnState()
+      state.advanceTurnState(None)
       callback.broadcast(UpdateBoardState(state), None)
       callback.broadcast(UpdatePlayerState(state), None)
     }
   }
 
-  //TODO: add attack data and docs
+  /**
+    * Handles incoming request attack packet. Validates the
+    * request and then sends a RequestReply depending on whether the request
+    * gets approved. If it is approved, adjust game state as necessary and
+    * move the turn state's state machine forwards
+    *
+    * @param callback The Callback object providing a means of sending outgoing
+    *                 packets to either the entire lobby or to one player
+    * @param actor The player that initiated the request
+    * @param attack The proposed attack Seq[1st territory index, 2nd territory index, attack amount]
+    * @param state The GameState context object
+    */
+  def requestAttack(callback: GameMode.Callback, actor: PlayerWithActor,
+                    attack: Seq[Int])
+                   (implicit state: GameState): Unit = {
+    if (validateAttack(callback, actor, attack)) {
+      callback.send(RequestReply(RequestResponse.Accepted), actor.id)
+      val attackingIndex = attack.head
+      val defendingIndex = attack.tail.head
+      val attackAmount = attack.tail.tail.head
+      //TODO: add behavior here for if we're actually attacking a "dummy" player
+      //TODO: (this should be that we go straight to finishing the attack and send
+      //TODO: results to the frontend immediately, rather than leaving them on
+      //TODO: hold like we currently do here
+      val defendingPlayer = state.boardState(defendingIndex).get.owner
+      state.currentAttack = Some(Seq(attackingIndex, defendingIndex, attackAmount))
+      state.advanceTurnState(Some(defendingPlayer))
+      callback.broadcast(UpdateBoardState(state), None)
+      callback.broadcast(UpdatePlayerState(state), None)
+    }
+  }
+
+  //TODO: add a method for handling a defending player's response;
+  //TODO: this method should calculate the results of the attack,
+  //TODO: properly send those results to the clients, and update turn states
+
+
   def requestEndTurn(callback: GameMode.Callback, actor: PlayerWithActor,
                      )
                      (implicit state: GameState): Unit = {
-    //TODO: validate attack
     val logger = Logger(this.getClass).logger
     logger.error("hello")
     logger.error(state.turn.toString)
-    state.advanceTurnState();
-    state.advanceTurnState();
+    state.advanceTurnState(None)
+    state.advanceTurnState(None)
     logger.error(state.turn.toString)
     callback.broadcast(UpdateBoardState(state), None)
     callback.broadcast(UpdatePlayerState(state), None)
@@ -204,8 +241,76 @@ class SkirmishGameMode extends GameMode {
     }
   }
 
+  /**
+    * Validates the attack request given by the player
+    *
+    * @param callback The Callback object providing a means of sending outgoing
+    *                 packets to either the entire lobby or to one player
+    * @param actor The player that initiated the request
+    * @param attack The proposed attack Seq[1st territory index, 2nd territory index, attack amount]
+    *               1st territory is attacking, 2nd territory is defending
+    * @param state The GameState context object
+    * @return
+    */
+  def validateAttack(callback: GameMode.Callback, actor: PlayerWithActor,
+                     attack: Seq[Int])
+                            (implicit state: GameState): Boolean = {
+    if (attack.length != 3) {
+      callback.send(RequestReply(RequestResponse.Rejected,
+        s"Invalid attack request; attack must be an array of 3 integers"
+      ), actor.id)
+      false
+    } else if (state.currentPlayer != actor.player) {
+      callback.send(RequestReply(RequestResponse.Rejected,
+        s"Invalid attack request; it is not that player's attacking turn"
+      ), actor.id)
+      false
+    } else {
+      val attackingIndex = attack.head
+      val defendingIndex = attack.tail.head
+      val attackAmount = attack.tail.tail.head
+      val invalidOwner = state.boardState(attackingIndex).fold(true)(
+        armyWithOwner => armyWithOwner.owner != actor.player
+      )
+      val validAttack = gameboard.nodes(attackingIndex).dto.connections.contains(defendingIndex)
+      val invalidAmount = state.boardState(attackingIndex).fold(true){
+        armyWithOwner => attackAmount >= armyWithOwner.army.size
+      } || attackAmount < 1
+      if (invalidOwner) {
+        callback.send(RequestReply(RequestResponse.Rejected,
+          s"Invalid attack request; either the attacking territory could not be found"
+          + " or the current player does not own that territory."
+        ), actor.id)
+        false
+      } else if (!validAttack) {
+        callback.send(RequestReply(RequestResponse.Rejected,
+          s"Invalid attack request; the defending territory is not adjacent"
+          + " to the attacking territory."
+        ), actor.id)
+        false
+      } else if (invalidAmount) {
+        callback.send(RequestReply(RequestResponse.Rejected,
+          s"Invalid attack request; the attacking troop amount must be non-zero and lower"
+          + " than the troop amount in the attacking territory"
+        ), actor.id)
+        false
+      } else {
+        //Valid
+        true
+      }
+    }
+  }
+
   override def playerDisconnect(actor: PlayerWithActor, callback: Callback)
                                (implicit state: GameState): Unit = {
+
+    //TODO: refactor this method to properly generate "dummy" armies
+    //TODO: within the regions previously owned by the disconnecting player
+
+    //TODO: handle disconnecting when a player is in an attack state, or
+    //TODO: when a player is in a defending state, likely regardless of
+    //TODO: whether or not that player actually has the current turn
+
     // This solution assumes that playerStates *hasn't* removed the player yet
     if (state.currentPlayer == actor.player) {
       state.advanceTurn()
