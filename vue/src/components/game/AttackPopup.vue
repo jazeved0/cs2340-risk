@@ -1,8 +1,9 @@
 <template>
   <div>
-    <b-modal class="flex justify-content-center ml-auto mr-auto" size="lg" ok-title="Attack" title="Attack Turn Control" v-bind:visible="true" @ok="resetAttackingTerritories" @cancel="resetAttackingTerritories"
+    <b-modal class="flex justify-content-center ml-auto mr-auto" size="lg" ok-title="Attack" title="Attack Turn Control" v-bind:visible="true"
+             v-bind:ok-disabled="disableAttack"
+             @ok="sendAttackPacket" @cancel="resetAttackingTerritories"
              no-close-on-esc no-close-on-backdrop hide-header-close>
-
       <div class="territory-images ml-auto mr-auto">
         <div class="territory-portrait">
           <svg width="150" height="150" viewBox="-4 -4 108 108">
@@ -35,9 +36,9 @@
       <p class="army-text mt-4">Attack with: </p>
       <div class="flex-buttons">
         <b-button-group v-if="getAttackingArmies > 1">
-          <b-button class="mr-4 mr-4" variant="primary">One Army</b-button>
-          <b-button v-if="getAttackingArmies > 2" variant="primary" class="mr-4 mr-4">Two Armies</b-button>
-          <b-button v-if="getAttackingArmies > 3" variant="primary" class="mr-4 mr-4">Three Armies</b-button>
+          <b-button class="mr-4 mr-4" variant="primary" v-on:click="armySelected(1)">One Army</b-button>
+          <b-button v-if="getAttackingArmies > 2" variant="primary" class="mr-4 mr-4" v-on:click="armySelected(2)">Two Armies</b-button>
+          <b-button v-if="getAttackingArmies > 3" variant="primary" class="mr-4 mr-4" v-on:click="armySelected(3)">Three Armies</b-button>
         </b-button-group>
       </div>
     </b-modal>
@@ -48,7 +49,16 @@
   import {UPDATE_DEFEND_TERRITORY, UPDATE_ATTACK_TERRITORY} from "../../store/mutation-types.js"
 
   export default {
+    data: function() {
+      return {
+        disableAttackButton: true,
+        armyNumber: 0
+      }
+    },
     computed: {
+      disableAttack() {
+        return this.disableAttackButton;
+      },
       attackingTerritory() {
         return this.$store.state.game.attackingTerritory;
       },
@@ -107,6 +117,22 @@
       resetAttackingTerritories: function() {
         this.$store.commit(UPDATE_ATTACK_TERRITORY, -1);
         this.$store.commit(UPDATE_DEFEND_TERRITORY, -1);
+        this.disableAttackButton = true;
+        this.armyNumber = 0;
+      },
+      armySelected: function(armyCount) {
+        this.disableAttackButton = false;
+        this.armyNumber = armyCount;
+      },
+      sendAttackPacket: function() {
+        this.resetAttackingTerritories();
+        const packet = {
+          _type: "controllers.RequestAttack",
+          gameId: store.state.gameId,
+          playerId: store.state.playerId,
+          attack: [this.attackingTerritory, this.defendingTerritory, this.armyNumber]
+        };
+        this.$socket.sendObj(packet);
       },
       getPath: function(territoryIndex) {
           return this.$store.state.game.gameboard.iconData[territoryIndex];

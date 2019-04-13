@@ -62,8 +62,8 @@
       v-if="displayAttackingPopup"
     ></attack-popup>
     <defender-popup
-      v-if= "displayDefenderPopup"
-    ></defender-popup>
+            v-if= "displayDefenderPopup">
+    </defender-popup>
     <b-alert
         show
         dismissible
@@ -115,6 +115,8 @@
         //console.log(this.$store.state);
         //console.log(this.$store.getters.boardStates);
         const turnIndex = this.$store.state.game.turnIndex;
+
+        console.log('some defend??', this.$store.state.game.playerStateList[turnIndex].turnState.state);
         const playerObj = this.$store.state.game.playerStateList[turnIndex];
         if (turnIndex === -1) {
           return "";
@@ -146,7 +148,7 @@
         return (this.$store.state.game.attackingTerritory !== -1) && (this.$store.state.game.defendingTerritory !== -1) && this.isInAttacking
       },
       displayDefenderPopup: function() {
-        return (this.$store.state.game.attackingTerritory !== -1) && (this.$store.state.game.defendingTerritory !== -1)
+        return (this.$store.state.game.attackingTerritory !== -1) && (this.$store.state.game.defendingTerritory !== -1) && this.isDefending;
       },
       buttonText: function() {
         if (this.isInReinforcement) {
@@ -188,6 +190,17 @@
           return false;
         }
         return this.localTurn && this.$store.state.game.playerStateList[turnIndex].turnState.state === 'attack';
+      },
+      isDefending: function() {
+        //gets index of defending territory
+        const indx = this.$store.state.game.defendingTerritory;
+        //gets the player index index of the defending territory
+        const playerIndex = this.$store.getters.boardStates[indx].owner;
+        // compares defending territory owner with current player screen
+        console.log(this.$store.state.current);
+        console.log(this.$store.state.game.playerStateList[playerIndex].player.settings.name);
+        console.log(this.localTurn);
+        return this.localTurn && (this.$store.state.current === this.$store.state.game.playerStateList[playerIndex].player.settings.name);
       },
       allocation: function() {
         const turnIndex = this.$store.state.game.turnIndex;
