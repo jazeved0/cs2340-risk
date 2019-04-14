@@ -29,4 +29,14 @@ case class Player(settings: Option[PlayerSettings]) {
     case _ => false
   }
   override def hashCode(): Int = Player.unapply(this).##
+
+  def isNeutral: Boolean = false
+}
+
+case class NeutralPlayer() extends Player(None) {
+  override def equals(a: Any): Boolean = a match {
+    case _: NeutralPlayer => true
+    case _ => false
+  }
+  override def isNeutral: Boolean = true
 }

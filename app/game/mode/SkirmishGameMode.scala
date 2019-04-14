@@ -7,7 +7,7 @@ import game.Gameboard
 import game.mode.GameMode._
 import game.state.TurnState._
 import game.state.{GameState, PlayerState, TurnState}
-import models.{Army, OwnedArmy, Player}
+import models.{Army, NeutralPlayer, OwnedArmy, Player}
 import play.api.Logger
 
 import scala.util.Random
@@ -167,22 +167,37 @@ class SkirmishGameMode extends GameMode {
       val attackingIndex = attack.head
       val defendingIndex = attack.tail.head
       val attackAmount = attack.tail.tail.head
-      //TODO: add behavior here for if we're actually attacking a "dummy" player
-      //TODO: (this should be that we go straight to finishing the attack and send
-      //TODO: results to the frontend immediately, rather than leaving them on
-      //TODO: hold like we currently do here
       val defendingPlayer = state.boardState(defendingIndex).get.owner
-      state.currentAttack = Some(Seq(attackingIndex, defendingIndex, attackAmount))
-      state.advanceTurnState(Some(defendingPlayer))
-      callback.broadcast(UpdateBoardState(state), None)
-      callback.broadcast(UpdatePlayerState(state), None)
+      defendingPlayer match {
+        case _: NeutralPlayer => {
+          //TODO: perform the attack and send results
+        }
+        case _ => state.currentAttack = Some (Seq (attackingIndex, defendingIndex, attackAmount) )
+      }
+      callback.broadcast (UpdateBoardState (state), None)
+      callback.broadcast (UpdatePlayerState (state), None)
     }
   }
 
-  //TODO: add a method for handling a defending player's response;
-  //TODO: this method should calculate the results of the attack,
-  //TODO: properly send those results to the clients, and update turn states
+  /**
+    * Handles incoming packet with defense amounts, coming from the defending player.
+    * Validates the packet and then proceeds to calculate the attack, mutate armies
+    * and territories as necessary, and send the result.
+    *
+    * @param callback The Callback object providing a means of sending outgoing
+    *                 packets to either the entire lobby or to one player
+    * @param actor The player that initiated the request
+    * @param attack The proposed attack Seq[1st territory index, 2nd territory index, attack amount]
+    * @param state The GameState context object
+    */
+  def defenseResponse(callback: GameMode.Callback, actor: PlayerWithActor,
+                    attack: Seq[Int])
+                   (implicit state: GameState): Unit = {
+    //TODO: behavior
+  }
 
+
+  //TODO: specialized method for generating results of an attack, in case a neutral player is being attacked
 
   def requestEndTurn(callback: GameMode.Callback, actor: PlayerWithActor,
                      )
@@ -304,9 +319,6 @@ class SkirmishGameMode extends GameMode {
   override def playerDisconnect(actor: PlayerWithActor, callback: Callback)
                                (implicit state: GameState): Unit = {
 
-    //TODO: refactor this method to properly generate "dummy" armies
-    //TODO: within the regions previously owned by the disconnecting player
-
     //TODO: handle disconnecting when a player is in an attack state, or
     //TODO: when a player is in a defending state, likely regardless of
     //TODO: whether or not that player actually has the current turn
@@ -322,7 +334,11 @@ class SkirmishGameMode extends GameMode {
     // Release all owned territories
     state.boardState.zipWithIndex
       .filter { case (armyOption, _) => armyOption.forall(oa => oa.owner == actor.player) }
-      .foreach { case (_, index) => state.boardState.update(index, None) }
+      .foreach {
+        case (ownedArmyOption, index) => ownedArmyOption.foreach {
+          ownedArmy => state.boardState.update(index, Some(OwnedArmy(ownedArmy.army, NeutralPlayer())))
+        }
+      }
     // Remove from turn order
     state.turnOrder = Util.remove(actor, state.turnOrder)
     // Notify game of changes (no need to send to the disconnecting player)
