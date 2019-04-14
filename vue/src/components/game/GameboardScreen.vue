@@ -196,9 +196,14 @@
         const indx = this.$store.state.game.defendingTerritory;
         //gets the player index index of the defending territory
         const playerIndex = this.$store.getters.boardStates[indx].owner;
+
+        if (playerIndex === -1){
+            return false;
+        }
+
         // compares defending territory owner with current player screen
         console.log(this.$store.state.current);
-        console.log(this.$store.state.game.playerStateList[playerIndex].player.settings.name);
+        //console.log(this.$store.state.game.playerStateList[playerIndex].player.settings.name);
         console.log(this.localTurn);
         return this.localTurn && (this.$store.state.current === this.$store.state.game.playerStateList[playerIndex].player.settings.name);
       },
@@ -246,12 +251,19 @@
             && 'amount' in ts
             && 'territory' in ts)
         .map(territoryState => {
-          let color = territoryState.owner < store.state.game.playerStateList.length
-            ? store.state.game.playerStateList[territoryState.owner]
-            : null;
-          if (color !== null && 'player' in color) {
-            color = color.player.settings.ordinal;
-          } else color = 0;
+          let color = null;
+          if (territoryState.owner < 0) {
+            color = -1;
+          } else if (territoryState.owner < store.state.game.playerStateList.length) {
+              color = store.state.game.playerStateList[territoryState.owner];
+          }
+          if (color !== - 1) {
+            if (color !== null && 'player' in color) {
+              color = color.player.settings.ordinal;
+            } else {
+              color = 0;
+            }
+          }
           return {
             size: territoryState.amount,
             color: color,

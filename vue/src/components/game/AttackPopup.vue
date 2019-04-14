@@ -110,6 +110,9 @@
       DefenderPlayerName: function() {
         const indx = this.defendingTerritory;
         const playerIndex = this.$store.getters.boardStates[indx].owner;
+        if (playerIndex < 0){
+            return "Neutral";
+        }
         return this.$store.state.game.playerStateList[playerIndex].player.settings.name;
       },
     },

@@ -54,6 +54,7 @@ object Resources {
     val AskTimeout = "app.actors.askTimeout"
 
     val Colors = "app.settings.colors"
+    val NeutralColor = "app.settings.neutralColor"
     val GameIdChars = "app.settings.gameIdChars"
     val NameRegex = "app.settings.nameRegex"
     val GameIdLength = "app.settings.gameIdLength"
@@ -96,6 +97,7 @@ object Resources {
   var FileSpecialMappings: Map[String, String] = _
 
   var Colors: Seq[Color] = _
+  var NeutralColor: Color = _
   var GameIdChars: Seq[Char] = _
   var NameRegex: String = _
   var GameIdLength: Int = _
@@ -147,6 +149,7 @@ object Resources {
       Resources.AskTimeout = config.get[FiniteDuration](Resources.ConfigKeys.AskTimeout)
 
       Resources.Colors = config.get[Seq[String]](Resources.ConfigKeys.Colors).map(Color)
+      Resources.NeutralColor = Color(config.get[String](Resources.ConfigKeys.NeutralColor))
       Resources.GameIdChars = config.get[String](Resources.ConfigKeys.GameIdChars).toLowerCase.toList
       Resources.NameRegex = config.get[String](Resources.ConfigKeys.NameRegex)
       Resources.GameIdLength = config.get[Int](Resources.ConfigKeys.GameIdLength)

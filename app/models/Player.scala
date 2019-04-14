@@ -34,7 +34,7 @@ case class ConcretePlayer(override val settings: Option[PlayerSettings]) extends
   override def hashCode(): Int = ConcretePlayer.unapply(this).##
 }
 
-case class NeutralPlayer(override val settings: Option[PlayerSettings] = Some(PlayerSettings("Neutral", Resources.MaximumPlayers))) extends Player(settings) {
+case class NeutralPlayer(override val settings: Option[PlayerSettings] = Some(PlayerSettings("Neutral", -1))) extends Player(settings) {
   override def equals(a: Any): Boolean = a match {
     case _: NeutralPlayer => true
     case _ => false
