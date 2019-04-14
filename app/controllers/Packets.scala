@@ -73,9 +73,16 @@ object UpdateBoardState {
     val playerToInt = state.turnOrder.map(actor => actor.player).zipWithIndex.toMap
     new UpdateBoardState(state.boardState.zipWithIndex
       .filter(t => t._1.isDefined)
-      .map(t => (t._2, (
-        t._1.get.army.size,
-        playerToInt(t._1.get.owner))))
+      .map(
+          t => {
+            val owner = t._1.get.owner
+            val index = owner match {
+              case _: ConcretePlayer => playerToInt(owner)
+              case _: NeutralPlayer => -1
+            }
+            (t._2, (t._1.get.army.size, index))
+          }
+      )
       .toMap)
   }
 }
@@ -109,6 +116,8 @@ object JsonMarshallers {
   implicit val playerSettingsW: Writes[PlayerSettings] = Json.writes[PlayerSettings]
   implicit val armyW: Writes[Army] = Json.writes[Army]
   implicit val playerW: Writes[Player] = Json.writes[Player]
+  implicit val concretePlayer: Writes[ConcretePlayer] = Json.writes[ConcretePlayer]
+  implicit val neutralPlayer: Writes[NeutralPlayer] = Json.writes[NeutralPlayer]
   implicit val stateW: Writes[TurnState.State] = (s: TurnState.State) => JsString(TurnState.State.unapply(s).getOrElse(""))
   implicit val payloadW: Writes[Seq[(String, Any)]] = new PayloadWrites
   implicit val turnStateW: Writes[TurnState] = Json.writes[TurnState]

@@ -78,7 +78,7 @@
 </template>
 
 <script>
-  import DiceRollModal from './DiceRollModal'
+  //import DiceRollModal from './DiceRollModal'
   import AttackPopup from './AttackPopup';
   import DefenderPopup from './DefenderPopup'
   import PlayerInfoBar from './PlayerInfoBar';
@@ -101,7 +101,7 @@
 
   export default {
     components: {
-      'dice-roll-modal': DiceRollModal,
+      /*'dice-roll-modal': DiceRollModal,*/
       'attack-popup': AttackPopup,
       'defender-popup': DefenderPopup,
       'tool-bar': Toolbar,

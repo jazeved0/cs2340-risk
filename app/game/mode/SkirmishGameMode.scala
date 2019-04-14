@@ -104,6 +104,8 @@ class SkirmishGameMode extends GameMode {
           requestPlaceReinforcements(callback, player, assignments)
         case RequestAttack(_, _, attack) =>
           requestAttack(callback, player, attack)
+        case DefenseResponse(_, _, defenders) =>
+          defenseResponse(callback, player, defenders)
         case RequestEndTurn(_, _) =>
           requestEndTurn(callback, player)
       }
@@ -191,7 +193,7 @@ class SkirmishGameMode extends GameMode {
     * @param state The GameState context object
     */
   def defenseResponse(callback: GameMode.Callback, actor: PlayerWithActor,
-                    attack: Seq[Int])
+                      defenders: Int)
                    (implicit state: GameState): Unit = {
     //TODO: behavior
   }
@@ -336,7 +338,7 @@ class SkirmishGameMode extends GameMode {
       .filter { case (armyOption, _) => armyOption.forall(oa => oa.owner == actor.player) }
       .foreach {
         case (ownedArmyOption, index) => ownedArmyOption.foreach {
-          ownedArmy => state.boardState.update(index, Some(OwnedArmy(ownedArmy.army, NeutralPlayer())))
+          ownedArmy => state.boardState.update(index, Some(OwnedArmy(ownedArmy.army, Player())))
         }
       }
     // Remove from turn order

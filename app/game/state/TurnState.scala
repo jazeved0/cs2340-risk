@@ -14,6 +14,7 @@ object TurnState {
       case Attack => "attack"
       case Maneuver => "maneuver"
       case Idle => "idle"
+      case Defense => "defense"
     })
   }
   /** Base trait for the turn state machine enumeration */
@@ -42,11 +43,13 @@ object TurnState {
     case Reinforcement => Attack
     case Attack => Maneuver
     case Maneuver => Idle
+    case _ => Idle
   }
 
   def nextDefendingState(prev: State): State = prev match {
     case Idle => Defense
     case Defense => Idle
+    case _ => Idle
   }
 
 }
