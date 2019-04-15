@@ -112,11 +112,11 @@
     },
     computed: {
       getInstructions: function() {
-        console.log(this.$store.state);
-        console.log(this.$store.getters.boardStates);
+        // console.log(this.$store.state);
+        // console.log(this.$store.getters.boardStates);
         const turnIndex = this.$store.state.game.turnIndex;
         const playerObj = this.$store.state.game.playerStateList[turnIndex];
-        console.log(playerObj.turnState.state);
+        // console.log(playerObj.turnState.state);
         if (turnIndex === -1) {
           return "";
         }
