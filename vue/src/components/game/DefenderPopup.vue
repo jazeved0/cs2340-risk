@@ -1,6 +1,6 @@
 <template>
     <div>
-        <b-modal class="flex justify-content-center ml-auto mr-auto" size="lg" ok-title="Defend" title="Defend Turn Control" v-bind:visible="true" @ok="resetAttackingTerritories"
+        <b-modal class="flex justify-content-center ml-auto mr-auto" size="lg" ok-title="Defend" title="Defend Turn Control" v-bind:visible="true"
                  no-close-on-esc no-close-on-backdrop hide-header-close>
 
             <div class="territory-images ml-auto mr-auto">
@@ -39,6 +39,15 @@
                     <b-button v-if="getDefendingArmies > 2" variant="primary" class="mr-4 mr-4">Two Armies</b-button>
                     <b-button v-if="getDefendingArmies > 3" variant="primary" class="mr-4 mr-4">Three Armies</b-button>
                 </b-button-group>
+            </div>
+            <div slot="modal-footer" class="w-100">
+                <b-button
+                    variant="primary"
+                    size="sm"
+                    class="float-right"
+                    @click="show=false"
+                >Defend
+                </b-button>
             </div>
         </b-modal>
     </div>
