@@ -1,8 +1,12 @@
 <template>
     <div>
-        <b-modal class="flex justify-content-center ml-auto mr-auto" size="lg" ok-title="Defend" title="Defend Turn Control" v-bind:visible="true" @ok="resetAttackingTerritories"
-                 no-close-on-esc no-close-on-backdrop hide-header-close>
-
+        <b-modal
+            v-model="show"
+            class="flex justify-content-center ml-auto mr-auto"
+            size="lg"
+            ok-title="Defend"
+            title="Defend Turn Control" v-bind:visible="true"
+            no-close-on-esc no-close-on-backdrop hide-header-close>
             <div class="territory-images ml-auto mr-auto">
                 <div class="territory-portrait">
                     <svg width="150" height="150" viewBox="-4 -4 108 108">
@@ -37,8 +41,16 @@
                 <b-button-group v-if="getDefendingArmies > 1">
                     <b-button class="mr-4 mr-4" variant="primary">One Army</b-button>
                     <b-button v-if="getDefendingArmies > 2" variant="primary" class="mr-4 mr-4">Two Armies</b-button>
-                    <b-button v-if="getDefendingArmies > 3" variant="primary" class="mr-4 mr-4">Three Armies</b-button>
                 </b-button-group>
+            </div>
+            <div slot="modal-footer" class="w-100">
+                <b-button
+                    variant="primary"
+                    size="sm"
+                    class="float-right"
+                    @click="show=false"
+                >Defend
+                </b-button>
             </div>
         </b-modal>
     </div>
@@ -122,7 +134,12 @@
                 } else return 'lightgray'
             }
         },
-        name: "DefenderPopup"
+        name: "DefenderPopup",
+        data() {
+            return {
+                show: true
+            }
+        }
     };
 </script>
 
