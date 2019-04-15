@@ -45,6 +45,15 @@
                     </b-button>
                 </b-button-group>
             </div>
+            <div slot="modal-footer" class="w-100">
+                <b-button
+                    variant="primary"
+                    size="sm"
+                    class="float-right"
+                    @click="sendDefensePacket"
+                >Defend
+                </b-button>
+            </div>
         </b-modal>
     </div>
 </template>

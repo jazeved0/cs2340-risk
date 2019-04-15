@@ -137,6 +137,7 @@
         this.$store.state.game.attackers = this.armyNumber;
         this.resetAttackingTerritories();
         this.$socket.sendObj(packet);
+        this.resetAttackingTerritories();
       },
       getPath: function(territoryIndex) {
           return this.$store.state.game.gameboard.iconData[territoryIndex];
