@@ -6,6 +6,7 @@ import {ON_SEND_GAMEBOARD, ON_UPDATE_PLAYER_STATE, ON_UPDATE_BOARD_STATE,
         UPDATE_DEFEND_TERRITORY} from '.././mutation-types';
 import {ADD_TROOPS} from '.././action-types';
 import {initializeGameboardScreen, NETWORK_CTX} from "./game/InitializeGameboardScreen";
+import {seqStringToArray} from '../.././util.js'
 
 Vue.use(Vuex);
 
@@ -16,6 +17,8 @@ export default {
     turnIndex: -1,
     attackingTerritory: -1,
     defendingTerritory: -1,
+    attackers: 0,
+    defenders: 0,
     gameboard: {
       nodeCount: 0,
       pathData: [],
@@ -46,9 +49,40 @@ export default {
       state.defendingTerritory = territory;
     },
     [ON_UPDATE_PLAYER_STATE](state, data) {
+      console.log(data);
       if ('seq' in data) {
         state.playerStateList = data.seq;
-        console.log(state.playerStateList);
+        let attackFound = false;
+        let attackResultFound = false;
+        for (let i = 0; i < state.playerStateList.length; i++) {
+          if ('turnState' in state.playerStateList[i]) {
+            let turnState = state.playerStateList[i].turnState;
+            if ('payload' in turnState) {
+              if ('attack' in turnState.payload) {
+                console.log(turnState.payload.attack);
+                attackFound = true;
+                let attack = seqStringToArray(turnState.payload.attack);
+                console.log(attack);
+                state.attackingTerritory = attack[0];
+                state.defendingTerritory = attack[1];
+                state.attackers = attack[2];
+                if (attack.length === 4){
+                  state.defenders = attack[3];
+                }
+              }
+              if ('result' in turnState.payload) {
+                attackResultFound = true;
+              }
+            }
+          }
+        }
+        if (!attackFound) {
+          state.attackingTerritory = -1;
+          state.defendingTerritory = -1;
+          state.attackers = 0;
+          state.defenders = 0;
+        }
+
       }
       if ('turn' in data) {
         state.turnIndex = data.turn // index of current turn

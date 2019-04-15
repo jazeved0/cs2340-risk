@@ -1,10 +1,10 @@
 <template>
     <div>
         <b-modal
-            v-model="show"
             class="flex justify-content-center ml-auto mr-auto"
             size="lg"
-            ok-title="Defend"
+            v-bind:ok-disabled="disableDefendButton"
+            ok-title="Defend" @ok="sendDefensePacket"
             title="Defend Turn Control" v-bind:visible="true"
             no-close-on-esc no-close-on-backdrop hide-header-close>
             <div class="territory-images ml-auto mr-auto">
@@ -39,18 +39,11 @@
             <p class="army-text mt-4">Defend with: </p>
             <div class="flex-buttons">
                 <b-button-group v-if="getDefendingArmies > 1">
-                    <b-button class="mr-4 mr-4" variant="primary">One Army</b-button>
-                    <b-button v-if="getDefendingArmies > 2" variant="primary" class="mr-4 mr-4">Two Armies</b-button>
+                    <b-button class="mr-4 mr-4" variant="primary" v-on:click="armySelected(1)">One Army</b-button>
+                    <b-button v-if="getDefendingArmies > 2" variant="primary" class="mr-4 mr-4" v-on:click="armySelected(2)">
+                        Two Armies
+                    </b-button>
                 </b-button-group>
-            </div>
-            <div slot="modal-footer" class="w-100">
-                <b-button
-                    variant="primary"
-                    size="sm"
-                    class="float-right"
-                    @click="show=false"
-                >Defend
-                </b-button>
             </div>
         </b-modal>
     </div>
@@ -121,6 +114,21 @@
                 this.$store.commit(UPDATE_ATTACK_TERRITORY, -1);
                 this.$store.commit(UPDATE_DEFEND_TERRITORY, -1);
             },
+            armySelected: function(armyCount) {
+                this.disableDefendButton = false;
+                this.defendNumber = armyCount;
+            },
+            sendDefensePacket: function() {
+                const packet = {
+                    _type: "controllers.DefenseResponse",
+                    gameId: this.$store.state.gameId,
+                    playerId: this.$store.state.playerId,
+                    defenders: this.defendNumber
+                };
+                this.$store.state.game.defenders = this.defendNumber;
+                this.resetAttackingTerritories();
+                this.$socket.sendObj(packet);
+            },
             getPath: function(territoryIndex) {
                 return this.$store.state.game.gameboard.iconData[territoryIndex];
             },
@@ -137,7 +145,8 @@
         name: "DefenderPopup",
         data() {
             return {
-                show: true
+                disableDefendButton: true,
+                defendNumber: 0
             }
         }
     };

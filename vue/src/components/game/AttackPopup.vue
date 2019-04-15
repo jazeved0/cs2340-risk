@@ -134,6 +134,7 @@
           playerId: this.$store.state.playerId,
           attack: [this.attackingTerritory, this.defendingTerritory, this.armyNumber]
         };
+        this.$store.state.game.attackers = this.armyNumber;
         this.resetAttackingTerritories();
         this.$socket.sendObj(packet);
       },

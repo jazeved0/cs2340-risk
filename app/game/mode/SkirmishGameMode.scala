@@ -174,16 +174,23 @@ class SkirmishGameMode extends GameMode {
       val attackAmount = attack.tail.tail.head
       val defendingPlayer = state.boardState(defendingIndex).get.owner
       defendingPlayer match {
-        case _: NeutralPlayer => {
-          //TODO: perform the attack and send results
+        case neutralDefender: NeutralPlayer => {
+          var defenders = state.boardState(defendingIndex).get.army.size
+          if (defenders > 2) {
+            defenders = 2
+          }
+          val attack = (attackingIndex, defendingIndex, attackAmount, defenders)
+          val result: (Seq[Int], Int, Int) = attackResult(attackAmount, defenders, state)
+          state.advanceTurnState(Some(defendingPlayer), ("attack", attack), ("result", result))
+          callback.broadcast (UpdateBoardState (state), None)
+          callback.broadcast (UpdatePlayerState (state), None)
         }
         case _ => {
           state.currentAttack = Some (Seq (attackingIndex, defendingIndex, attackAmount) )
-          state.advanceTurnState(Some(defendingPlayer))
+          state.advanceTurnState(Some(defendingPlayer), ("attack", state.currentAttack.get))
+          callback.broadcast (UpdatePlayerState (state), None)
         }
       }
-      callback.broadcast (UpdateBoardState (state), None)
-      callback.broadcast (UpdatePlayerState (state), None)
     }
   }
 
@@ -204,35 +211,12 @@ class SkirmishGameMode extends GameMode {
     if (validateDefenseResponse(callback, actor, defenders)) {
       callback.send(RequestReply(RequestResponse.Accepted), actor.id)
       val attackers: Int = state.currentAttack.get.tail.tail.head
-      val result: (Seq[Int], Int, Int) = attackResult(attackers, defenders)
-      val diceRolls = result._1
-      val attackersDestroyed = result._2
-      val defendersDestroyed = result._3
-      val attackingArmy = state.boardState(state.currentAttack.get.head)
-      val defendingArmy = state.boardState(state.currentAttack.get.tail.head)
-      attackingArmy.foreach(
-        army => state.boardState(state.currentAttack.get.head) =
-          Some(OwnedArmy(army.army += -attackersDestroyed, army.owner))
-      )
-      defendingArmy.foreach(
-        army => state.boardState(state.currentAttack.get.tail.head) =
-          Some(OwnedArmy(army.army += -defendersDestroyed, army.owner))
-      )
-      if (defendingArmy.isDefined && defendingArmy.get.army.size == 0) {
-        attackingArmy.foreach(
-          army => state.boardState(state.currentAttack.get.head) =
-            Some(OwnedArmy(army.army += -1, army.owner))
-        )
-        defendingArmy.foreach(
-          army => state.boardState(state.currentAttack.get.tail.head) =
-            Some(OwnedArmy(army.army += 1, attackingArmy.get.owner))
-        )
-      }
+
+      val result: (Seq[Int], Int, Int) = attackResult(attackers, defenders, state)
+      val attack = state.currentAttack.get ++ Seq(defenders)
 
       state.currentAttack = None
-      state.advanceTurnState(Some(actor.player))
-      callback.broadcast(SendAttackResult(diceRolls), None)
-
+      state.advanceTurnState(Some(actor.player), ("attack", attack), ("result", result))
       callback.broadcast (UpdateBoardState (state), None)
       callback.broadcast (UpdatePlayerState (state), None)
     }
@@ -248,17 +232,37 @@ class SkirmishGameMode extends GameMode {
     * @return a list containing the dice roll results, and then the amount of attackers destroyed,
     *         and then the number of defenders destroyed
     */
-  def attackResult(attackers: Int, defenders: Int): (Seq[Int], Int, Int) = {
+  def attackResult(attackers: Int, defenders: Int, state: GameState): (Seq[Int], Int, Int) = {
     var attackerResult = (for(_ <- 1 to attackers) yield 1 + scala.util.Random.nextInt(6)).sortWith(_ > _)
     val defenderResult = (for(_ <- 1 to defenders) yield 1 + scala.util.Random.nextInt(6)).sortWith(_ > _)
     var attackersDestroyed: Int = 0
     var defendersDestroyed: Int = 0
     for (i <- 0 until defenders) {
-      if (attackerResult(i) > defenderResult(i)) {
+      if (attackerResult(i) < defenderResult(i)) {
         attackersDestroyed += 1
-      } else if (attackerResult(i) < defenderResult(i)) {
+      } else if (attackerResult(i) > defenderResult(i)) {
         defendersDestroyed += 1
       }
+    }
+    val attackingArmy = state.boardState(state.currentAttack.get.head)
+    val defendingArmy = state.boardState(state.currentAttack.get.tail.head)
+    attackingArmy.foreach(
+      army => state.boardState(state.currentAttack.get.head) =
+        Some(OwnedArmy(army.army += -attackersDestroyed, army.owner))
+    )
+    defendingArmy.foreach(
+      army => state.boardState(state.currentAttack.get.tail.head) =
+        Some(OwnedArmy(army.army += -defendersDestroyed, army.owner))
+    )
+    if (defendingArmy.isDefined && defendingArmy.get.army.size == 0) {
+      attackingArmy.foreach(
+        army => state.boardState(state.currentAttack.get.head) =
+          Some(OwnedArmy(army.army += -1, army.owner))
+      )
+      defendingArmy.foreach(
+        army => state.boardState(state.currentAttack.get.tail.head) =
+          Some(OwnedArmy(army.army += 1, attackingArmy.get.owner))
+      )
     }
     (attackerResult ++ defenderResult, attackersDestroyed, defendersDestroyed)
   }
@@ -443,7 +447,7 @@ class SkirmishGameMode extends GameMode {
       state.advanceTurn()
     }
     // We assume that prevTurnState is *always* TurnState.Idle
-    val newTurnState = state.stateOf(state.currentPlayer).get.turnState.advanceState
+    val newTurnState = state.stateOf(state.currentPlayer).get.turnState.advanceState()
     state(state.currentPlayer) = state.constructPlayerState(state.currentPlayer, newTurnState)
 
     // Release all owned territories

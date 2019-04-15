@@ -145,7 +145,7 @@
         return [];
       },
       displayAttackingPopup: function() {
-        return (this.$store.state.game.attackingTerritory !== -1) && (this.$store.state.game.defendingTerritory !== -1) && this.isInAttacking
+        return (this.$store.state.game.attackingTerritory !== -1) && (this.$store.state.game.defendingTerritory !== -1) && this.isInAttacking;
       },
       displayDefenderPopup: function() {
         return (this.$store.state.game.attackingTerritory !== -1) && (this.$store.state.game.defendingTerritory !== -1) && this.isDefending;
@@ -189,17 +189,17 @@
         if (turnIndex === -1) {
           return false;
         }
-        return this.localTurn && this.$store.state.game.playerStateList[turnIndex].turnState.state === 'attack';
+        return this.$store.state.game.attackers === 0 && this.localTurn && this.$store.state.game.playerStateList[turnIndex].turnState.state === 'attack';
       },
       isDefending: function() {
-        const turnIndex = this.$store.state.game.turnIndex;
-        if (turnIndex === -1) {
+        const currentIndex = this.$store.getters.getPlayerIndex;
+        if (currentIndex === -1) {
           console.log(-1);
           return false;
         } else {
-          console.log(this.$store.state.game.playerStateList[turnIndex].turnState.state);
+          console.log(this.$store.state.game.playerStateList[currentIndex].turnState.state);
         }
-        return this.$store.state.game.playerStateList[turnIndex].turnState.state === 'defense';
+        return this.$store.state.game.playerStateList[currentIndex].turnState.state === 'defense';
       },
       allocation: function() {
         const turnIndex = this.$store.state.game.turnIndex;
@@ -381,7 +381,7 @@
         });
       },
       endTurn: function() {
-        console.log('uwu')
+        console.log('uwu');
         const store = this.$store;
         const packet = {
           _type: "controllers.RequestEndTurn",

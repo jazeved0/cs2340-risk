@@ -124,3 +124,9 @@ export const distance = (p1, p2) => {
 export const clamp = (num, min, max) => {
   return num <= min ? min : num >= max ? max : num;
 };
+
+export const seqStringToArray = (string) => {
+  return string.indexOf("List(") === 0 ? string.slice(5, string.length - 1).split(', ').map(function(item) {
+    return parseInt(item, 10);
+  }) : [];
+};

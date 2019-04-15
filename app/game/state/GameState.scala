@@ -3,7 +3,7 @@ package game.state
 import actors.PlayerWithActor
 import common.Util
 import game.state.TurnState.Idle
-import models.{Army, OwnedArmy, Player}
+import models._
 
 import scala.collection.mutable
 
@@ -69,19 +69,29 @@ class GameState(private var _turnOrder: Seq[PlayerWithActor], territories: Int) 
     * @param defendingPlayer player object representing the player of defending territory;
     *                        relevant during the attack phase
     */
-  def advanceTurnState(defendingPlayer: Option[Player]): Unit = {
+  def advanceTurnState(defendingPlayer: Option[Player], payload: (String, Any)*): Unit = {
     if (defendingPlayer.isDefined) {
-      val player = defendingPlayer.get
-      stateOf(player).map(_.turnState.advanceDefenseState).foreach {
-        nextState => this(player) = constructPlayerState(player, nextState)
+      defendingPlayer.get match {
+        case _: ConcretePlayer => {
+          val player = defendingPlayer.get
+          stateOf(player).map(_.turnState.advanceDefenseState(payload:_*)).foreach {
+            nextState => this (player) = constructPlayerState(player, nextState)
+          }
+        }
+        case _: NeutralPlayer => {
+          val player = currentPlayer
+          stateOf(player).map(_.turnState).foreach {
+            nextState => this (player) = constructPlayerState(player, TurnState(nextState.state, payload:_*))
+          }
+        }
       }
     } else {
-      stateOf(currentPlayer).map(_.turnState.advanceState).foreach {
+      stateOf(currentPlayer).map(_.turnState.advanceState(payload:_*)).foreach {
         nextState => {
           this(currentPlayer) = constructPlayerState(currentPlayer, nextState)
           if (nextState.state == TurnState.Idle) {
             advanceTurn()
-            this(currentPlayer) = constructPlayerState(currentPlayer, nextState.advanceState)
+            this(currentPlayer) = constructPlayerState(currentPlayer, nextState.advanceState(payload:_*))
           }
         }
       }

@@ -61,8 +61,9 @@ object TurnState {
   * @param payload An optional varargs of key -> value mappings
   */
 case class TurnState(state: State, payload: (String, Any)*) {
-  def advanceState: TurnState =
-    TurnState(TurnState.nextState(this.state), this.payload:_*)
-  def advanceDefenseState: TurnState =
-    TurnState(TurnState.nextDefendingState(this.state), payload:_*)
+  def advanceState(payload: (String, Any)*): TurnState =
+    TurnState(TurnState.nextState(this.state), payload:_*)
+  def advanceDefenseState(payload: (String, Any)*): TurnState = {
+    TurnState(TurnState.nextDefendingState(this.state), payload: _*)
+  }
 }
