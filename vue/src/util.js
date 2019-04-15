@@ -126,7 +126,12 @@ export const clamp = (num, min, max) => {
 };
 
 export const seqStringToArray = (string) => {
-  return string.indexOf("List(") === 0 ? string.slice(5, string.length - 1).split(', ').map(function(item) {
-    return parseInt(item, 10);
-  }) : [];
+  return string.indexOf("List(") === 0 ?
+    string.slice(5, string.length - 1).split(', ').map(function(item){return parseInt(item, 10);}) : [];
+};
+
+export const specialSeqToArray = (string) => {
+  let matches = /^\([A-Z][a-z]+\((.+)\),(\d),(\d)\)$/gi.exec(string);
+  return matches.length > 3 ? [matches[1].split(', ').map(function(item){return parseInt(item, 10);}),
+    parseInt(matches[2], 10), parseInt(matches[3], 10)] : [];
 };

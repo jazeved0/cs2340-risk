@@ -3,8 +3,6 @@
         <b-modal
             class="flex justify-content-center ml-auto mr-auto"
             size="lg"
-            v-bind:ok-disabled="disableDefendButton"
-            ok-title="Defend" @ok="sendDefensePacket"
             title="Defend Turn Control" v-bind:visible="true"
             no-close-on-esc no-close-on-backdrop hide-header-close>
             <div class="territory-images ml-auto mr-auto">
@@ -50,6 +48,7 @@
                     variant="primary"
                     size="sm"
                     class="float-right"
+                    :disabled="disableDefendButton"
                     @click="sendDefensePacket"
                 >Defend
                 </b-button>

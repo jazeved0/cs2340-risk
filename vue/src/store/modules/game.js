@@ -6,7 +6,7 @@ import {ON_SEND_GAMEBOARD, ON_UPDATE_PLAYER_STATE, ON_UPDATE_BOARD_STATE,
         UPDATE_DEFEND_TERRITORY} from '.././mutation-types';
 import {ADD_TROOPS} from '.././action-types';
 import {initializeGameboardScreen, NETWORK_CTX} from "./game/InitializeGameboardScreen";
-import {seqStringToArray} from '../.././util.js'
+import {seqStringToArray, specialSeqToArray} from '../.././util.js'
 
 Vue.use(Vuex);
 
@@ -19,6 +19,8 @@ export default {
     defendingTerritory: -1,
     attackers: 0,
     defenders: 0,
+    diceRolls: [],
+    attackResults: [],
     gameboard: {
       nodeCount: 0,
       pathData: [],
@@ -72,6 +74,9 @@ export default {
               }
               if ('result' in turnState.payload) {
                 attackResultFound = true;
+                let result = specialSeqToArray(turnState.payload.result);
+                state.diceRolls = result[0];
+                state.attackResults = [result[1], result[2]];
               }
             }
           }
