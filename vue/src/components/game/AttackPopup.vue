@@ -3,7 +3,8 @@
     <b-modal class="flex justify-content-center ml-auto mr-auto" size="lg" ok-title="Attack" title="Attack Turn Control" v-bind:visible="true"
              v-bind:ok-disabled="disableAttack"
              @ok="sendAttackPacket" @cancel="resetAttackingTerritories"
-             no-close-on-esc no-close-on-backdrop hide-header-close>
+             no-close-on-esc no-close-on-backdrop hide-header-close
+             v-if="!hasSeenDice">
       <div class="territory-images ml-auto mr-auto">
         <div class="territory-portrait">
           <svg width="150" height="150" viewBox="-4 -4 108 108">
@@ -47,12 +48,12 @@
 
 <script>
   import {UPDATE_DEFEND_TERRITORY, UPDATE_ATTACK_TERRITORY} from "../../store/mutation-types.js"
-
+  import DiceRollModal from "./DiceRollModal"
   export default {
     data: function() {
       return {
         disableAttackButton: true,
-        armyNumber: 0
+        armyNumber: 0,
       }
     },
     computed: {
