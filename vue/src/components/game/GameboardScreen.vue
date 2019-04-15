@@ -112,13 +112,13 @@
     },
     computed: {
       getInstructions: function() {
-        // console.log(this.$store.state);
-        // console.log(this.$store.getters.boardStates);
+        console.log(this.$store.state);
+        console.log(this.$store.getters.boardStates);
         const turnIndex = this.$store.state.game.turnIndex;
 
         console.log('some defend??', this.$store.state.game.playerStateList[turnIndex].turnState.state);
         const playerObj = this.$store.state.game.playerStateList[turnIndex];
-        // console.log(playerObj.turnState.state);
+        console.log(playerObj.turnState.state);
         if (turnIndex === -1) {
           return "";
         }
@@ -150,7 +150,11 @@
       },
       displayDefenderPopup: function() {
 <<<<<<< HEAD
+<<<<<<< HEAD
         return this.isDefending;
+=======
+        return (this.$store.state.game.attackingTerritory !== -1) && (this.$store.state.game.defendingTerritory !== -1) && this.isDefending;
+>>>>>>> 273a177aa894913bf793ab9e393ab4b3341f3c02
 =======
         return (this.$store.state.game.attackingTerritory !== -1) && (this.$store.state.game.defendingTerritory !== -1) && this.isDefending;
 >>>>>>> 273a177aa894913bf793ab9e393ab4b3341f3c02
@@ -200,12 +204,18 @@
         const turnIndex = this.$store.state.game.turnIndex;
         if (turnIndex === -1) {
 <<<<<<< HEAD
+<<<<<<< HEAD
           return false;
 =======
+=======
+>>>>>>> 273a177aa894913bf793ab9e393ab4b3341f3c02
           console.log(-1);
           return false;
         } else {
           console.log(this.$store.state.game.playerStateList[turnIndex].turnState.state);
+<<<<<<< HEAD
+>>>>>>> 273a177aa894913bf793ab9e393ab4b3341f3c02
+=======
 >>>>>>> 273a177aa894913bf793ab9e393ab4b3341f3c02
         }
         return this.$store.state.game.playerStateList[turnIndex].turnState.state === 'defense';
