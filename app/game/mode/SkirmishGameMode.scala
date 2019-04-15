@@ -164,7 +164,10 @@ class SkirmishGameMode extends GameMode {
   def requestAttack(callback: GameMode.Callback, actor: PlayerWithActor,
                     attack: Seq[Int])
                    (implicit state: GameState): Unit = {
+    val logger = Logger(this.getClass).logger
+    logger.error("request attack!")
     if (validateAttack(callback, actor, attack)) {
+      logger.error("request attack was valid!")
       callback.send(RequestReply(RequestResponse.Accepted), actor.id)
       val attackingIndex = attack.head
       val defendingIndex = attack.tail.head
@@ -174,7 +177,10 @@ class SkirmishGameMode extends GameMode {
         case _: NeutralPlayer => {
           //TODO: perform the attack and send results
         }
-        case _ => state.currentAttack = Some (Seq (attackingIndex, defendingIndex, attackAmount) )
+        case _ => {
+          state.currentAttack = Some (Seq (attackingIndex, defendingIndex, attackAmount) )
+          state.advanceTurnState(Some(defendingPlayer))
+        }
       }
       callback.broadcast (UpdateBoardState (state), None)
       callback.broadcast (UpdatePlayerState (state), None)
@@ -189,17 +195,73 @@ class SkirmishGameMode extends GameMode {
     * @param callback The Callback object providing a means of sending outgoing
     *                 packets to either the entire lobby or to one player
     * @param actor The player that initiated the request
-    * @param attack The proposed attack Seq[1st territory index, 2nd territory index, attack amount]
+    * @param defenders the number of defenders the person defending has requested
     * @param state The GameState context object
     */
   def defenseResponse(callback: GameMode.Callback, actor: PlayerWithActor,
                       defenders: Int)
                    (implicit state: GameState): Unit = {
-    //TODO: behavior
+    if (validateDefenseResponse(callback, actor, defenders)) {
+      callback.send(RequestReply(RequestResponse.Accepted), actor.id)
+      val attackers: Int = state.currentAttack.get.tail.tail.head
+      val result: (Seq[Int], Int, Int) = attackResult(attackers, defenders)
+      val diceRolls = result._1
+      val attackersDestroyed = result._2
+      val defendersDestroyed = result._3
+      val attackingArmy = state.boardState(state.currentAttack.get.head)
+      val defendingArmy = state.boardState(state.currentAttack.get.tail.head)
+      attackingArmy.foreach(
+        army => state.boardState(state.currentAttack.get.head) =
+          Some(OwnedArmy(army.army += -attackersDestroyed, army.owner))
+      )
+      defendingArmy.foreach(
+        army => state.boardState(state.currentAttack.get.tail.head) =
+          Some(OwnedArmy(army.army += -defendersDestroyed, army.owner))
+      )
+      if (defendingArmy.isDefined && defendingArmy.get.army.size == 0) {
+        attackingArmy.foreach(
+          army => state.boardState(state.currentAttack.get.head) =
+            Some(OwnedArmy(army.army += -1, army.owner))
+        )
+        defendingArmy.foreach(
+          army => state.boardState(state.currentAttack.get.tail.head) =
+            Some(OwnedArmy(army.army += 1, attackingArmy.get.owner))
+        )
+      }
+
+      state.currentAttack = None
+      state.advanceTurnState(Some(actor.player))
+      callback.broadcast(SendAttackResult(diceRolls), None)
+
+      callback.broadcast (UpdateBoardState (state), None)
+      callback.broadcast (UpdatePlayerState (state), None)
+    }
   }
 
-
-  //TODO: specialized method for generating results of an attack, in case a neutral player is being attacked
+  /**
+    * Produces the result of an attack; the result is a list of integers,
+    * representing the dice rolls.  The amount of attackers takes up
+    * that amount in the list first; the last part of the list is the dice rolls
+    * for the defenders
+    * @param attackers
+    * @param defenders
+    * @return a list containing the dice roll results, and then the amount of attackers destroyed,
+    *         and then the number of defenders destroyed
+    */
+  def attackResult(attackers: Int, defenders: Int): (Seq[Int], Int, Int) = {
+    var attackerResult = (for(_ <- 1 to attackers) yield 1 + scala.util.Random.nextInt(6)).sortWith(_ > _)
+    val defenderResult = (for(_ <- 1 to defenders) yield 1 + scala.util.Random.nextInt(6)).sortWith(_ > _)
+    var attackersDestroyed: Int = 0
+    var defendersDestroyed: Int = 0
+    for (i <- 0 until defenders) {
+      if (attackerResult(i) > defenderResult(i)) {
+        attackersDestroyed += 1
+      } else if (attackerResult(i) < defenderResult(i)) {
+        defendersDestroyed += 1
+      }
+    }
+    (attackerResult ++ defenderResult, attackersDestroyed, defendersDestroyed)
+  }
 
   def requestEndTurn(callback: GameMode.Callback, actor: PlayerWithActor,
                      )
@@ -272,7 +334,12 @@ class SkirmishGameMode extends GameMode {
   def validateAttack(callback: GameMode.Callback, actor: PlayerWithActor,
                      attack: Seq[Int])
                             (implicit state: GameState): Boolean = {
-    if (attack.length != 3) {
+    if (state.isInDefense) {
+      callback.send(RequestReply(RequestResponse.Rejected,
+        s"Invalid attack request; there is already an ongoing attack"
+      ), actor.id)
+      false
+    } else if (attack.length != 3) {
       callback.send(RequestReply(RequestResponse.Rejected,
         s"Invalid attack request; attack must be an array of 3 integers"
       ), actor.id)
@@ -309,6 +376,52 @@ class SkirmishGameMode extends GameMode {
         callback.send(RequestReply(RequestResponse.Rejected,
           s"Invalid attack request; the attacking troop amount must be non-zero and lower"
           + " than the troop amount in the attacking territory"
+        ), actor.id)
+        false
+      } else {
+        //Valid
+
+        true
+      }
+    }
+  }
+
+  /**
+    * Validates the defense response given by the player
+    *
+    * @param callback The Callback object providing a means of sending outgoing
+    *                 packets to either the entire lobby or to one player
+    * @param actor The player that initiated the request
+    * @param defenders the number of defenders the person defending has requested
+    * @param state The GameState context object
+    * @return
+    */
+  def validateDefenseResponse(callback: GameMode.Callback, actor: PlayerWithActor,
+                              defenders: Int)
+                             (implicit state: GameState): Boolean = {
+    val attackHappening = state.isInDefense
+    val isDefender = state.stateOf(actor.player).fold(false)(
+      playerState => playerState.turnState.state == TurnState.Defense
+    )
+    if (!attackHappening) {
+      callback.send(RequestReply(RequestResponse.Rejected,
+        s"Invalid defense response; no attack is currently occurring."
+      ), actor.id)
+      false
+    } else if (!isDefender) {
+      callback.send(RequestReply(RequestResponse.Rejected,
+        s"Invalid defense response; this player is not currently defending."
+      ), actor.id)
+      false
+    } else {
+      val currentAttack: Seq[Int] = state.currentAttack.get
+      val defendingTerritory: Int = currentAttack.tail.head
+      val validDefenders = state.boardState(defendingTerritory).fold(false)(
+        ownedArmy => defenders <= ownedArmy.army.size && defenders >= 1
+      )
+      if (!validDefenders) {
+        callback.send(RequestReply(RequestResponse.Rejected,
+          s"Invalid defense response; the defender amount given is invalid."
         ), actor.id)
         false
       } else {

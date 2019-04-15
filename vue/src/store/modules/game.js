@@ -48,6 +48,7 @@ export default {
     [ON_UPDATE_PLAYER_STATE](state, data) {
       if ('seq' in data) {
         state.playerStateList = data.seq;
+        console.log(state.playerStateList);
       }
       if ('turn' in data) {
         state.turnIndex = data.turn // index of current turn

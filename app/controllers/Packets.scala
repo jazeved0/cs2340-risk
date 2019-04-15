@@ -65,8 +65,8 @@ case class SendConfig(config: String) extends OutPacket
 case class SendGameboard(gameboard: Gameboard) extends OutPacket
 /** Updates the gamestate of the gameboard (all territories) */
 case class UpdateBoardState(armies: Map[Int, (Int, Int)]) extends OutPacket
-
-//TODO: create an OutPacket that sends the results of an attack to players
+/** Sends the results of an attack; contains a list that has the combined dice rolls of both attacks */
+case class SendAttackResult(diceRolls: Seq[Int]) extends OutPacket
 
 object UpdateBoardState {
   def apply(state: GameState): UpdateBoardState = {
@@ -152,6 +152,7 @@ object JsonMarshallers {
   implicit val sendConfig: Writes[SendConfig] = Json.writes[SendConfig]
   implicit val sendGameboard: Writes[SendGameboard] = Json.writes[SendGameboard]
   implicit val updateBoardState: Writes[UpdateBoardState] = Json.writes[UpdateBoardState]
+  implicit val sendAttackResult: Writes[SendAttackResult] = Json.writes[SendAttackResult]
 
   // Trait marshallers
   implicit val globalPacket: Reads[GlobalPacket] = Json.reads[GlobalPacket]

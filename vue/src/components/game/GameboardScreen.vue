@@ -192,20 +192,14 @@
         return this.localTurn && this.$store.state.game.playerStateList[turnIndex].turnState.state === 'attack';
       },
       isDefending: function() {
-        //gets index of defending territory
-        const indx = this.$store.state.game.defendingTerritory;
-        //gets the player index index of the defending territory
-        const playerIndex = this.$store.getters.boardStates[indx].owner;
-
-        if (playerIndex === -1){
-            return false;
+        const turnIndex = this.$store.state.game.turnIndex;
+        if (turnIndex === -1) {
+          console.log(-1);
+          return false;
+        } else {
+          console.log(this.$store.state.game.playerStateList[turnIndex].turnState.state);
         }
-
-        // compares defending territory owner with current player screen
-        console.log(this.$store.state.current);
-        //console.log(this.$store.state.game.playerStateList[playerIndex].player.settings.name);
-        console.log(this.localTurn);
-        return this.localTurn && (this.$store.state.current === this.$store.state.game.playerStateList[playerIndex].player.settings.name);
+        return this.$store.state.game.playerStateList[turnIndex].turnState.state === 'defense';
       },
       allocation: function() {
         const turnIndex = this.$store.state.game.turnIndex;
