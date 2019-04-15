@@ -3,8 +3,8 @@ import Vue from 'vue';
 import Vuex from 'vuex';
 import {ON_SEND_GAMEBOARD, ON_UPDATE_PLAYER_STATE, ON_UPDATE_BOARD_STATE,
         INCREMENT_TROOP, SUBMIT_REINFORCEMENTS, UNSUBMIT_REINFORCEMENTS, UPDATE_ATTACK_TERRITORY,
-        UPDATE_DEFEND_TERRITORY} from '.././mutation-types';
-import {ADD_TROOPS} from '.././action-types';
+        UPDATE_DEFEND_TERRITORY, ON_SEND_ATTACK_RESULT} from '.././mutation-types'; 
+ import {ADD_TROOPS} from '.././action-types';
 import {initializeGameboardScreen, NETWORK_CTX} from "./game/InitializeGameboardScreen";
 import {seqStringToArray, specialSeqToArray} from '../.././util.js'
 
@@ -112,6 +112,11 @@ export default {
     [ON_UPDATE_BOARD_STATE](state, data) {
       if ('armies' in data) {
         state.boardStateList = data.armies;
+      }
+    },
+    [ON_SEND_ATTACK_RESULT](state, data) {
+      if ('diceRolls' in data) {
+        state.diceRolls = data.diceRolls;
       }
     },
     [INCREMENT_TROOP](state, index) {
