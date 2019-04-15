@@ -37,7 +37,6 @@
                 <b-button-group v-if="getDefendingArmies > 1">
                     <b-button class="mr-4 mr-4" variant="primary">One Army</b-button>
                     <b-button v-if="getDefendingArmies > 2" variant="primary" class="mr-4 mr-4">Two Armies</b-button>
-                    <b-button v-if="getDefendingArmies > 3" variant="primary" class="mr-4 mr-4">Three Armies</b-button>
                 </b-button-group>
             </div>
             <div slot="modal-footer" class="w-100">
