@@ -39,8 +39,8 @@
             <p class="army-text mt-4">Defend with: </p>
             <div class="flex-buttons">
                 <b-button-group v-if="getDefendingArmies > 1">
-                    <b-button class="mr-4 mr-4" variant="primary">One Army</b-button>
-                    <b-button v-if="getDefendingArmies > 2" variant="primary" class="mr-4 mr-4">Two Armies</b-button>
+                    <b-button class="mr-4 mr-4" variant="primary" v-on:click="armySelected(1)">One Army</b-button>
+                    <b-button v-if="getDefendingArmies > 2" variant="primary" class="mr-4 mr-4" v-on:click="armySelected(2)">Two Armies</b-button>
                 </b-button-group>
             </div>
             <div slot="modal-footer" class="w-100">
@@ -48,7 +48,7 @@
                     variant="primary"
                     size="sm"
                     class="float-right"
-                    @click="show=false"
+                    @click="sendDefensePacket"
                 >Defend
                 </b-button>
             </div>
@@ -132,12 +132,26 @@
                 if (regionIndex < this.$store.state.settings.settings.territoryColors.length && regionIndex >= 0) {
                     return '#' + this.$store.state.settings.settings.territoryColors[regionIndex];
                 } else return 'lightgray'
+            },
+            armySelected: function(armyCount) {
+                this.armyNumber = armyCount;
+            },
+            sendDefensePacket: function () {
+                show = false;
+                const packet = {
+                    _type: "controllers.DefenseResponse",
+                    gameId: this.$store.state.gameId,
+                    playerId: this.$store.state.playerId,
+                    defenders: this.armyNumber
+                };
+                this.$socket.sendObj(packet);
             }
         },
         name: "DefenderPopup",
         data() {
             return {
-                show: true
+                show: true,
+                armyNumber: 0
             }
         }
     };

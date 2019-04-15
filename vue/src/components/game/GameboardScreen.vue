@@ -112,10 +112,11 @@
     },
     computed: {
       getInstructions: function() {
-        //console.log(this.$store.state);
-        //console.log(this.$store.getters.boardStates);
+        console.log(this.$store.state);
+        console.log(this.$store.getters.boardStates);
         const turnIndex = this.$store.state.game.turnIndex;
         const playerObj = this.$store.state.game.playerStateList[turnIndex];
+        console.log(playerObj.turnState.state);
         if (turnIndex === -1) {
           return "";
         }
@@ -146,11 +147,7 @@
         return (this.$store.state.game.attackingTerritory !== -1) && (this.$store.state.game.defendingTerritory !== -1) && this.isInAttacking;
       },
       displayDefenderPopup: function() {
-        // console.log('this.$store.state.game.attackingTerritory !== -1: ', this.$store.state.game.attackingTerritory !== -1);
-        // console.log('this.$store.state.game.defendingTerritory !== -1', this.$store.state.game.defendingTerritory !== -1);
-        // return (this.$store.state.game.attackingTerritory !== -1) && (this.$store.state.game.defendingTerritory !== -1) && this.isDefending;
-        // use for testing purposes
-        return true;
+        return this.isDefending;
       },
       buttonText: function() {
         if (this.isInReinforcement) {
@@ -195,8 +192,10 @@
       },
       isDefending: function() {
         const turnIndex = this.$store.state.game.turnIndex;
-        // need to create another turnstate for popup to show
-        return this.$store.state.game.playerStateList[turnIndex].turnState.state === 'idle';
+        if (turnIndex === -1) {
+          return false;
+        }
+        return this.$store.state.game.playerStateList[turnIndex].turnState.state === 'defense';
       },
       allocation: function() {
         const turnIndex = this.$store.state.game.turnIndex;

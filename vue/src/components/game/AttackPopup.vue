@@ -128,14 +128,14 @@
         this.armyNumber = armyCount;
       },
       sendAttackPacket: function() {
-        this.resetAttackingTerritories();
         const packet = {
           _type: "controllers.RequestAttack",
-          gameId: store.state.gameId,
-          playerId: store.state.playerId,
+          gameId: this.$store.state.gameId,
+          playerId: this.$store.state.playerId,
           attack: [this.attackingTerritory, this.defendingTerritory, this.armyNumber]
         };
         this.$socket.sendObj(packet);
+        this.resetAttackingTerritories();
       },
       getPath: function(territoryIndex) {
           return this.$store.state.game.gameboard.iconData[territoryIndex];
