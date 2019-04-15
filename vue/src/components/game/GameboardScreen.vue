@@ -148,9 +148,9 @@
       displayDefenderPopup: function() {
         // console.log('this.$store.state.game.attackingTerritory !== -1: ', this.$store.state.game.attackingTerritory !== -1);
         // console.log('this.$store.state.game.defendingTerritory !== -1', this.$store.state.game.defendingTerritory !== -1);
-        return (this.$store.state.game.attackingTerritory !== -1) && (this.$store.state.game.defendingTerritory !== -1) && this.isDefending;
+        // return (this.$store.state.game.attackingTerritory !== -1) && (this.$store.state.game.defendingTerritory !== -1) && this.isDefending;
         // use for testing purposes
-        // return true;
+        return true;
       },
       buttonText: function() {
         if (this.isInReinforcement) {
