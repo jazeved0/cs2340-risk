@@ -1,0 +1,92 @@
+<template>
+    <div>
+        <b-modal id="diceRollModal" :visible="true">
+            <p>
+                The attacker attacked with {{ this.$store.state.game.attackers }} armies, and the defender chose the defend with {{ this.$store.state.game.defenders }}
+                armies. The results are:
+            </p>
+            <div id="overallContainer">
+                <!-- <swapping-squares-spinner
+                    id="spinner"
+                    :animation-duration="1000"
+                    :size="60"
+                    :color="'#ff1d5e'"
+                    v-if="loading"
+                /> -->
+                <p>Attacking rolls: </p>
+                <div class="diceImageContainer">
+                    <!--attack rolls-->
+                    <img v-for="image in attackImages" :src="image" height="80" width="80" alt="dice roll">
+                </div>
+                <p>Defending Rolls: </p>
+                <div class="diceImageContainer">
+                    <!--defend rolls-->
+                    <img v-for="image in defendImages" :src="image" height="80" width="80" alt="dice roll">
+                </div>
+            </div>
+        </b-modal>
+    </div>
+</template>
+
+
+<script>
+    export default {
+        data() {
+            return {
+                numDice: 3,
+            }
+        },
+        computed: {
+            attackArmies: function() {
+                return this.$store.state.game.attackers;
+            },
+            defendArmies: function() {
+                return this.$store.state.game.defenders;
+            },
+            attackDice: function() {
+                return this.$store.state.game.diceRolls.slice(0, this.attackArmies)
+            },
+            defendDice: function() {
+                return this.$store.state.game.diceRolls.slice(this.attackArmies, this.attackArmies + this.defendArmies)
+            },
+            attackImages: function() {
+                return this.diceImages(this.attackDice);
+            },
+            defendImages: function() {
+                return this.diceImages(this.defendDice);
+            }
+        },
+        methods: {
+            diceImages: function(rolls) {
+                let arr = [];
+                console.log(rolls);
+                rolls.forEach(element => {
+                    arr.push("../static/images/Alea_" + (element) + ".png")
+                });
+                return arr;
+            }
+        }
+    }
+</script>
+
+<style>
+    #diceRollModal {
+        position: relative
+    }
+
+    .diceImageContainer {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        justify-content: space-around;
+        align-items: center;
+        align-content: stretch;
+    }
+/* 
+    #overallContainer {
+        display: flex;
+        flex-direction: column;
+        flex-wrap: no-wrap;
+        justify-content: space-around;
+    } */
+</style>

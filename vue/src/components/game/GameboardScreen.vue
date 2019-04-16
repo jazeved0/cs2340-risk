@@ -64,6 +64,7 @@
     <defender-popup
             v-if= "displayDefenderPopup">
     </defender-popup>
+    <dice-roll-modal v-if="displayDiceRoll"></dice-roll-modal>
     <b-alert
         show
         dismissible
@@ -85,6 +86,7 @@
   import ArmyShape from './ArmyShape';
   import CastleIcon from './CastleIcon';
   import TerritoryAssignmentModal from './TerritoryAssignmentModal';
+  import DiceRollModal from './DiceRollModal'
   import Toolbar from './../Toolbar';
   import VueKonva from 'vue-konva';
   // noinspection ES6UnusedImports
@@ -108,9 +110,16 @@
       'player-info-bar': PlayerInfoBar,
       'v-army-shape': ArmyShape,
       'v-castle-icon': CastleIcon,
-      'territory-assignment-modal': TerritoryAssignmentModal
+      'territory-assignment-modal': TerritoryAssignmentModal,
+      'dice-roll-modal': DiceRollModal
     },
     computed: {
+      displayDiceRoll: function() {
+        const state = this.$store.state.game;
+        console.log("attackers: " + state.attackers);
+        console.log("defenders: " + state.defenders);
+        return (state.attackers != 0 && state.defenders != 0);
+      },
       getInstructions: function() {
         //console.log(this.$store.state);
         //console.log(this.$store.getters.boardStates);
