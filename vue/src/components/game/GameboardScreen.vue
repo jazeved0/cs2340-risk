@@ -64,7 +64,9 @@
     <defender-popup
             v-if= "displayDefenderPopup">
     </defender-popup>
+    <div v-show="displayDiceRoll">
     <dice-roll-modal v-if="displayDiceRoll"></dice-roll-modal>
+    </div>
     <b-alert
         show
         dismissible
@@ -116,9 +118,7 @@
     computed: {
       displayDiceRoll: function() {
         const state = this.$store.state.game;
-        console.log("attackers: " + state.attackers);
-        console.log("defenders: " + state.defenders);
-        return (state.attackers != 0 && state.defenders != 0);
+        return (state.diceRolls.length > 0);
       },
       getInstructions: function() {
         //console.log(this.$store.state);

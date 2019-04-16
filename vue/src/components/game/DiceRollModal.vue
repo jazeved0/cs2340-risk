@@ -1,6 +1,7 @@
 <template>
     <div>
-        <b-modal id="diceRollModal" :visible="true">
+        <b-modal id="diceRollModal" :visible="true"
+             @ok="resetAttack" @cancel="resetAttack">
             <p>
                 The attacker attacked with {{ this.$store.state.game.attackers }} armies, and the defender chose the defend with {{ this.$store.state.game.defenders }}
                 armies. The results are:
@@ -23,6 +24,10 @@
                     <!--defend rolls-->
                     <img v-for="image in defendImages" :src="image" height="80" width="80" alt="dice roll">
                 </div>
+                <p>
+                    {{ this.$store.state.game.attackResults[0] }} attackers were destroyed, and
+                    {{ this.$store.state.game.attackResults[1] }} defenders were destroyed.
+                </p>
             </div>
         </b-modal>
     </div>
@@ -30,6 +35,8 @@
 
 
 <script>
+    import {RESET_ATTACK} from "../../store/mutation-types";
+
     export default {
         data() {
             return {
@@ -64,6 +71,9 @@
                     arr.push("../static/images/Alea_" + (element) + ".png")
                 });
                 return arr;
+            },
+            resetAttack: function() {
+                this.$store.commit(RESET_ATTACK);
             }
         }
     }

@@ -9,6 +9,7 @@ import game.state.TurnState._
 import game.state.{GameState, PlayerState, TurnState}
 import models.{Army, NeutralPlayer, OwnedArmy, Player}
 import play.api.Logger
+import scala.math.min
 
 import scala.util.Random
 
@@ -180,8 +181,10 @@ class SkirmishGameMode extends GameMode {
             defenders = 2
           }
           val attack = (attackingIndex, defendingIndex, attackAmount, defenders)
+          state.currentAttack = Some(Seq(attackingIndex, defendingIndex, attackAmount))
           val result: (Seq[Int], Int, Int) = attackResult(attackAmount, defenders, state)
           state.advanceTurnState(Some(defendingPlayer), ("attack", attack), ("result", result))
+          state.currentAttack = None
           callback.broadcast (UpdateBoardState (state), None)
           callback.broadcast (UpdatePlayerState (state), None)
         }
@@ -237,32 +240,36 @@ class SkirmishGameMode extends GameMode {
     val defenderResult = (for(_ <- 1 to defenders) yield 1 + scala.util.Random.nextInt(6)).sortWith(_ > _)
     var attackersDestroyed: Int = 0
     var defendersDestroyed: Int = 0
-    for (i <- 0 until defenders) {
-      if (attackerResult(i) < defenderResult(i)) {
+    for (i <- 0 until min(attackers, defenders)) {
+      if (attackerResult(i) <= defenderResult(i)) {
         attackersDestroyed += 1
       } else if (attackerResult(i) > defenderResult(i)) {
         defendersDestroyed += 1
       }
     }
+    val logger = Logger(this.getClass).logger
+    logger.error("" + state.currentAttack.get.head)
     val attackingArmy = state.boardState(state.currentAttack.get.head)
     val defendingArmy = state.boardState(state.currentAttack.get.tail.head)
-    attackingArmy.foreach(
-      army => state.boardState(state.currentAttack.get.head) =
-        Some(OwnedArmy(army.army += -attackersDestroyed, army.owner))
-    )
-    defendingArmy.foreach(
-      army => state.boardState(state.currentAttack.get.tail.head) =
-        Some(OwnedArmy(army.army += -defendersDestroyed, army.owner))
-    )
-    if (defendingArmy.isDefined && defendingArmy.get.army.size == 0) {
-      attackingArmy.foreach(
-        army => state.boardState(state.currentAttack.get.head) =
-          Some(OwnedArmy(army.army += -1, army.owner))
+    if (attackingArmy.isDefined && defendingArmy.isDefined) {
+      state.boardState.update(
+        state.currentAttack.get.head,
+        Some(OwnedArmy(attackingArmy.get.army += -1 * attackersDestroyed, attackingArmy.get.owner))
       )
-      defendingArmy.foreach(
-        army => state.boardState(state.currentAttack.get.tail.head) =
-          Some(OwnedArmy(army.army += 1, attackingArmy.get.owner))
+      state.boardState.update(
+        state.currentAttack.get.tail.head,
+        Some(OwnedArmy(defendingArmy.get.army += -1 * defendersDestroyed, defendingArmy.get.owner))
       )
+      if (state.boardState(state.currentAttack.get.tail.head).get.army.size == 0) {
+        state.boardState.update(
+          state.currentAttack.get.head,
+          Some(OwnedArmy(attackingArmy.get.army += -1, attackingArmy.get.owner))
+        )
+        state.boardState.update(
+          state.currentAttack.get.tail.head,
+          Some(OwnedArmy(defendingArmy.get.army += 1, attackingArmy.get.owner))
+        )
+      }
     }
     (attackerResult ++ defenderResult, attackersDestroyed, defendersDestroyed)
   }
@@ -274,7 +281,7 @@ class SkirmishGameMode extends GameMode {
     logger.error("hello")
     logger.error(state.turn.toString)
     state.advanceTurnState(None)
-    state.advanceTurnState(None)
+    state.advanceTurnState(None, "amount" -> calculateReinforcement(actor.player))
     logger.error(state.turn.toString)
     callback.broadcast(UpdateBoardState(state), None)
     callback.broadcast(UpdatePlayerState(state), None)
@@ -467,8 +474,8 @@ class SkirmishGameMode extends GameMode {
     // Remove from turn order
     state.turnOrder = Util.remove(actor, state.turnOrder)
 
-    if (state.stateOf(state.currentPlayer).get.turnState.state == TurnState.Idle) {
-      state.advanceTurnState(None)
+    if (state.gameSize != 0 && state.stateOf(state.currentPlayer).get.turnState.state == TurnState.Idle) {
+      state.advanceTurnState(None, "amount" -> calculateReinforcement(state.currentPlayer))
     }
 
     // Notify game of changes (no need to send to the disconnecting player)

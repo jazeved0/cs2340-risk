@@ -3,10 +3,11 @@ import Vue from 'vue';
 import Vuex from 'vuex';
 import {ON_SEND_GAMEBOARD, ON_UPDATE_PLAYER_STATE, ON_UPDATE_BOARD_STATE,
         INCREMENT_TROOP, SUBMIT_REINFORCEMENTS, UNSUBMIT_REINFORCEMENTS, UPDATE_ATTACK_TERRITORY,
-        UPDATE_DEFEND_TERRITORY, ON_SEND_ATTACK_RESULT} from '.././mutation-types'; 
+        UPDATE_DEFEND_TERRITORY, RESET_ATTACK} from '.././mutation-types';
  import {ADD_TROOPS} from '.././action-types';
 import {initializeGameboardScreen, NETWORK_CTX} from "./game/InitializeGameboardScreen";
 import {seqStringToArray, specialSeqToArray} from '../.././util.js'
+import {UPDATE_ATTACKERS, UPDATE_DEFENDERS} from "../mutation-types";
 
 Vue.use(Vuex);
 
@@ -56,6 +57,7 @@ export default {
         state.playerStateList = data.seq;
         let attackFound = false;
         let attackResultFound = false;
+        let length = 0;
         for (let i = 0; i < state.playerStateList.length; i++) {
           if ('turnState' in state.playerStateList[i]) {
             let turnState = state.playerStateList[i].turnState;
@@ -68,6 +70,7 @@ export default {
                 state.attackingTerritory = attack[0];
                 state.defendingTerritory = attack[1];
                 state.attackers = attack[2];
+                length = attack.length;
                 if (attack.length === 4){
                   state.defenders = attack[3];
                 }
@@ -85,7 +88,12 @@ export default {
           state.attackingTerritory = -1;
           state.defendingTerritory = -1;
           state.attackers = 0;
+        } else if (length < 4) {
           state.defenders = 0;
+        }
+        if (!attackResultFound) {
+          state.diceRolls = [];
+          state.attackResults = [];
         }
 
       }
@@ -114,11 +122,6 @@ export default {
         state.boardStateList = data.armies;
       }
     },
-    [ON_SEND_ATTACK_RESULT](state, data) {
-      if ('diceRolls' in data) {
-        state.diceRolls = data.diceRolls;
-      }
-    },
     [INCREMENT_TROOP](state, index) {
       const oldTerritory = state.boardStateList[index];
       const newTerritory = [oldTerritory[0], [oldTerritory[1][0] + 1, oldTerritory[1][1]]];
@@ -136,6 +139,20 @@ export default {
     },
     [UNSUBMIT_REINFORCEMENTS](state) {
       state.placement.submitted = false;
+    },
+    [RESET_ATTACK](state){
+      state.attackingTerritory = -1;
+      state.defendingTerritory = -1;
+      state.attackers = 0;
+      state.defenders = 0;
+      state.diceRolls = [];
+      state.attackResults = [];
+    },
+    [UPDATE_ATTACKERS](state, amount){
+      state.attackers = amount;
+    },
+    [UPDATE_DEFENDERS](state, amount){
+      state.defenders = amount;
     }
   },
   getters: {

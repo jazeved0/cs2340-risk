@@ -36,9 +36,9 @@
             </div>
             <p class="army-text mt-4">Defend with: </p>
             <div class="flex-buttons">
-                <b-button-group v-if="getDefendingArmies > 1">
+                <b-button-group>
                     <b-button class="mr-4 mr-4" variant="primary" v-on:click="armySelected(1)">One Army</b-button>
-                    <b-button v-if="getDefendingArmies > 2" variant="primary" class="mr-4 mr-4" v-on:click="armySelected(2)">
+                    <b-button v-if="getDefendingArmies > 1" variant="primary" class="mr-4 mr-4" v-on:click="armySelected(2)">
                         Two Armies
                     </b-button>
                 </b-button-group>
@@ -59,6 +59,7 @@
 
 <script>
     import {UPDATE_DEFEND_TERRITORY, UPDATE_ATTACK_TERRITORY} from "../../store/mutation-types.js"
+    import {UPDATE_DEFENDERS} from "../../store/mutation-types";
 
     export default {
         computed: {
@@ -133,7 +134,7 @@
                     playerId: this.$store.state.playerId,
                     defenders: this.defendNumber
                 };
-                this.$store.state.game.defenders = this.defendNumber;
+                this.$store.commit(UPDATE_DEFENDERS, this.defendNumber);
                 this.resetAttackingTerritories();
                 this.$socket.sendObj(packet);
             },
