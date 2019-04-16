@@ -264,11 +264,11 @@ class SkirmishGameMode extends GameMode {
       if (state.boardState(state.currentAttack.get.tail.head).get.army.size == 0) {
         state.boardState.update(
           state.currentAttack.get.head,
-          Some(OwnedArmy(attackingArmy.get.army += -1, attackingArmy.get.owner))
+          Some(OwnedArmy(state.boardState(state.currentAttack.get.head).get.army += -1, attackingArmy.get.owner))
         )
         state.boardState.update(
           state.currentAttack.get.tail.head,
-          Some(OwnedArmy(defendingArmy.get.army += 1, attackingArmy.get.owner))
+          Some(OwnedArmy(state.boardState(state.currentAttack.get.tail.head).get.army += 1, attackingArmy.get.owner))
         )
       }
     }
