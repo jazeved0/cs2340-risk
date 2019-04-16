@@ -125,7 +125,7 @@
         //console.log(this.$store.getters.boardStates);
         const turnIndex = this.$store.state.game.turnIndex;
         const playerObj = this.$store.state.game.playerStateList[turnIndex];
-        console.log(playerObj.turnState.state);
+        //console.log(playerObj.turnState.state);
         if (turnIndex === -1) {
           return "";
         }
@@ -202,10 +202,10 @@
       isDefending: function() {
         const currentIndex = this.$store.getters.getPlayerIndex;
         if (currentIndex === -1) {
-          console.log(-1);
+          //console.log(-1);
           return false;
         } else {
-          console.log(this.$store.state.game.playerStateList[currentIndex].turnState.state);
+          //console.log(this.$store.state.game.playerStateList[currentIndex].turnState.state);
         }
         return this.$store.state.game.playerStateList[currentIndex].turnState.state === 'defense';
       },
@@ -389,7 +389,7 @@
         });
       },
       endTurn: function() {
-        console.log('uwu');
+        //console.log('uwu');
         const store = this.$store;
         const packet = {
           _type: "controllers.RequestEndTurn",
@@ -406,7 +406,7 @@
             }
           }
         })
-        console.log('owo')
+       // console.log('owo')
       },
       territoryMouseOver: function (num) {
         this.mouseOver = num;
