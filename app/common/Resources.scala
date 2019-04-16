@@ -69,6 +69,7 @@ object Resources {
     var SkirmishGameboard = "app.gameplay.skirmish.gameboard"
     val SkirmishReinforcementDivisor = "app.gameplay.skirmish.reinforcementDivisor"
     val SkirmishReinforcementBase = "app.gameplay.skirmish.reinforcementBase"
+    val DiceFaces = "app.gameplay.skirmish.diceFaces"
   }
 
   // ********************
@@ -112,6 +113,7 @@ object Resources {
   var SkirmishGameboard: Gameboard = _
   var SkirmishReinforcementDivisor: Int = _
   var SkirmishReinforcementBase: Int = _
+  var DiceFaces: Int = _
 
   // *************
   // CONFIG LOADER
@@ -169,6 +171,7 @@ object Resources {
         Resources.ConfigKeys.SkirmishGameboard))
       Resources.SkirmishReinforcementDivisor = config.get[Int](Resources.ConfigKeys.SkirmishReinforcementDivisor)
       Resources.SkirmishReinforcementBase = config.get[Int](Resources.ConfigKeys.SkirmishReinforcementBase)
+      Resources.DiceFaces = config.get[Int](Resources.ConfigKeys.DiceFaces)
 
       Resources.DirectorySpecialMappings = config.get[Map[String, String]](Resources.ConfigKeys.DirectorySpecialMappings)
       Resources.FileSpecialMappings = config.get[Map[String, String]](Resources.ConfigKeys.FileSpecialMappings)

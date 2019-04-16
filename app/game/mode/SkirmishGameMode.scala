@@ -237,8 +237,9 @@ class SkirmishGameMode extends GameMode {
     *         and then the number of defenders destroyed
     */
   def attackResult(attackers: Int, defenders: Int, state: GameState): (Seq[Int], Int, Int) = {
-    var attackerResult = (for(_ <- 1 to attackers) yield 1 + scala.util.Random.nextInt(6)).sortWith(_ > _)
-    val defenderResult = (for(_ <- 1 to defenders) yield 1 + scala.util.Random.nextInt(6)).sortWith(_ > _)
+    val faces = Resources.DiceFaces
+    var attackerResult = (for(_ <- 1 to attackers) yield 1 + scala.util.Random.nextInt(faces)).sortWith(_ > _)
+    val defenderResult = (for(_ <- 1 to defenders) yield 1 + scala.util.Random.nextInt(faces)).sortWith(_ > _)
     var attackersDestroyed: Int = 0
     var defendersDestroyed: Int = 0
     for (i <- 0 until min(attackers, defenders)) {
@@ -275,8 +276,7 @@ class SkirmishGameMode extends GameMode {
     (attackerResult ++ defenderResult, attackersDestroyed, defendersDestroyed)
   }
 
-  def requestEndTurn(callback: GameMode.Callback, actor: PlayerWithActor,
-                     )
+  def requestEndTurn(callback: GameMode.Callback, actor: PlayerWithActor)
                      (implicit state: GameState): Unit = {
     val logger = Logger(this.getClass).logger
     logger.error("hello")
@@ -344,22 +344,18 @@ class SkirmishGameMode extends GameMode {
     * @return
     */
   def validateAttack(callback: GameMode.Callback, actor: PlayerWithActor,
-                     attack: Seq[Int])
-                            (implicit state: GameState): Boolean = {
+                     attack: Seq[Int])(implicit state: GameState): Boolean = {
     if (state.isInDefense) {
       callback.send(RequestReply(RequestResponse.Rejected,
-        s"Invalid attack request; there is already an ongoing attack"
-      ), actor.id)
+        s"Invalid attack request; there is already an ongoing attack"), actor.id)
       false
     } else if (attack.length != 3) {
       callback.send(RequestReply(RequestResponse.Rejected,
-        s"Invalid attack request; attack must be an array of 3 integers"
-      ), actor.id)
+        s"Invalid attack request; attack must be an array of 3 integers"), actor.id)
       false
     } else if (state.currentPlayer != actor.player) {
       callback.send(RequestReply(RequestResponse.Rejected,
-        s"Invalid attack request; it is not that player's attacking turn"
-      ), actor.id)
+        s"Invalid attack request; it is not that player's attacking turn"), actor.id)
       false
     } else {
       val attackingIndex = attack.head
@@ -375,24 +371,20 @@ class SkirmishGameMode extends GameMode {
       if (invalidOwner) {
         callback.send(RequestReply(RequestResponse.Rejected,
           s"Invalid attack request; either the attacking territory could not be found"
-          + " or the current player does not own that territory."
-        ), actor.id)
+          + " or the current player does not own that territory."), actor.id)
         false
       } else if (!validAttack) {
         callback.send(RequestReply(RequestResponse.Rejected,
           s"Invalid attack request; the defending territory is not adjacent"
-          + " to the attacking territory."
-        ), actor.id)
+          + " to the attacking territory."), actor.id)
         false
       } else if (invalidAmount) {
         callback.send(RequestReply(RequestResponse.Rejected,
           s"Invalid attack request; the attacking troop amount must be non-zero and lower"
-          + " than the troop amount in the attacking territory"
-        ), actor.id)
+          + " than the troop amount in the attacking territory"), actor.id)
         false
       } else {
         //Valid
-
         true
       }
     }

@@ -15,7 +15,7 @@ object Player extends UniqueIdProvider[WrappedString] {
 
   def apply(name: String, color: Color): Player =
     ConcretePlayer(Some(PlayerSettings(name, Resources.Colors.indexOf(color))))
-  def apply(playerSettings: Option[PlayerSettings]) = ConcretePlayer(playerSettings)
+  def apply(playerSettings: Option[PlayerSettings]): Player = ConcretePlayer(playerSettings)
   def apply(): Player = NeutralPlayer()
 }
 
@@ -39,4 +39,5 @@ case class NeutralPlayer(override val settings: Option[PlayerSettings] = Some(Pl
     case _: NeutralPlayer => true
     case _ => false
   }
+  override def hashCode(): Int = NeutralPlayer.unapply(this).##
 }
