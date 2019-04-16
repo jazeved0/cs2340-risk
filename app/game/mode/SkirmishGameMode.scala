@@ -180,10 +180,11 @@ class SkirmishGameMode extends GameMode {
           if (defenders > 2) {
             defenders = 2
           }
-          val attack = (attackingIndex, defendingIndex, attackAmount, defenders)
+          val attack = Seq(attackingIndex, defendingIndex, attackAmount)
           state.currentAttack = Some(Seq(attackingIndex, defendingIndex, attackAmount))
+          state.advanceTurnState(Some(defendingPlayer), ("attack", attack))
           val result: (Seq[Int], Int, Int) = attackResult(attackAmount, defenders, state)
-          state.advanceTurnState(Some(defendingPlayer), ("attack", attack), ("result", result))
+          state.advanceTurnState(Some(defendingPlayer), ("attack", attack ++ Seq(defenders)), ("result", result))
           state.currentAttack = None
           callback.broadcast (UpdateBoardState (state), None)
           callback.broadcast (UpdatePlayerState (state), None)
@@ -281,7 +282,8 @@ class SkirmishGameMode extends GameMode {
     logger.error("hello")
     logger.error(state.turn.toString)
     state.advanceTurnState(None)
-    state.advanceTurnState(None, "amount" -> calculateReinforcement(actor.player))
+    state.clearPayloads()
+    state.advanceTurnState(None, "amount" -> calculateReinforcement(state.currentPlayer))
     logger.error(state.turn.toString)
     callback.broadcast(UpdateBoardState(state), None)
     callback.broadcast(UpdatePlayerState(state), None)
@@ -473,6 +475,7 @@ class SkirmishGameMode extends GameMode {
       }
     // Remove from turn order
     state.turnOrder = Util.remove(actor, state.turnOrder)
+    state.clearPayloads()
 
     if (state.gameSize != 0 && state.stateOf(state.currentPlayer).get.turnState.state == TurnState.Idle) {
       state.advanceTurnState(None, "amount" -> calculateReinforcement(state.currentPlayer))

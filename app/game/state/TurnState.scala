@@ -66,4 +66,5 @@ case class TurnState(state: State, payload: (String, Any)*) {
   def advanceDefenseState(payload: (String, Any)*): TurnState = {
     TurnState(TurnState.nextDefendingState(this.state), payload: _*)
   }
+  def clearPayload(): TurnState = TurnState(this.state)
 }

@@ -70,20 +70,11 @@ class GameState(private var _turnOrder: Seq[PlayerWithActor], territories: Int) 
     *                        relevant during the attack phase
     */
   def advanceTurnState(defendingPlayer: Option[Player], payload: (String, Any)*): Unit = {
+    clearPayloads()
     if (defendingPlayer.isDefined) {
-      defendingPlayer.get match {
-        case _: ConcretePlayer => {
-          val player = defendingPlayer.get
-          stateOf(player).map(_.turnState.advanceDefenseState(payload:_*)).foreach {
-            nextState => this (player) = constructPlayerState(player, nextState)
-          }
-        }
-        case _: NeutralPlayer => {
-          val player = currentPlayer
-          stateOf(player).map(_.turnState).foreach {
-            nextState => this (player) = constructPlayerState(player, TurnState(nextState.state, payload:_*))
-          }
-        }
+      val player = defendingPlayer.get
+      stateOf(player).map(_.turnState.advanceDefenseState(payload:_*)).foreach {
+        nextState => this (player) = constructPlayerState(player, nextState)
       }
     } else {
       stateOf(currentPlayer).map(_.turnState.advanceState(payload:_*)).foreach {
@@ -100,6 +91,14 @@ class GameState(private var _turnOrder: Seq[PlayerWithActor], territories: Int) 
 
   def currentPlayer: Player = turnOrder(turn).player
   def advanceTurn(): Unit = turn = (turn + 1) % gameSize
+  def clearPayloads(): Unit = {
+    playerStates.foreach{
+      playerState => {
+        val player = playerState.player
+        this(player) = constructPlayerState(player, playerState.turnState.clearPayload())
+      }
+    }
+  }
   def modifyTurnAfterDisconnecting(playerTurn: Int): Unit = {
     if (playerTurn < turn) {
       turn -= 1
