@@ -70,13 +70,13 @@ class GameState(private var _turnOrder: Seq[PlayerWithActor], territories: Int) 
     *                        relevant during the attack phase
     */
   def advanceTurnState(defendingPlayer: Option[Player], payload: (String, Any)*): Unit = {
-    clearPayloads()
     if (defendingPlayer.isDefined) {
       val player = defendingPlayer.get
       stateOf(player).map(_.turnState.advanceDefenseState(payload:_*)).foreach {
         nextState => this (player) = constructPlayerState(player, nextState)
       }
     } else {
+      clearPayloads()
       stateOf(currentPlayer).map(_.turnState.advanceState(payload:_*)).foreach {
         nextState => {
           this(currentPlayer) = constructPlayerState(currentPlayer, nextState)

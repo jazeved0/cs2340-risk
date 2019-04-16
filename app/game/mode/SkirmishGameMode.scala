@@ -282,7 +282,6 @@ class SkirmishGameMode extends GameMode {
     logger.error("hello")
     logger.error(state.turn.toString)
     state.advanceTurnState(None)
-    state.clearPayloads()
     state.advanceTurnState(None, "amount" -> calculateReinforcement(state.currentPlayer))
     logger.error(state.turn.toString)
     callback.broadcast(UpdateBoardState(state), None)
