@@ -100,6 +100,13 @@ class GameState(private var _turnOrder: Seq[PlayerWithActor], territories: Int) 
 
   def currentPlayer: Player = turnOrder(turn).player
   def advanceTurn(): Unit = turn = (turn + 1) % gameSize
+  def modifyTurnAfterDisconnecting(playerTurn: Int): Unit = {
+    if (playerTurn < turn) {
+      turn -= 1
+    } else if (playerTurn == turn && turn == gameSize - 1) {
+      turn = 0
+    }
+  }
   def constructPlayerState(player: Player, turnState: TurnState): PlayerState =
     PlayerState(player, stateOf(player).get.units, turnState)
 

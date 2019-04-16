@@ -437,18 +437,24 @@ class SkirmishGameMode extends GameMode {
 
   override def playerDisconnect(actor: PlayerWithActor, callback: Callback)
                                (implicit state: GameState): Unit = {
-
-    //TODO: handle disconnecting when a player is in an attack state, or
-    //TODO: when a player is in a defending state, likely regardless of
-    //TODO: whether or not that player actually has the current turn
-
-    // This solution assumes that playerStates *hasn't* removed the player yet
-    if (state.currentPlayer == actor.player) {
-      state.advanceTurn()
+    if (state.isInDefense) {
+      val currentState = state.stateOf(actor.player).get.turnState
+      currentState.state match {
+        case TurnState.Defense => {
+          //Puts defender in Idle
+          state.advanceTurnState(Some(actor.player))
+          state.currentAttack = None
+        }
+        case TurnState.Attack => {
+          //Puts defender in Idle
+          state.advanceTurnState(Some(state.boardState(state.currentAttack.get.tail.head).get.owner))
+          state.currentAttack = None
+        }
+        case _ =>
+      }
     }
-    // We assume that prevTurnState is *always* TurnState.Idle
-    val newTurnState = state.stateOf(state.currentPlayer).get.turnState.advanceState()
-    state(state.currentPlayer) = state.constructPlayerState(state.currentPlayer, newTurnState)
+
+    state.modifyTurnAfterDisconnecting(state.turnOrder.indexOf(actor))
 
     // Release all owned territories
     state.boardState.zipWithIndex
@@ -460,6 +466,11 @@ class SkirmishGameMode extends GameMode {
       }
     // Remove from turn order
     state.turnOrder = Util.remove(actor, state.turnOrder)
+
+    if (state.stateOf(state.currentPlayer).get.turnState.state == TurnState.Idle) {
+      state.advanceTurnState(None)
+    }
+
     // Notify game of changes (no need to send to the disconnecting player)
     callback.broadcast(UpdateBoardState(state), Some(actor.id))
     callback.broadcast(UpdatePlayerState(state), Some(actor.id))
