@@ -4,7 +4,7 @@
 
 [![Uptime Robot status](https://img.shields.io/uptimerobot/status/m782165527-5f127672eaae6df89c7b070a.svg?color=%235B78BB&style=for-the-badge)](https://stats.uptimerobot.com/OZ659UjoL) [![Version](https://img.shields.io/badge/version-M4-blue.svg?color=%235B78BB&style=for-the-badge)](https://github.gatech.edu/achafos3/CS2340Sp19Team10/releases/tag/M4) [![City](https://img.shields.io/badge/city-england-blue.svg?color=%235B78BB&style=for-the-badge)](https://www.youtube.com/watch?v=hSlb1ezRqfA)
 
-[Tunneled here](https://mensa.serveo.net/) (may be online depending on the status of the host).
+[Hosted here](http://riskgame.ga/). Design documentation is WIP and will appear [here](http://riskgame.ga/docs).
 
 ![game screen](https://i.imgur.com/rRD9CM2.png "Example game screen")
 
