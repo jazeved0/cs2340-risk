@@ -1,0 +1,93 @@
+h1 {
+  font-family: Roboto, sans-serif;
+  font-size: 3rem;
+  font-weight: 100;
+  color: rgb(35, 35, 35);
+  margin-bottom: 12px;
+}
+
+h2 {
+  font-family: Roboto, sans-serif;
+  font-size: 1.8rem;
+  margin-top: 12px;
+  margin-bottom: 12px;
+}
+
+h3 {
+  font-family: Roboto, sans-serif;
+  font-size: 1.25rem;
+  margin-bottom: 20px;
+}
+
+/* Colored link styles */
+.link-color {
+  display: inline-block;
+  position: relative;
+  padding-bottom: 4px;
+  overflow: hidden;
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-decoration: none;
+  color: rgb(35, 35, 35);
+  cursor: pointer!important;
+}
+
+.link-color:hover {
+  color: rgb(70, 70, 70);
+}
+
+.link-color:after {
+  content: '';
+  width: 200%;
+  height: 2px;
+  display: block;
+  position: absolute;
+  bottom: 1px;
+  right: 0;
+  background: linear-gradient(90deg, #455488 0%,#5B78BB 50%);
+}
+
+/* Add anchor links to headers */
+.anchorjs-link {
+  transition: all .25s linear;
+  color: #5B78BB;
+}
+.anchorjs-link:hover {
+  color: #455488;
+  text-decoration: none;
+}
+*:hover > .anchorjs-link {
+  margin-left: -1.125em !important;
+}
+
+a#return-home {
+  position: relative;
+  top: -20px;
+}
+
+strong {
+  font-weight: 500;
+}
+
+a {
+  font-weight: 600;
+}
+
+pre.terminal {
+  color: #F5F2F2;
+  background-color: rgba(25, 25, 25, 0.81);
+  border-radius: 6px;
+  padding: 16px 20px;
+}
+
+div.content-wrapper {
+  margin-top: 110px;
+}
+
+div.collapse {
+  display: initial;
+}
+div.collapse:not(.in):not(.collapsing) {
+  display: none;
+}

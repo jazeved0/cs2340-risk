@@ -1,0 +1,57 @@
+@()
+@base("Risk: The Game of Global Domination", "<link rel=\"stylesheet\" media=\"screen\" href=\"/static/stylesheets/docs.css\">") {
+  <div class="footer-content-wrapper">
+    <header>
+      <nav class="navbar fixed-top navbar-dark bg-dark">
+        <div>
+          <a class="navbar-brand" href="https://github.gatech.edu/achafos3/CS2340Sp19Team10" target="_blank" rel="noopener">
+            <i class="fab fa-github repoImg pl-2"></i>
+          </a>
+        </div>
+      </nav>
+    </header>
+
+    <main>
+      <div class="light-background-container content-wrapper">
+        <div class="container py-5">
+          <a id="return-home" href="/"><i class="fas fa-chevron-left mr-2"></i>Return Home</a>
+          <h1>Design Docs</h1>
+          <a class="link-color" href="/docs/api/">Scaladocs</a>
+          <h2 id="overview">Overview</h2>
+          <h3 id="network-model">Network Model</h3>
+          <h3 id="game-flow">Game Flow</h3>
+          <h2 id="backend">Backend</h2>
+          <p>
+            <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#uml-diagram" aria-expanded="false" aria-controls="collapseExample">
+              <i class="fas fa-chevron-down mr-2"></i>UML Diagram
+            </button>
+          </p>
+          <div class="collapse" id="uml-diagram">
+            <div class="card card-body mb-3">
+              <object data="/docs/backend.uml.pdf" type="application/pdf" width="100%" height="800px">
+                <a class="link-color" href="/docs/backend.uml.pdf">PDF file</a>
+              </object>
+            </div>
+          </div>
+          <h3 id="packet-flow">Packet Flow</h3>
+          <h2 id="frontend">Frontend</h2>
+          <h2 id="deployment">Deployment</h2>
+          <p>
+            CS 2340 Risk is deployed within a Docker container on a bare metal server running <a href="https://www.ubuntu.com/server" target="_blank" rel="noopener">Ubuntu Server</a>. The container itself is based on the <a href="https://hub.docker.com/_/openjdk" target="_blank" rel="noopener">openjdk:8-jre-alpine</a> image, which runs a Java 8 JRE on an Alpine Linux OS. The entire application is packaged in a <a href="https://cloud.docker.com/repository/docker/jazevedo6/cs2340-risk" target="_blank" rel="noopener">single docker image hosted on DockerHub</a>, which can be deployed by running the following commands:
+            <pre class="terminal">
+$ sudo docker pull jazevedo6/cs2340-risk:latest
+$ sudo docker run -it -p 9000:9000 -p 9443:9443 --name &lt;name&gt; jazevedo6/cs2340-risk:latest</pre>
+            By default, the application exposes ports <strong>9000</strong> and <strong>9443</strong> for HTTP and HTTPS respectively.
+          </p>
+          <h3 id="docker-compose">Docker Compose</h3>
+          <h3 id="ssl-termination">SSL Termination</h3>
+          <h3 id="build-pipeline">Build Pipeline</h3>
+        </div>
+      </div>
+    </main>
+
+    @footer()
+    <script type="text/javascript" src="/static/vendor/anchor.min.js"></script>
+    <script type="text/javascript" src="/static/javascripts/docs.js"></script>
+  </div>
+}

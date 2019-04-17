@@ -61,6 +61,20 @@ class MainController @Inject()(cached: Cached,
   }
 
   /**
+    * Docs page
+    *
+    * GET /docs/
+    * @return the response to the router action
+    */
+  def docs: EssentialAction = cached("docsPage") {
+    Action.apply {
+      implicit request =>
+        // send docs page
+        Ok(views.html.docs())
+    }
+  }
+
+  /**
     * Request upon form submission of index page that requests to make and host
     * a new lobby
     *

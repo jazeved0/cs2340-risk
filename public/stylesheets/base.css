@@ -78,6 +78,8 @@ body {
 nav {
   padding: .2rem 1rem !important;
   box-shadow: 0 0 72px rgba(0, 0, 0, .37);
+  min-height: 62px;
+  box-sizing: initial;
 }
 
 /* Striped background */
@@ -124,4 +126,12 @@ nav {
 
 .bg-lighter {
   background-color: rgb(35, 35, 35) !important;
+}
+
+a {
+  color: #455488;
+}
+
+a:hover {
+  color: #5B78BB;
 }
