@@ -175,7 +175,7 @@ class SkirmishGameMode extends GameMode {
       val attackAmount = attack.tail.tail.head
       val defendingPlayer = state.boardState(defendingIndex).get.owner
       defendingPlayer match {
-        case neutralDefender: NeutralPlayer => {
+        case _: NeutralPlayer => {
           var defenders = state.boardState(defendingIndex).get.army.size
           if (defenders > 2) {
             defenders = 2
@@ -231,8 +231,8 @@ class SkirmishGameMode extends GameMode {
     * representing the dice rolls.  The amount of attackers takes up
     * that amount in the list first; the last part of the list is the dice rolls
     * for the defenders
-    * @param attackers
-    * @param defenders
+    * @param attackers number of attackers associated with the attack
+    * @param defenders number of defenders associated with the attack
     * @return a list containing the dice roll results, and then the amount of attackers destroyed,
     *         and then the number of defenders destroyed
     */
