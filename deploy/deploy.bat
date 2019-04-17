@@ -16,14 +16,13 @@ set "lines_========================================"
 
 REM scripts
 set binary_build=scripts\binary-build.bat
-set docker_build=scripts\docker-build.bat
+set docker_build=scripts\image-build.bat
 set docker_push=scripts\docker-push.bat
 
 REM parameters
-set registry_name=riskreg
-set registry_server=%registry_name%.azurecr.io
+set registry_name=jazevedo6
 set local_image=risk-main
-set remote_image_name=risk-main
+set remote_image_name=jazevedo6/cs2340-risk
 set remote_image_tag=latest
 set resource_group=cs2340-risk
 set cluster_name=cs2340-risk
@@ -35,6 +34,7 @@ set nopush=false
 set deploy=false
 set nobuild=false
 set init=false
+set dockerlogin=false
 for %%a in (%*) do (
   if "%%a"=="--login" (
     set login=true
@@ -50,6 +50,9 @@ for %%a in (%*) do (
   )
   if "%%a"=="--init" (
     set init=true
+  )
+  if "%%a"=="--dockerlogin" (
+    set dockerlogin=true
   )
 )
 
@@ -84,7 +87,7 @@ if "!commands_found!"=="false" (
 if "%nobuild%"=="false" (
   call %binary_build%
   call :inter_message
-  call %docker_build% %local_image%
+  call %docker_build% --image %local_image%
   call :inter_message
 )
 if "%login%"=="true" (
@@ -95,8 +98,11 @@ if "%login%"=="true" (
   call az aks get-credentials --resource-group %resource_group% --name %cluster_name%
   call :inter_message
 )
+if "%dockerlogin%"=="true" (
+  call docker login
+)
 if "%nopush%"=="false" (
-  call %docker_push% %local_image% %registry_server% %remote_image_name%:%remote_image_tag%
+  call %docker_push% %local_image% %remote_image_name%:%remote_image_tag%
   call :inter_message
 )
 if "%deploy%"=="true" (

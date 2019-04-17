@@ -108,7 +108,7 @@ if "!--war!"=="" (
   REM build docker image
   echo %script_prefix% Building docker image
   PUSHD %deploy_root%
-  call docker build -t "%image_name%" .
+  call docker build -t "!--image!" .
   POPD
 ) else (
   REM build war archive
