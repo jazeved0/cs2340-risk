@@ -46,7 +46,9 @@
     },
     methods: {
       getColor: function(playerIndex) {
-        if (playerIndex < this.$store.state.game.playerStateList.length && playerIndex >= 0) {
+        if (playerIndex === -1) {
+          return '#' + this.$store.state.settings.settings.neutralColor;
+        } else if (playerIndex < this.$store.state.game.playerStateList.length && playerIndex >= 0) {
           // noinspection JSUnresolvedVariable
           return '#' + this.$store.state.settings.settings.colors[
             this.$store.state.game.playerStateList[playerIndex].player.settings.ordinal

@@ -3,7 +3,7 @@ package game.state
 import actors.PlayerWithActor
 import common.Util
 import game.state.TurnState.Idle
-import models.{Army, OwnedArmy, Player}
+import models._
 
 import scala.collection.mutable
 
@@ -23,12 +23,19 @@ class GameState(private var _turnOrder: Seq[PlayerWithActor], territories: Int) 
   var boardState: Array[Option[OwnedArmy]] = Array.fill(territories)(None)
   /** The current turn index */
   var turn = 0
+  /** The current attack; used during the Defense phase of the receiving player */
+  var currentAttack: Option[Seq[Int]] = None
 
   /**
     * The size of the game (number of players)
     * @return The game size, as an Int
     */
   def gameSize: Int = _turnOrder.length
+
+  /**
+    * Returns whether or not the game is currently in a Defense phase
+    */
+  def isInDefense: Boolean = currentAttack.isDefined
 
   /**
     * Getter for turn order
@@ -59,14 +66,24 @@ class GameState(private var _turnOrder: Seq[PlayerWithActor], territories: Int) 
   /**
     * Advances the turn state of the current player, optionally moving the turn
     * along according to the state machine
+    * @param defendingPlayer player object representing the player of defending territory;
+    *                        relevant during the attack phase
     */
-  def advanceTurnState(): Unit = {
-    stateOf(currentPlayer).map(_.turnState.advanceState).foreach {
-      nextState => {
-        this(currentPlayer) = constructPlayerState(currentPlayer, nextState)
-        if (nextState.state == TurnState.Idle) {
-          advanceTurn()
-          this(currentPlayer) = constructPlayerState(currentPlayer, nextState.advanceState)
+  def advanceTurnState(defendingPlayer: Option[Player], payload: (String, Any)*): Unit = {
+    if (defendingPlayer.isDefined) {
+      val player = defendingPlayer.get
+      stateOf(player).map(_.turnState.advanceDefenseState(payload:_*)).foreach {
+        nextState => this (player) = constructPlayerState(player, nextState)
+      }
+    } else {
+      clearPayloads()
+      stateOf(currentPlayer).map(_.turnState.advanceState(payload:_*)).foreach {
+        nextState => {
+          this(currentPlayer) = constructPlayerState(currentPlayer, nextState)
+          if (nextState.state == TurnState.Idle) {
+            advanceTurn()
+            this(currentPlayer) = constructPlayerState(currentPlayer, nextState.advanceState(payload:_*))
+          }
         }
       }
     }
@@ -74,6 +91,21 @@ class GameState(private var _turnOrder: Seq[PlayerWithActor], territories: Int) 
 
   def currentPlayer: Player = turnOrder(turn).player
   def advanceTurn(): Unit = turn = (turn + 1) % gameSize
+  def clearPayloads(): Unit = {
+    playerStates.foreach{
+      playerState => {
+        val player = playerState.player
+        this(player) = constructPlayerState(player, playerState.turnState.clearPayload())
+      }
+    }
+  }
+  def modifyTurnAfterDisconnecting(playerTurn: Int): Unit = {
+    if (playerTurn < turn) {
+      turn -= 1
+    } else if (playerTurn == turn && turn == gameSize - 1) {
+      turn = 0
+    }
+  }
   def constructPlayerState(player: Player, turnState: TurnState): PlayerState =
     PlayerState(player, stateOf(player).get.units, turnState)
 

@@ -12,10 +12,10 @@
       config: function () {
         const state = this.$store.state;
         if (state) {
-          const color = ('color' in this.data
+          const color = ('color' in this.data && this.data.color >= 0
 						&& state.settings.settings.colors.length > this.data.color)
             ? '#' + state.settings.settings.colors[this.data.color]
-            : '#FFFFFF';
+            : '#' + state.settings.settings.neutralColor;
           const position = ('position' in this.data
 						&& state.game.gameboard.centers.length > this.data.position)
 						? state.game.gameboard.centers[this.data.position]

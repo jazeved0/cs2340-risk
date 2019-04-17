@@ -2,9 +2,12 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
 import {ON_SEND_GAMEBOARD, ON_UPDATE_PLAYER_STATE, ON_UPDATE_BOARD_STATE,
-        INCREMENT_TROOP, SUBMIT_REINFORCEMENTS, UNSUBMIT_REINFORCEMENTS} from '.././mutation-types';
-import {ADD_TROOPS} from '.././action-types';
+        INCREMENT_TROOP, SUBMIT_REINFORCEMENTS, UNSUBMIT_REINFORCEMENTS, UPDATE_ATTACK_TERRITORY,
+        UPDATE_DEFEND_TERRITORY, RESET_ATTACK} from '.././mutation-types';
+ import {ADD_TROOPS} from '.././action-types';
 import {initializeGameboardScreen, NETWORK_CTX} from "./game/InitializeGameboardScreen";
+import {seqStringToArray, specialSeqToArray} from '../.././util.js'
+import {UPDATE_ATTACKERS, UPDATE_DEFENDERS} from "../mutation-types";
 
 Vue.use(Vuex);
 
@@ -13,6 +16,12 @@ export default {
     playerStateList: [],
     boardStateList: [],
     turnIndex: -1,
+    attackingTerritory: -1,
+    defendingTerritory: -1,
+    attackers: 0,
+    defenders: 0,
+    diceRolls: [],
+    attackResults: [],
     gameboard: {
       nodeCount: 0,
       pathData: [],
@@ -36,9 +45,57 @@ export default {
     tryInitializeGameboardScreen: initializeGameboardScreen
   },
   mutations: {
+    [UPDATE_ATTACK_TERRITORY](state, territory) {
+      state.attackingTerritory = territory;
+    },
+    [UPDATE_DEFEND_TERRITORY](state, territory) {
+      state.defendingTerritory = territory;
+    },
     [ON_UPDATE_PLAYER_STATE](state, data) {
+      console.log(data);
       if ('seq' in data) {
         state.playerStateList = data.seq;
+        let attackFound = false;
+        let attackResultFound = false;
+        let length = 0;
+        for (let i = 0; i < state.playerStateList.length; i++) {
+          if ('turnState' in state.playerStateList[i]) {
+            let turnState = state.playerStateList[i].turnState;
+            if ('payload' in turnState) {
+              if ('attack' in turnState.payload) {
+                console.log(turnState.payload.attack);
+                attackFound = true;
+                let attack = seqStringToArray(turnState.payload.attack);
+                console.log(attack);
+                state.attackingTerritory = attack[0];
+                state.defendingTerritory = attack[1];
+                state.attackers = attack[2];
+                length = attack.length;
+                if (attack.length === 4){
+                  state.defenders = attack[3];
+                }
+              }
+              if ('result' in turnState.payload) {
+                attackResultFound = true;
+                let result = specialSeqToArray(turnState.payload.result);
+                state.diceRolls = result[0];
+                state.attackResults = [result[1], result[2]];
+              }
+            }
+          }
+        }
+        if (!attackFound) {
+          state.attackingTerritory = -1;
+          state.defendingTerritory = -1;
+          state.attackers = 0;
+        } else if (length < 4) {
+          state.defenders = 0;
+        }
+        if (!attackResultFound) {
+          state.diceRolls = [];
+          state.attackResults = [];
+        }
+
       }
       if ('turn' in data) {
         state.turnIndex = data.turn // index of current turn
@@ -82,6 +139,20 @@ export default {
     },
     [UNSUBMIT_REINFORCEMENTS](state) {
       state.placement.submitted = false;
+    },
+    [RESET_ATTACK](state){
+      state.attackingTerritory = -1;
+      state.defendingTerritory = -1;
+      state.attackers = 0;
+      state.defenders = 0;
+      state.diceRolls = [];
+      state.attackResults = [];
+    },
+    [UPDATE_ATTACKERS](state, amount){
+      state.attackers = amount;
+    },
+    [UPDATE_DEFENDERS](state, amount){
+      state.defenders = amount;
     }
   },
   getters: {

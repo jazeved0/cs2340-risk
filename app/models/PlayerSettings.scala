@@ -42,5 +42,11 @@ object PlayerSettings {
   * @param ordinal The index of the player's color
   */
 case class PlayerSettings(name: String, ordinal: Int) {
-  def color: Color = Resources.Colors.lift(ordinal).getOrElse(Resources.Colors.head)
+  def color: Color = {
+    if (ordinal < 0) {
+      Color("ffffff")
+    } else {
+      Resources.Colors.lift(ordinal).getOrElse(Resources.Colors.head)
+    }
+  }
 }

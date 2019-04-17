@@ -54,6 +54,7 @@ object Resources {
     val AskTimeout = "app.actors.askTimeout"
 
     val Colors = "app.settings.colors"
+    val NeutralColor = "app.settings.neutralColor"
     val GameIdChars = "app.settings.gameIdChars"
     val NameRegex = "app.settings.nameRegex"
     val GameIdLength = "app.settings.gameIdLength"
@@ -68,6 +69,7 @@ object Resources {
     var SkirmishGameboard = "app.gameplay.skirmish.gameboard"
     val SkirmishReinforcementDivisor = "app.gameplay.skirmish.reinforcementDivisor"
     val SkirmishReinforcementBase = "app.gameplay.skirmish.reinforcementBase"
+    val DiceFaces = "app.gameplay.skirmish.diceFaces"
   }
 
   // ********************
@@ -96,6 +98,7 @@ object Resources {
   var FileSpecialMappings: Map[String, String] = _
 
   var Colors: Seq[Color] = _
+  var NeutralColor: Color = _
   var GameIdChars: Seq[Char] = _
   var NameRegex: String = _
   var GameIdLength: Int = _
@@ -110,6 +113,7 @@ object Resources {
   var SkirmishGameboard: Gameboard = _
   var SkirmishReinforcementDivisor: Int = _
   var SkirmishReinforcementBase: Int = _
+  var DiceFaces: Int = _
 
   // *************
   // CONFIG LOADER
@@ -147,6 +151,7 @@ object Resources {
       Resources.AskTimeout = config.get[FiniteDuration](Resources.ConfigKeys.AskTimeout)
 
       Resources.Colors = config.get[Seq[String]](Resources.ConfigKeys.Colors).map(Color)
+      Resources.NeutralColor = Color(config.get[String](Resources.ConfigKeys.NeutralColor))
       Resources.GameIdChars = config.get[String](Resources.ConfigKeys.GameIdChars).toLowerCase.toList
       Resources.NameRegex = config.get[String](Resources.ConfigKeys.NameRegex)
       Resources.GameIdLength = config.get[Int](Resources.ConfigKeys.GameIdLength)
@@ -166,6 +171,7 @@ object Resources {
         Resources.ConfigKeys.SkirmishGameboard))
       Resources.SkirmishReinforcementDivisor = config.get[Int](Resources.ConfigKeys.SkirmishReinforcementDivisor)
       Resources.SkirmishReinforcementBase = config.get[Int](Resources.ConfigKeys.SkirmishReinforcementBase)
+      Resources.DiceFaces = config.get[Int](Resources.ConfigKeys.DiceFaces)
 
       Resources.DirectorySpecialMappings = config.get[Map[String, String]](Resources.ConfigKeys.DirectorySpecialMappings)
       Resources.FileSpecialMappings = config.get[Map[String, String]](Resources.ConfigKeys.FileSpecialMappings)

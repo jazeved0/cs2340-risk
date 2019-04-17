@@ -33,6 +33,14 @@ case class RequestStartGame(gameId: String, playerId: String) extends LobbyPacke
 case class PingResponse(gameId: String, playerId: String) extends GlobalPacket
 /** Requests to place reinforcements at the given territories */
 case class RequestPlaceReinforcements(gameId: String, playerId: String, assignments: Seq[(Int, Int)]) extends InGamePacket
+/** Requests to execute an attack from one territory to another
+  * `attack` contains 3 integers: the first territory index, the second territory index, and the amount of attacking
+  * armies, in that order */
+case class RequestAttack(gameId: String, playerId: String, attack: Seq[Int]) extends InGamePacket
+/** Requests to end the current turn and validate army assignment and attack data */
+case class RequestEndTurn(gameId: String, playerId: String) extends InGamePacket
+/** Serves to receive the chosen amount of defending troops from a player in the Defense phase */
+case class DefenseResponse(gameId: String, playerId: String, defenders: Int) extends InGamePacket
 
 /** Outgoing packets to the network */
 sealed trait OutPacket
@@ -57,14 +65,22 @@ case class SendConfig(config: String) extends OutPacket
 case class SendGameboard(gameboard: Gameboard) extends OutPacket
 /** Updates the gamestate of the gameboard (all territories) */
 case class UpdateBoardState(armies: Map[Int, (Int, Int)]) extends OutPacket
+
 object UpdateBoardState {
   def apply(state: GameState): UpdateBoardState = {
     val playerToInt = state.turnOrder.map(actor => actor.player).zipWithIndex.toMap
     new UpdateBoardState(state.boardState.zipWithIndex
       .filter(t => t._1.isDefined)
-      .map(t => (t._2, (
-        t._1.get.army.size,
-        playerToInt(t._1.get.owner))))
+      .map(
+          t => {
+            val owner = t._1.get.owner
+            val index = owner match {
+              case _: ConcretePlayer => playerToInt(owner)
+              case _: NeutralPlayer => -1
+            }
+            (t._2, (t._1.get.army.size, index))
+          }
+      )
       .toMap)
   }
 }
@@ -98,6 +114,8 @@ object JsonMarshallers {
   implicit val playerSettingsW: Writes[PlayerSettings] = Json.writes[PlayerSettings]
   implicit val armyW: Writes[Army] = Json.writes[Army]
   implicit val playerW: Writes[Player] = Json.writes[Player]
+  implicit val concretePlayer: Writes[ConcretePlayer] = Json.writes[ConcretePlayer]
+  implicit val neutralPlayer: Writes[NeutralPlayer] = Json.writes[NeutralPlayer]
   implicit val stateW: Writes[TurnState.State] = (s: TurnState.State) => JsString(TurnState.State.unapply(s).getOrElse(""))
   implicit val payloadW: Writes[Seq[(String, Any)]] = new PayloadWrites
   implicit val turnStateW: Writes[TurnState] = Json.writes[TurnState]
@@ -114,6 +132,9 @@ object JsonMarshallers {
   implicit val requestStartGame: Reads[RequestStartGame] = Json.reads[RequestStartGame]
   implicit val pingResponse: Reads[PingResponse] = Json.reads[PingResponse]
   implicit val requestPlaceReinforcements: Reads[RequestPlaceReinforcements] = Json.reads[RequestPlaceReinforcements]
+  implicit val requestAttack: Reads[RequestAttack] = Json.reads[RequestAttack]
+  implicit val requestEndTurn: Reads[RequestEndTurn] = Json.reads[RequestEndTurn]
+  implicit val defenseResponse: Reads[DefenseResponse] = Json.reads[DefenseResponse]
 
   // Unused Deserializers; necessary for macros to work
   implicit val playerConnect: Reads[PlayerConnect] = new UnusedFormat[PlayerConnect]

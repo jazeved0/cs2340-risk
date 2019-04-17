@@ -35,6 +35,7 @@ export default new Vuex.Store({
     settings: {
       settings: {
         colors: [],
+        neutralColor: "",
         territoryColors: [],
         nameRegex: "",
         playerIdLength: 0,
