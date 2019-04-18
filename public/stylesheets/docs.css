@@ -200,6 +200,106 @@ ul.thumbnail-list > li div h5 {
   margin-bottom: 8px;
 }
 
+div.ekko-lightbox.modal {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+figure.figure {
+  margin-bottom: 24px;
+}
+
+div.color-display > div {
+  width: 19%;
+  background-color: #ffffff;
+  box-shadow: 2px 2px 8px 2px rgba(0, 0, 0, 0.15);
+  margin-top: 4px;
+  margin-bottom: 4px;
+}
+
+div.color-display > div > h4 {
+  margin: 8px 8px 8px 12px;
+  display: inline-block;
+  font-size: 0.95rem;
+  letter-spacing: 2px;
+}
+
+div.color-display div.color-block {
+  padding: 32px 8px 8px 12px;
+}
+
+div.color-display div.color-block span {
+  font-family: "Source Code Pro", "Monaco", "Ubuntu Mono Regular", "Lucida Console", monospace;
+  font-size: 18px;
+  font-weight: 600;
+  background-color: rgba(255, 255, 255, 0.1);
+  padding-right: 4px;
+  padding-left: 4px;
+  border-radius: 4px;
+  color: #333333
+}
+
+div.color-display div.color-block.light span {
+  color: #F5F2F2;
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+div.fonts {
+  margin: 16px 0 32px 0;
+  padding: 16px 28px 8px 28px;
+  border-radius: 6px;
+  background-color: rgba(255, 255, 255, 0.5);
+}
+
+div.fonts span.font-name {
+  display: block;
+  margin-bottom: 0;
+  font-size: 24px;
+}
+
+div.fonts span.font-description {
+  display: block;
+  margin-bottom: 12px;
+  font-size: 16px;
+  font-style: italic;
+  margin-top: -8px;
+  color: #333333;
+}
+
+div.row-container {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -ms-flex-wrap: wrap;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+div.phone-demo-container {
+  justify-content: start;
+  margin-left: -1em;
+  margin-right: -1em;
+  margin-top: 2em;
+  overflow-x: hidden;
+}
+
+div.phone-demo-container > div {
+  margin-left: 1em;
+  margin-right: 1em;
+  margin-bottom: 1em;
+  overflow-x: hidden;
+}
+
+div.phone-demo-container div.phone-demo {
+  height: 732px;
+  overflow-y: scroll;
+  overflow-x: scroll;
+  margin-bottom: 0.5em;
+}
+
+div.phone-demo-container div.phone-demo > img {
+  width: 412px;
+}
+
 @media(max-width: 767px) {
   ul.thumbnail-list {
     padding-left: 0;
@@ -211,12 +311,8 @@ ul.thumbnail-list > li div h5 {
     max-width: 60px;
     max-height: 60px;
   }
-}
 
-div.ekko-lightbox.modal {
-  background-color: rgba(0, 0, 0, 0.5);
-}
-
-figure.figure {
-  margin-bottom: 24px;
+  div.color-display > div {
+    width: 49%;
+  }
 }

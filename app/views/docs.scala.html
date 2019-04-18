@@ -4,7 +4,7 @@
 
 @()
 <!-- Call base template -->
-@base("Design Documentation") {
+@base("CS 2340 Risk | Design Docs") {
   <!-- Head scripts/css -->
   <link rel="stylesheet" media="screen" href="/static/stylesheets/docs.css">
   <link rel="stylesheet" href="/static/vendor/ekko-lightbox.css">
@@ -22,7 +22,7 @@
       <h2 id="backend">Backend</h2>
       <p>
         <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#uml-diagram"
-            aria-expanded="false" aria-controls="collapseExample">
+            aria-expanded="false" aria-controls="uml-diagram">
           <i class="fas fa-chevron-down mr-2"></i>UML Diagram
         </button>
       </p>
@@ -35,6 +35,8 @@
       </div>
       <h3 id="packet-flow-actors">Packet Flow & Actors</h3>
       <h3 id="caching">Caching</h3>
+      <h3 id="map-ingestion">Map Ingestion</h3>
+      <h3 id="resource-injection">Resource Injection</h3>
 
       <!-- Frontend -->
       <h2 id="frontend">Frontend</h2>
@@ -45,7 +47,7 @@
       </p>
       <ul class="thumbnail-list">
         <li>
-          <img src="/static/images/docs/vuex.svg" />
+          <img src="/static/images/docs/vuex.svg" alt="Vuex logo"/>
           <div>
             <h4>Vuex</h4>
             <h5><a href="https://vuex.vuejs.org/" rel="noopener" target="_blank">Centralized State Management &raquo;</a></h5>
@@ -58,7 +60,7 @@
           </div>
         </li>
         <li>
-          <img src="/static/images/docs/konva.svg" />
+          <img src="/static/images/docs/konva.svg" alt="Konva logo"/>
           <div>
             <h4>Konva</h4>
             <h5><a href="https://konvajs.org/" rel="noopener" target="_blank">HTML Canvas API &raquo;</a></h5>
@@ -72,7 +74,7 @@
         </div>
         </li>
         <li>
-          <img src="/static/images/docs/bootstrap.png" />
+          <img src="/static/images/docs/bootstrap.png" alt="Bootstrap logo"/>
           <div>
             <h4>Bootstrap</h4>
             <h5><a href="https://getbootstrap.com/" rel="noopener" target="_blank">Responsive CSS/JS Framework &raquo;</a></h5>
@@ -102,6 +104,56 @@
           JavaScript library that renders tooltips on HTML elements
         </li>
       </ul>
+
+      <!-- Theme -->
+      <h3 id="theme">Theme</h3>
+      <p>
+        During the initial stages of planning, a color scheme/visual theme was settled on, which is used throughout the entirety
+        of the frontend of the application:
+      </p>
+      <div class="row-container color-display">
+        <div><div class="color-block"       style="background-color: #F5F2F2"><span>#F5F2F2</span></div><h4>Light Shades      </h4></div>
+        <div><div class="color-block"       style="background-color: #D9B34F"><span>#D9B34F</span></div><h4>Light Accent      </h4></div>
+        <div><div class="color-block light" style="background-color: #9793C7"><span>#9793C7</span></div><h4>Main Brand Color  </h4></div>
+        <div><div class="color-block light" style="background-color: #5B78BB"><span>#5B78BB</span></div><h4>Dark Accent       </h4></div>
+        <div><div class="color-block light" style="background-color: #362A4D"><span>#362A4D</span></div><h4>Dark Shades       </h4></div>
+      </div>
+      <div class="fonts">
+        <div>
+          <span class="font-name" style="font-family: Roboto Slab, serif;">Roboto Serif</span>
+          <span class="font-description">Emphasis</span>
+        </div>
+        <div>
+          <span class="font-name" style="font-family: Roboto, sans-serif;">Roboto</span>
+          <span class="font-description">Body/Headings</span>
+        </div>
+      </div>
+
+      <!-- Responsiveness -->
+      <h3 id="responsiveness">Responsiveness</h3>
+      <p>
+        As a part of the project's guidelines, every page in the app's frontend is fully responsive and scales depending on
+        the device width. This was made possible using Bootstrap's CSS classes as well as additional <code>@@media</code> CSS
+        queries.
+      </p>
+      <p>
+        <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#mobile-demos"
+        aria-expanded="false" aria-controls="mobile-demos">
+          <i class="fas fa-chevron-down mr-2"></i>Preview Mobile
+        </button>
+      </p>
+      <div class="collapse" id="mobile-demos">
+        <div class="row-container phone-demo-container">
+          <div>
+            <div class="phone-demo"><img src="/static/images/docs/lander-mobile.png"></div>
+            <figcaption class="figure-caption">The landing page, as it appears on a mobile browser.</figcaption>
+          </div>
+          <div>
+            <div class="phone-demo"><img src="/static/images/docs/lobby-mobile.png"></div>
+            <figcaption class="figure-caption">The lobby screen, as it appears on a mobile browser.</figcaption>
+          </div>
+        </div>
+      </div>
 
       <!-- Structure -->
       <h3 id="structure">Structure</h3>
@@ -145,9 +197,9 @@
         The gameboard scren consists of a few key components:
       </p>
       <ul>
-        <li><strong>Gameboard Map</strong> &ndash; The interactive gameboard map shows the current state of the game board,
-          and allows users to drag and scale their view of the map around. It also displays army tokens on their respective
-          territories, as well as the location of special, stronger territories with castles.</li>
+        <li><strong>Gameboard Map</strong> &ndash; Powered by a Konva canvas, the interactive gameboard map shows the
+          current state of the game board, and allows users to pan and scale their view of the map. It also
+          displays army tokens on their respective territories, as well as the location of special territories with castles.</li>
         <li><strong>Toolbar</strong> &ndash; The toolbar shows the current overall state of the game, as well as any
           relevant controls (depending on the player's turn state).</li>
         <li><strong>Player List</strong> &ndash; The player list shows all connected players, as well as their color
@@ -241,7 +293,7 @@
               jrcs/letsencrypt-nginx-proxy-companion&lbrk;
           &prmt; docker run -d \
               --name risk-main \
-              -e 'LETSENCRYPT_EMAIL=&lt;email&amp;address.com&gt;' \
+              -e 'LETSENCRYPT_EMAIL=&lt;email@address.com&gt;' \
               -e 'LETSENCRYPT_HOST=riskgame.ga' \
               -e 'VIRTUAL_HOST=riskgame.ga' jazevedo6/cs2340-risk:latest""")
     </div>

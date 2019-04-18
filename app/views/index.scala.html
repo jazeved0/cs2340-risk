@@ -3,20 +3,20 @@
 
 @(userForm: Form[PlayerSettings], colorList: Seq[Color], postUrl: Call)(implicit request: MessagesRequestHeader)
 <!-- Call base template -->
-@base("Risk: The Game of Global Domination") {
+@base("CS 2340 Risk") {
   <!-- Head scripts/css -->
   <link rel="stylesheet" media="screen" href="static/stylesheets/index.css">
 } {
   <!-- Header content -->
   <form class="form-inline mr-2 d-none d-md-flex">
     <div class = "content mr-3 mt-3" style="opacity: 0.85;">
-      <p class="subtext">Join Existing Lobby</p>
+      <p id="lobby-form-label" class="subtext">Join Existing Lobby</p>
     </div>
       <!--suppress HtmlUnknownAttribute -->
-    <input id="search_field" class="form-control mr-3" type="search" maxlength="4" placeholder="Lobby Code"
-    autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
-    <input id="search_button" class="btn btn-primary my-2 my-sm-0 white dark_accent"
-    type="submit" value="Join" disabled/>
+    <input id="lobby-field" class="form-control mr-3" type="search" maxlength="4" placeholder="Lobby Code"
+      autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" label="lobby code" aria-labelledby="lobby-form-label">
+    <input id="lobby-button" class="btn btn-primary my-2 my-sm-0 white dark_accent"
+      type="submit" value="Join" disabled/>
   </form>
 } {
   <!-- Intro Blurb -->
