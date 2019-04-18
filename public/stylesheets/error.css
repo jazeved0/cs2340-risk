@@ -59,7 +59,7 @@ main {
 .nav-title {
   font-size: 28px;
   font-family: Roboto, sans-serif;
-  margin-left: 0;
+  margin-left: 8px;
   color: #F5F2F2;
   display: inline;
   position: relative;

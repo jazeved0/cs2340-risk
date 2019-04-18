@@ -75,11 +75,13 @@ body {
 }
 
 /* Modify padding and add shadow to nav, color */
-nav {
+nav.navbar {
   padding: .2rem 1rem !important;
   box-shadow: 0 0 72px rgba(0, 0, 0, .37);
   min-height: 62px;
   box-sizing: initial;
+  justify-content: normal;
+  display: -webkit-box;
 }
 
 /* Striped background */
@@ -94,6 +96,19 @@ nav {
   background-color: #EBEAEE;
   z-index: 10;
   box-shadow: 0 0 72px rgba(0, 0, 0, .37);
+}
+
+a {
+  color: #1a73e8;
+}
+
+a:hover {
+  text-decoration: none;
+  color: #1a73e8;
+}
+
+a:active {
+  text-decoration: underline;
 }
 
 /* Increases upper margin */
@@ -128,10 +143,9 @@ nav {
   background-color: rgb(35, 35, 35) !important;
 }
 
-a {
-  color: #455488;
-}
-
-a:hover {
-  color: #5B78BB;
+/* transition jitter fix */
+i.repoImg {
+  position: relative;
+  top: 1px;
+  font-weight: initial;
 }

@@ -9,14 +9,23 @@ h1 {
 h2 {
   font-family: Roboto, sans-serif;
   font-size: 1.8rem;
-  margin-top: 12px;
+  margin-top: 24px;
   margin-bottom: 12px;
 }
 
 h3 {
   font-family: Roboto, sans-serif;
   font-size: 1.25rem;
-  margin-bottom: 20px;
+  margin-top: 28px;
+  margin-bottom: 12px;
+}
+
+h4 {
+  font-family: Roboto, sans-serif;
+  font-size: 1.1rem;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  font-weight: 500;
 }
 
 /* Colored link styles */
@@ -66,19 +75,36 @@ a#return-home {
   top: -20px;
 }
 
+a.strong {
+  color: #455488;
+  font-weight: 600;
+}
+a.strong:hover {
+  color: #5B78BB;
+}
+
 strong {
   font-weight: 500;
 }
 
-a {
-  font-weight: 600;
-}
-
 pre.terminal {
-  color: #F5F2F2;
-  background-color: rgba(25, 25, 25, 0.81);
+  background-color: #282c34;
   border-radius: 6px;
   padding: 16px 20px;
+}
+
+pre.terminal br {
+  display: block;
+  margin: 10px 0;
+  content: " ";
+}
+
+pre.terminal span.prompt::before {
+  content: "$ ";
+}
+
+pre.terminal span.win-prompt::before {
+  content: "> ";
 }
 
 div.content-wrapper {
@@ -90,4 +116,107 @@ div.collapse {
 }
 div.collapse:not(.in):not(.collapsing) {
   display: none;
+}
+
+div.note {
+  padding: 12px 20px;
+  background-color: rgba(91, 120, 187, 0.16);
+  border-left: 6px solid #5B78BB;
+  margin-bottom: 1rem;
+}
+div.note > p:last-child {
+  margin-bottom: 0;
+}
+
+*:not(pre) > code {
+  background-color: #f6f5f9;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 2px;
+  padding: 2px 3px;
+  margin: -2px 1px;
+  color: #655689;
+}
+ol {
+  font-weight: 500;
+  color: #655689;
+}
+ol li p {
+  padding: 0 8px;
+  font-weight: 400;
+  color: #212529;
+  border-left: 1px solid #999;
+  margin-bottom: 0;
+}
+ol li p em {
+  display:block;
+}
+
+.hljs-comment, .hljs-quote {
+  color: #6a717d!important;
+}
+
+*[id]:before {
+  display: block;
+  content: " ";
+  margin-top: -92px;
+  height: 92px;
+  visibility: hidden;
+}
+
+ul.thumbnail-list {
+  list-style-type: none;
+  margin-top: 24px;
+  margin-bottom: 0;
+}
+
+ul.thumbnail-list > li {
+  padding: 10px;
+  overflow: auto;
+  display: flex;
+  align-content: start;
+  justify-content: start;
+}
+
+ul.thumbnail-list > li img {
+  flex-grow: 0;
+  margin: 0 28px 0 0;
+  max-width: 80px;
+  max-height: 80px;
+}
+
+ul.thumbnail-list > li div {
+  flex-grow: 1;
+}
+
+ul.thumbnail-list > li div h4 {
+  margin-bottom: 0;
+}
+
+ul.thumbnail-list > li div h5 {
+  font-size: 0.9rem;
+  font-weight: 400;
+  color: #666666;
+  font-style: italic;
+  margin-bottom: 8px;
+}
+
+@media(max-width: 767px) {
+  ul.thumbnail-list {
+    padding-left: 0;
+  }
+
+  ul.thumbnail-list > li img {
+    float: left;
+    margin: 0 28px 0 0;
+    max-width: 60px;
+    max-height: 60px;
+  }
+}
+
+div.ekko-lightbox.modal {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+figure.figure {
+  margin-bottom: 24px;
 }

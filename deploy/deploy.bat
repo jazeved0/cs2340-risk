@@ -33,7 +33,6 @@ set login=false
 set nopush=false
 set deploy=false
 set nobuild=false
-set init=false
 set dockerlogin=false
 for %%a in (%*) do (
   if "%%a"=="--login" (
@@ -47,9 +46,6 @@ for %%a in (%*) do (
   )
   if "%%a"=="--nopush" (
     set nopush=true
-  )
-  if "%%a"=="--init" (
-    set init=true
   )
   if "%%a"=="--dockerlogin" (
     set dockerlogin=true

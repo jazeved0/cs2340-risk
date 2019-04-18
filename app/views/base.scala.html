@@ -1,4 +1,4 @@
-@(title: String, headContent: String = "")(content: Html)
+@(title: String)(head: Html = Html(""))(headerContent: Html = Html(""))(content: Html = Html(""))(footerScripts: Html = Html(""))
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -9,13 +9,22 @@
         <link rel="shortcut icon" type="image/png" href="/static/images/favicon.png">
         <link href="/static/stylesheets/base.css" rel="stylesheet">
         <link href="https://fonts.googleapis.com/css?family=Roboto:200,300,400,600,700|Roboto+Slab" rel="stylesheet preconnect">
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js" type="text/javascript"></script>
-        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js" rel="preconnect" as="script"></script>
         <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
         <meta name="theme-color" content="#191919">
-        @{Html(headContent)}
+        @head
     </head>
     <body>
-        @content
+        <div class="footer-content-wrapper">
+            <!-- Header -->
+            @header(headerContent)
+            <main>
+                @content
+            </main>
+            <!-- Footer -->
+            @footer()
+        </div>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js" type="text/javascript"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js" rel="preconnect"></script>
+        @footerScripts
     </body>
 </html>

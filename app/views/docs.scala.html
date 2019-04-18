@@ -1,57 +1,255 @@
-@()
-@base("Risk: The Game of Global Domination", "<link rel=\"stylesheet\" media=\"screen\" href=\"/static/stylesheets/docs.css\">") {
-  <div class="footer-content-wrapper">
-    <header>
-      <nav class="navbar fixed-top navbar-dark bg-dark">
-        <div>
-          <a class="navbar-brand" href="https://github.gatech.edu/achafos3/CS2340Sp19Team10" target="_blank" rel="noopener">
-            <i class="fab fa-github repoImg pl-2"></i>
-          </a>
-        </div>
-      </nav>
-    </header>
+@import views.DocsFormat.terminal
+@import views.DocsFormat.link
+@import views.DocsFormat.note
 
-    <main>
-      <div class="light-background-container content-wrapper">
-        <div class="container py-5">
-          <a id="return-home" href="/"><i class="fas fa-chevron-left mr-2"></i>Return Home</a>
-          <h1>Design Docs</h1>
-          <a class="link-color" href="/docs/api/">Scaladocs</a>
-          <h2 id="overview">Overview</h2>
-          <h3 id="network-model">Network Model</h3>
-          <h3 id="game-flow">Game Flow</h3>
-          <h2 id="backend">Backend</h2>
-          <p>
-            <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#uml-diagram" aria-expanded="false" aria-controls="collapseExample">
-              <i class="fas fa-chevron-down mr-2"></i>UML Diagram
-            </button>
-          </p>
-          <div class="collapse" id="uml-diagram">
-            <div class="card card-body mb-3">
-              <object data="/docs/backend.uml.pdf" type="application/pdf" width="100%" height="800px">
-                <a class="link-color" href="/docs/backend.uml.pdf">PDF file</a>
-              </object>
-            </div>
-          </div>
-          <h3 id="packet-flow">Packet Flow</h3>
-          <h2 id="frontend">Frontend</h2>
-          <h2 id="deployment">Deployment</h2>
-          <p>
-            CS 2340 Risk is deployed within a Docker container on a bare metal server running <a href="https://www.ubuntu.com/server" target="_blank" rel="noopener">Ubuntu Server</a>. The container itself is based on the <a href="https://hub.docker.com/_/openjdk" target="_blank" rel="noopener">openjdk:8-jre-alpine</a> image, which runs a Java 8 JRE on an Alpine Linux OS. The entire application is packaged in a <a href="https://cloud.docker.com/repository/docker/jazevedo6/cs2340-risk" target="_blank" rel="noopener">single docker image hosted on DockerHub</a>, which can be deployed by running the following commands:
-            <pre class="terminal">
-$ sudo docker pull jazevedo6/cs2340-risk:latest
-$ sudo docker run -it -p 9000:9000 -p 9443:9443 --name &lt;name&gt; jazevedo6/cs2340-risk:latest</pre>
-            By default, the application exposes ports <strong>9000</strong> and <strong>9443</strong> for HTTP and HTTPS respectively.
-          </p>
-          <h3 id="docker-compose">Docker Compose</h3>
-          <h3 id="ssl-termination">SSL Termination</h3>
-          <h3 id="build-pipeline">Build Pipeline</h3>
+@()
+<!-- Call base template -->
+@base("Design Documentation") {
+  <!-- Head scripts/css -->
+  <link rel="stylesheet" media="screen" href="/static/stylesheets/docs.css">
+  <link rel="stylesheet" href="/static/vendor/ekko-lightbox.css">
+  <link rel="stylesheet" href="/static/vendor/atom-one-dark.min.css">
+}() {
+  <!-- Content -->
+  <div class="light-background-container content-wrapper">
+    <div class="container py-5">
+      <a id="return-home" href="/" class="strong"><i class="fas fa-chevron-left mr-2"></i>Return Home</a>
+      <h1>Design Docs</h1>
+      <a class="link-color" href="/docs/api/">Scaladocs</a>
+      <h2 id="overview">Overview</h2>
+      <h3 id="network-model">Network Model</h3>
+      <h3 id="game-flow">Game Flow</h3>
+      <h2 id="backend">Backend</h2>
+      <p>
+        <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#uml-diagram"
+            aria-expanded="false" aria-controls="collapseExample">
+          <i class="fas fa-chevron-down mr-2"></i>UML Diagram
+        </button>
+      </p>
+      <div class="collapse" id="uml-diagram">
+        <div class="card card-body mb-3">
+          <object data="/docs/backend.uml.pdf" type="application/pdf" width="100%" height="800px">
+            <a class="link-color" href="/docs/backend.uml.pdf">PDF file</a>
+          </object>
         </div>
       </div>
-    </main>
+      <h3 id="packet-flow-actors">Packet Flow & Actors</h3>
+      <h3 id="caching">Caching</h3>
 
-    @footer()
-    <script type="text/javascript" src="/static/vendor/anchor.min.js"></script>
-    <script type="text/javascript" src="/static/javascripts/docs.js"></script>
+      <!-- Frontend -->
+      <h2 id="frontend">Frontend</h2>
+      <p>
+        The frontend of CS 2340 Risk was built using @link("https://vuejs.org/", "Vue.js"), a JavaScript
+        framework specializing in making Single Page Applications (SPAs). In addition to the base Vue library, the core
+        of the frontend utilizes a small handful of other open source libraries:
+      </p>
+      <ul class="thumbnail-list">
+        <li>
+          <img src="/static/images/docs/vuex.svg" />
+          <div>
+            <h4>Vuex</h4>
+            <h5><a href="https://vuex.vuejs.org/" rel="noopener" target="_blank">Centralized State Management &raquo;</a></h5>
+            <p>
+              In this app, Vuex is used extensively as the central location of various state information involving the frontend,
+              such as the current player, the other players in the same game, and the state of the board. Vuex uses a commit
+              system for pushing state changes that allows Vue's reactive binding system to cache values and update them
+              only as necessary.
+            </p>
+          </div>
+        </li>
+        <li>
+          <img src="/static/images/docs/konva.svg" />
+          <div>
+            <h4>Konva</h4>
+            <h5><a href="https://konvajs.org/" rel="noopener" target="_blank">HTML Canvas API &raquo;</a></h5>
+            <p>
+              Konva is a library for using the @link("https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API", "native HTML Canvas API"),
+              providing many utilities like transitioning, layer management, and event handling. Specifically, the Vue
+              bindings for this library are used, called @link("https://github.com/konvajs/vue-konva", "Vue Konva"), which
+              fuses the strengths of vanilla Konva with Vue's reactive data binding. This allowed the gameboard's display
+              to be bound directly to the Vuex state, updating only as necessary.
+            </p>
+        </div>
+        </li>
+        <li>
+          <img src="/static/images/docs/bootstrap.png" />
+          <div>
+            <h4>Bootstrap</h4>
+            <h5><a href="https://getbootstrap.com/" rel="noopener" target="_blank">Responsive CSS/JS Framework &raquo;</a></h5>
+            <p>
+              Bootstrap provides numerous useful CSS classes and javascript utilities, and is used throughout the entirety
+              of CS 2340 Risk (both in the static site and in the SPA). In the Vue SPA, specialized Vue bindings for Bootstrap,
+              called @link("https://bootstrap-vue.js.org/", "Bootstrap Vue"), were used, which enables the use of Bootstrap
+              controls such as Alerts and Modals in a much more idiomatic way using reactive bindings.
+            </p>
+          </div>
+        </li>
+      </ul>
+
+      <!-- Additional libraries -->
+      <h3 id="additional-libraries">Additional Libraries</h3>
+      <ul>
+        <li>
+          <a href="https://fontawesome.com/" rel="noopener" target="_blank">FontAwesome</a> &ndash;
+          Free SVG/webfont icon library used throughout the app
+        </li>
+        <li>
+          <a href="https://github.com/nathantsoi/vue-native-websocket" rel="noopener" target="_blank">Vue Native Websocket</a> &ndash;
+          Vue bindings for the @link("https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API", "native WebSocket API")
+        </li>
+        <li >
+          <a href="https://popper.js.org/" rel="noopener" target="_blank">Popper.js</a> &ndash;
+          JavaScript library that renders tooltips on HTML elements
+        </li>
+      </ul>
+
+      <!-- Structure -->
+      <h3 id="structure">Structure</h3>
+      <p>
+        The initial pages of the web application, such as the @link("/", "landing page"), @link("/notfound", "error page"),
+        and the documentation page, are all rendered on the backend using Scala Play's @link("https://github.com/playframework/twirl",
+        "Twirl templating engine"). Besides those, the remainder of the application resides on a single page built using
+        Vue, which, much like the backend's <code>Game</code> actor, has two primary states: lobby and in-game.
+      </p>
+
+      <!-- Lobby state -->
+      <h3 id="lobby-vue"><code>LobbyScreen.vue</code></h3>
+      <figure class="figure full-screenshot">
+        <a href="/static/images/docs/lobby-screen.jpg" data-toggle="lightbox">
+          <img src="/static/images/docs/lobby-screen.jpg" class="figure-img img-fluid rounded" alt="Lobby screen screenshot">
+        </a>
+        <figcaption class="figure-caption">The lobby screen, as it appears on the live app.</figcaption>
+      </figure>
+      <p>
+        In the lobby screen, the client establishes a websocket connection with the server, and receives packets pertaining
+        to updates to the lobby (player leave/join). The host has the option to start the game once enough players have joined,
+        at which point the server backend will undergo a state change and process initial game conditions. Once the new game
+        state has been determined, the server will notify all connected (and properly joined) players in the lobby that it
+        is starting. At this point, the Vue SPA will asynchronously load the <code>GameboardScreen</code> component before
+        displaying it.
+      </p>
+      @note {
+        Loading the gameboard screen this way allows for the JavaScript bundler tool, @link("https://webpack.js.org/", "Webpack"),
+        to generate module bundles for the lobby and gameboard screens separately, saving on initial load time.
+      }
+
+      <!-- In-game state -->
+      <h3 id="gameboard-screen-vue"><code>GameboardScreen.vue</code></h3>
+      <figure class="figure full-screenshot">
+        <a href="/static/images/docs/gameboard-screen.jpg" data-toggle="lightbox">
+          <img src="/static/images/docs/gameboard-screen.jpg" class="figure-img img-fluid rounded" alt="Gameboard screen screenshot">
+        </a>
+        <figcaption class="figure-caption">The gameboard screen, as it appears on the live app.</figcaption>
+      </figure>
+      <p>
+        The gameboard scren consists of a few key components:
+      </p>
+      <ul>
+        <li><strong>Gameboard Map</strong> &ndash; The interactive gameboard map shows the current state of the game board,
+          and allows users to drag and scale their view of the map around. It also displays army tokens on their respective
+          territories, as well as the location of special, stronger territories with castles.</li>
+        <li><strong>Toolbar</strong> &ndash; The toolbar shows the current overall state of the game, as well as any
+          relevant controls (depending on the player's turn state).</li>
+        <li><strong>Player List</strong> &ndash; The player list shows all connected players, as well as their color
+          &amp; their total troops. It also highlights the player whose turn it is.</li>
+      </ul>
+
+      <!-- Deployment -->
+      <h2 id="deployment">Deployment</h2>
+      <div class="text-center">
+        <img src="/static/images/docs/deployment.svg" class="rounded mb-4 mt-2" alt="deployment diagram" style="max-height: 120px;">
+      </div>
+      <p>
+        CS 2340 Risk is deployed within a Docker container on a bare metal server running
+        @link("https://www.ubuntu.com/server", "Ubuntu Server"). The container itself is based on the
+        @link("https://hub.docker.com/_/openjdk", "openjdk:8-jre-alpine") image, which runs a Java 8
+        JRE on an @link("https://alpinelinux.org/", "Alpine Linux OS"). The entire application is packaged in a
+        @link("https://hub.docker.com/r/jazevedo6/cs2340-risk", "single docker image hosted on DockerHub"),
+        which can be deployed by running the following commands:
+        @terminal("""
+          &prmt; docker pull jazevedo6/cs2340-risk:latest
+          &prmt; docker run -d --name risk-main jazevedo6/cs2340-risk:latest""")
+        By default, the application exposes port <strong>80</strong> for HTTP, with direct HTTPS connections disabled in production.
+      </p>
+
+      <!-- Build Pipeline -->
+      <h3 id="build-pipeline">Build Pipeline</h3>
+      <p>
+        The application is built using a series of Windows batch scripts designed to streamline compiling, packaging, and deploying
+        on a handful of platforms. In the past, the deployment scripts have been configured to build and deploy
+        docker containers to @link("https://www.openshift.com/products/online/", "OpenShift Online") and
+        @link("https://docs.microsoft.com/en-us/azure/aks/", "Microsoft Azure"), both within orchestration environments
+        (@link("https://www.openshift.com/", "OpenShift") & @link("https://kubernetes.io/", "Kubernetes")). At the moment, the build
+        script is configured to package the application within a singular docker container for use on bare metal deployments
+        (such as its current deployment configuration).
+      </p>
+      <p>
+        All build scripts reside in the <code>deploy/scripts/</code> project directory, with the exception of the main build script,
+        <code>deploy/deploy.bat</code>. At a high level, the main script performs the following operations:
+      </p>
+      <ol>
+        <li><p>Builds the Vue.js front-end by calling <code>npm runScript buildProd</code></p></li>
+        <li><p>Builds the Play backend by calling <code>sbt dist</code></p></li>
+        <li><p>Includes additional files in the binary (such as <code>docs/</code> and <code>data/</code>)</p></li>
+        <li><p>Builds a Docker image according to the Dockerfile in <code>deploy/</code></p></li>
+        <li><p>Tags and pushes the Docker image to a specified repository (currently, the one on
+          @link("https://hub.docker.com/r/jazevedo6/cs2340-risk", "DockerHub"))</p></li>
+      </ol>
+      <p><i>Reference for main build script:</i></p>
+      @terminal("""
+          &wrmt; deploy.bat&lbrk;
+          Usage:
+            deploy.bat [options]
+          Options:
+            --nobuild       Skips the binary build step
+            --nopush        Skips tagging and pushing the built docker image
+            --dockerlogin   Calls docker login before pushing the image; helpful for the first run of the command
+            --login         Logs into Azure/AKS services
+            --deploy        Deploys the updated image to Kubernetes, switching between tags to force updates""",
+        highlight=false)
+
+      <!-- SSL Termination -->
+      <h3 id="ssl-termination">SSL Termination</h3>
+      <p>
+        In order to support HTTPS connections (and to enforce their usage), an @link("https://www.nginx.com/", "Nginx")
+        server was used as a reverse proxy frontend, providing SSL termination to the Play backend. The
+        @link("https://cloud.google.com/community/tutorials/nginx-reverse-proxy-docker",
+          "Google Cloud Platform documentation on the subject") was used as a guide to setting it up. The exact commands
+        used to start the Nginx server, its accompanying @link("https://letsencrypt.org/", "LetsEncrypt") companion
+        (providing SSL certs), and the application image itself are listed below:
+        @note {
+          The <code>:alpine</code> tag is used for the Nginx proxy server to provide
+          @link("https://github.com/jwilder/nginx-proxy#jwildernginx-proxyalpine", "full support for HTTP/2")
+        }
+        @terminal("""
+          &prmt; cd
+          &prmt; mkdir certs
+          &prmt; docker run -d -p 80:80 -p 443:443 \
+              --name nginx-proxy \
+              -v $HOME/certs:/etc/nginx/certs:ro \
+              -v /etc/nginx/vhost.d \
+              -v /usr/share/nginx/html \
+              -v /var/run/docker.sock:/tmp/docker.sock:ro \
+              -e 'HTTPS_METHOD=redirect' \
+              --label com.github.jrcs.letsencrypt_nginx_proxy_companion.nginx_proxy=true \
+              jwilder/nginx-proxy:alpine&lbrk;
+          &prmt; docker run -d \
+              --name nginx-letsencrypt \
+              --volumes-from nginx-proxy \
+              -v $HOME/certs:/etc/nginx/certs:rw \
+              -v /var/run/docker.sock:/var/run/docker.sock:ro \
+              jrcs/letsencrypt-nginx-proxy-companion&lbrk;
+          &prmt; docker run -d \
+              --name risk-main \
+              -e 'LETSENCRYPT_EMAIL=&lt;email&amp;address.com&gt;' \
+              -e 'LETSENCRYPT_HOST=riskgame.ga' \
+              -e 'VIRTUAL_HOST=riskgame.ga' jazevedo6/cs2340-risk:latest""")
+    </div>
   </div>
+} {
+  <!-- Footer scripts/css -->
+  <script type="text/javascript" src="/static/vendor/anchor.min.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+  <script type="text/javascript" src="/static/vendor/ekko-lightbox.min.js"></script>
+  <script type="text/javascript" src="/static/javascripts/docs.js"></script>
 }

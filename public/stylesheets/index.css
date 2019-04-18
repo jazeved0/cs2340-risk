@@ -177,9 +177,3 @@
 .form-fix dl dd.info, .form-fix dl dt label {
   display: none
 }
-
-/* transition jitter fix */
-.repoImg {
-  position: relative;
-  top: 1px;
-}

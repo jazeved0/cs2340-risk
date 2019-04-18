@@ -103,7 +103,8 @@ class FileController(val controllerComponents: MessagesControllerComponents)
     if (Resources.DocsEnabled || !path.startsWith("docs/api")) {
       formatDocsFilepath(Resources.DocsRoot.init)(path)
     } else {
-      Error("API docs are not enabled", StatusCodes.MOVED_PERMANENTLY)
+      Error("API docs are not enabled (try building for production)",
+        StatusCodes.MOVED_PERMANENTLY)
     }
 
   def findByKey[K, V](map: Map[K, V], pred: K => Boolean): Option[V] = {
