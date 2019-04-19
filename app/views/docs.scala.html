@@ -15,28 +15,29 @@
     <div class="container py-5">
       <a id="return-home" href="/" class="strong"><i class="fas fa-chevron-left mr-2"></i>Return Home</a>
       <h1>Design Docs</h1>
-      <a class="link-color" href="/docs/api/">Scaladocs</a>
       <h2 id="overview">Overview</h2>
       <h3 id="network-model">Network Model</h3>
       <h3 id="game-flow">Game Flow</h3>
+
+      <!-- Backend -->
       <h2 id="backend">Backend</h2>
+      <a class="link-color" href="/docs/api/">Scaladocs</a>
+      <a class="link-color" href="/docs/backend.uml.pdf">UML Diagram</a>
       <p>
-        <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#uml-diagram"
-            aria-expanded="false" aria-controls="uml-diagram">
-          <i class="fas fa-chevron-down mr-2"></i>UML Diagram
-        </button>
+        The backend of CS 2340 Risk is built in Scala using the Play Framework and its underlying Akka web server.
       </p>
-      <div class="collapse" id="uml-diagram">
-        <div class="card card-body mb-3">
-          <object data="/docs/backend.uml.pdf" type="application/pdf" width="100%" height="800px">
-            <a class="link-color" href="/docs/backend.uml.pdf">PDF file</a>
-          </object>
-        </div>
-      </div>
+
+      <!-- Packet Flow & Actors -->
       <h3 id="packet-flow-actors">Packet Flow & Actors</h3>
+
+      <!-- Caching -->
       <h3 id="caching">Caching</h3>
-      <h3 id="map-ingestion">Map Ingestion</h3>
+
+        <!-- Resource Injection -->
       <h3 id="resource-injection">Resource Injection</h3>
+
+      <!-- Map ingestion -->
+      <h3 id="map-ingestion">Map Ingestion</h3>
 
       <!-- Frontend -->
       <h2 id="frontend">Frontend</h2>
