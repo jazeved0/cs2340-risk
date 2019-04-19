@@ -1,6 +1,9 @@
 @import views.DocsFormat.terminal
 @import views.DocsFormat.link
+@import views.DocsFormat.hLink
 @import views.DocsFormat.note
+@import views.DocsFormat.logs
+@import views.DocsFormat.code
 
 @()
 <!-- Call base template -->
@@ -8,7 +11,7 @@
   <!-- Head scripts/css -->
   <link rel="stylesheet" media="screen" href="/static/stylesheets/docs.css">
   <link rel="stylesheet" href="/static/vendor/ekko-lightbox.css">
-  <link rel="stylesheet" href="/static/vendor/atom-one-dark.min.css">
+  <link rel="stylesheet" href="/static/vendor/atom-one-dark.css">
 }() {
   <!-- Content -->
   <div class="light-background-container content-wrapper">
@@ -40,12 +43,66 @@
         <li><code>models</code>: Miscellaneous data transfer objects</li>
         <li><code>views</code>: Twirl templates &amp; related formatting code</li>
       </ul>
+
+      <!-- Scalastyle notes -->
       @note {
-        <h4>Scalastyle Notes</h4>
+        <h4 class="margin">Scalastyle Notes</h4>
         <p>
           The following @link("http://www.scalastyle.org/", "Scalatyle") warnings are due to deliberate design patterns:
         </p>
-
+        <div class="terminal-header"><code>FastIntSet.scala</code>
+          @hLink("https://github.gatech.edu/achafos3/CS2340Sp19Team10/blob/indev/app/common/FastIntSet.scala"){
+            View on Github<i class="fas fa-chevron-right ml-2"></i>
+          }("strong sub-link github-link")
+        </div>
+        @logs("""
+          [warn] \app\common\FastIntSet.scala:18:15: Method name does not match the regular expression '^[a-z][A-Za-z0-9]*$'
+          [warn] \app\common\FastIntSet.scala:23:15: Method name does not match the regular expression '^[a-z][A-Za-z0-9]*$'""")
+        <span class="code-break"></span>
+        @code("""
+          class FastIntSet(private val source: Set[Int]) extends Set[Int] {
+            ...
+            override def +(elem: Int): Set[Int]
+            override def -(elem: Int): Set[Int]
+          }&lbrk;
+          // These methods are required for implementing the Set[T] trait from the Scala collections API""", "scala")
+        <div class="terminal-header"><code>GameState.scala</code>
+          @hLink("https://github.gatech.edu/achafos3/CS2340Sp19Team10/blob/indev/app/game/state/GameState.scala"){
+            View on Github<i class="fas fa-chevron-right ml-2"></i>
+          }("strong sub-link github-link")
+        </div>
+        @logs("""
+          [warn] \app\game\state\GameState.scala:51:6: Method name does not match the regular expression '^[a-z][A-Za-z0-9]*$'""")
+        <span class="code-break"></span>
+        @code("""
+          class GameState(private var _turnOrder: Seq[PlayerWithActor], territories: Int) {
+            ...
+            def turnOrder_=(newOrder: Seq[PlayerWithActor]): Unit = {
+              // maintain proper internal state
+              ...
+              _turnOrder = newOrder
+            }
+          }&lbrk;
+          // This method uses Scala syntax sugar to create a mutator for turnOrder that allows the class to ensure it
+          // has a valid internal state directly after the mutation""", "scala")
+        <div class="terminal-header"><code>Army.scala</code> &amp; <code>OwnedArmy.scala</code>
+          @hLink("https://github.gatech.edu/achafos3/CS2340Sp19Team10/tree/indev/app/models"){
+            View on Github<i class="fas fa-chevron-right ml-2"></i>
+          }("strong sub-link github-link")
+        </div>
+        @logs("""
+          [warn] \app\models\Army.scala:14:6: Method name does not match the regular expression '^[a-z][A-Za-z0-9]*$'
+          [warn] \app\models\OwnedArmy.scala:17:6: Method name does not match the regular expression '^[a-z][A-Za-z0-9]*$'""")
+        <span class="code-break"></span>
+        @code("""
+          case class OwnedArmy(army: Army, owner: Player) {
+            def +(amount: Int): OwnedArmy = OwnedArmy(this.army + amount, this.owner)
+          }&lbrk;
+          case class Army(size: Int) {
+            def +(amount: Int): Army = Army(size + amount)
+          }&lbrk;
+          // These methods allow for natural syntax when incrementing/decrementing troop amounts, as Army/OwnedArmy
+          // are primarily number wrapper DTOs""", "scala")
       }(wrapper = false)
 
         <!-- Packet Flow & Actors -->
@@ -142,7 +199,7 @@
       </div>
       <div class="fonts">
         <div>
-          <span class="font-name" style="font-family: Roboto Slab, serif;">Roboto Serif</span>
+          <span class="font-name" style="font-family: Roboto Slab, serif;">Roboto Slab</span>
           <span class="font-description">Emphasis</span>
         </div>
         <div>
@@ -246,6 +303,19 @@
         By default, the application exposes port <strong>80</strong> for HTTP, with direct HTTPS connections disabled in production.
       </p>
 
+      <!-- Dockerfile -->
+      <h3 id="dockerfile">Dockerfile</h3>
+      @hLink("https://github.gatech.edu/achafos3/CS2340Sp19Team10/blob/indev/deploy/Dockerfile"){
+        View on Github<i class="fas fa-chevron-right ml-2"></i>
+      }("strong sub-link")
+      @code("""
+        FROM openjdk:8-jre-alpine
+        COPY svc /svc
+        EXPOSE 80
+        # Add bash interpreter to alpine linux
+        RUN apk add --no-cache bash
+        CMD /svc/bootstrap""", "dockerfile")
+
       <!-- Build Pipeline -->
       <h3 id="build-pipeline">Build Pipeline</h3>
       <p>
@@ -323,7 +393,7 @@
 } {
   <!-- Footer scripts/css -->
   <script type="text/javascript" src="/static/vendor/anchor.min.js"></script>
-  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+  <script type="text/javascript" src="/static/vendor/highlight.pack.js"></script>
   <script type="text/javascript" src="/static/vendor/ekko-lightbox.min.js"></script>
   <script type="text/javascript" src="/static/javascripts/docs.js"></script>
 }
