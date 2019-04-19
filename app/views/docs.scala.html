@@ -19,16 +19,37 @@
       <h3 id="network-model">Network Model</h3>
       <h3 id="game-flow">Game Flow</h3>
 
-      <!-- Backend -->
+        <!-- Backend -->
       <h2 id="backend">Backend</h2>
       <a class="link-color" href="/docs/api/">Scaladocs</a>
       <a class="link-color" href="/docs/backend.uml.pdf">UML Diagram</a>
       <p>
-        The backend of CS 2340 Risk is built in Scala using the Play Framework and its underlying Akka web server.
+        The backend of CS 2340 Risk is built in Scala using the @link("https://www.playframework.com/", "Play Framework")
+        and its underlying @link("https://akka.io/", "Akka") web server. The backend serves two primary purposes: acting
+        as a webserver that serves static @link("https://github.com/playframework/twirl", "Twirl") pages/other files and
+        acting as a Websocket backend for the gameplay portion of the app. The packages are roughly divided into the following
+        categories:
       </p>
+      <ul>
+        <li><code>actors</code>: Akka actor classes/wrapper classes</li>
+        <li><code>common</code>: Common utility code not related to any specific task</li>
+        <li><code>controllers</code>: Play controller code for general routes, websocket handling, and file routing</li>
+        <li><code>game</code>: Gameplay code and the related traits/classes</li>
+        <li><code>game.mode</code>: Gameplay code that processes gamestate and updates it accordingly</li>
+        <li><code>game.state</code>: Data wrapper objects used to hold state (mix between mutable & immutable)</li>
+        <li><code>models</code>: Miscellaneous data transfer objects</li>
+        <li><code>views</code>: Twirl templates &amp; related formatting code</li>
+      </ul>
+      @note {
+        <h4>Scalastyle Notes</h4>
+        <p>
+          The following @link("http://www.scalastyle.org/", "Scalatyle") warnings are due to deliberate design patterns:
+        </p>
 
-      <!-- Packet Flow & Actors -->
-      <h3 id="packet-flow-actors">Packet Flow & Actors</h3>
+      }(wrapper = false)
+
+        <!-- Packet Flow & Actors -->
+      <h3 id="packet-flow-actors">Packet Flow &amp; Actors</h3>
 
       <!-- Caching -->
       <h3 id="caching">Caching</h3>
@@ -184,7 +205,7 @@
       @note {
         Loading the gameboard screen this way allows for the JavaScript bundler tool, @link("https://webpack.js.org/", "Webpack"),
         to generate module bundles for the lobby and gameboard screens separately, saving on initial load time.
-      }
+      }()
 
       <!-- In-game state -->
       <h3 id="gameboard-screen-vue"><code>GameboardScreen.vue</code></h3>
@@ -273,7 +294,7 @@
         @note {
           The <code>:alpine</code> tag is used for the Nginx proxy server to provide
           @link("https://github.com/jwilder/nginx-proxy#jwildernginx-proxyalpine", "full support for HTTP/2")
-        }
+        }()
         @terminal("""
           &prmt; cd
           &prmt; mkdir certs

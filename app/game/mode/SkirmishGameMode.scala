@@ -1,7 +1,7 @@
 package game.mode
 
 import actors.PlayerWithActor
-import common.{Resources, Util}
+import common.{Impure, Pure, Resources, Util}
 import controllers._
 import game.Gameboard
 import game.mode.GameMode._
@@ -9,8 +9,8 @@ import game.state.TurnState._
 import game.state.{GameState, PlayerState, TurnState}
 import models.{Army, NeutralPlayer, OwnedArmy, Player}
 import play.api.Logger
-import scala.math.min
 
+import scala.math.min
 import scala.util.Random
 
 /**
@@ -23,29 +23,43 @@ class SkirmishGameMode extends GameMode {
   /** GameMode-specific gameboard, loaded through Resource injection */
   lazy override val gameboard: Gameboard = Resources.SkirmishGameboard
 
+  @Impure.Nondeterministic
   override def assignTurnOrder(players: Seq[PlayerWithActor]): Seq[PlayerWithActor] =
     Random.shuffle(players)
 
+  @Impure
   override def initializeGameState(callback: Callback)(implicit state: GameState): Unit = {
     // Assign territories to players
     val perTerritory = Resources.SkirmishInitialArmy
     val territoryIndices = Util.listBuffer(Random.shuffle(state.boardState.indices.toList))
-    val firstPlayer = state.turnOrder.head.player
-    calculateAllocations(state).zipWithIndex.foreach { case (allocation, index) =>
+    calculateAllocations(state).zipWithIndex.foreach { case (allocation, playerIndex) =>
       // Sample and then remove from remaining territories
-      val territories = territoryIndices.take(allocation)
-      territoryIndices --= territories
+      val sample = territoryIndices.take(allocation)
+      territoryIndices --= sample
       // Add OwnedArmy's to each of the sampled territories
-      territories.foreach { i =>
-        val army = OwnedArmy(Army(perTerritory), state.turnOrder(index).player)
-        state.boardState.update(i, Some(army))
-      }
+      val player = state.turnOrder(playerIndex).player
+      val army = Some(OwnedArmy(Army(perTerritory), player))
+      sample.foreach(state.boardState.update(_, army))
       // Update the total army count for the player and assign turn states
-      val player = state.turnOrder(index).player
-      state.playerStates.update(index, PlayerState(player, Army(allocation * perTerritory),
-        if (player == firstPlayer) reinforcement(player) else TurnState(Idle)))
+      state(player) = initialPlayerState(playerIndex, allocation * perTerritory)
     }
-    callback.broadcast(UpdateBoardState(state), None)
+  }
+
+  /**
+    * Creates a PlayerState object for the given player, starting the first player
+    * according to the turn order at the Reinforcement turn state
+    * @param playerIndex The index of the player
+    * @param armies The total number of armies they have
+    * @param state The state of the game
+    * @return A new PlayerState object for them
+    */
+  @Pure
+  def initialPlayerState(playerIndex: Int, armies: Int)(implicit state: GameState): PlayerState = {
+    val player = state.playerStates(playerIndex).player
+    playerIndex match {
+      case 0 => PlayerState(player, Army(armies), reinforcement(player))
+      case _ => PlayerState(player, Army(armies), TurnState(Idle))
+    }
   }
 
   /**
@@ -56,6 +70,7 @@ class SkirmishGameMode extends GameMode {
     * @return A new TurnState object for Reinforcement State containing the
     *         calculated allocation
     */
+  @Pure
   def reinforcement(player: Player)(implicit state: GameState): TurnState =
     TurnState(Reinforcement, "amount" -> calculateReinforcement(player))
 
@@ -66,13 +81,14 @@ class SkirmishGameMode extends GameMode {
     * @param state The GameState context object
     * @return The number of reinforcements the player should receive, as an Int
     */
+  @Pure
   def calculateReinforcement(player: Player)(implicit state: GameState): Int = {
-    val conquered = state.boardState.zipWithIndex
-      .filter { case (oaOption, _) => oaOption.isDefined && oaOption.get.owner == player }
+    val conquered = state.ownedByZipped(player)
     val territories = conquered.length
-    val castles = conquered.count { case (_, index) => gameboard.nodes(index).dto.hasCastle }
+    val castles = conquered.count { case (_, index) => gameboard.hasCastle(index) }
     val base = Resources.SkirmishReinforcementBase
     val divisor = Resources.SkirmishReinforcementDivisor
+    // Calculate according to the formula max(floor(territories + castles) / 3), 3)
     Math.max(Math.floor((territories + castles) / divisor.toDouble), base.toDouble).toInt
   }
 
@@ -84,6 +100,7 @@ class SkirmishGameMode extends GameMode {
     * @return A list giving the number of army tokens each player should receive,
     *         ordered by the turn order
     */
+  @Pure
   def calculateAllocations(implicit state: GameState): Seq[Int] = {
     val base = state.boardState.length / state.gameSize
     val remainder = state.boardState.length % state.gameSize
@@ -97,6 +114,7 @@ class SkirmishGameMode extends GameMode {
     }
   }
 
+  @Impure.SideEffects
   override def handlePacket(packet: InGamePacket, callback: Callback)
                            (implicit state: GameState): Unit = {
     state.turnOrder.find(a => a.id == packet.playerId).foreach { player =>
@@ -113,7 +131,6 @@ class SkirmishGameMode extends GameMode {
     }
   }
 
-
   /**
     * Handles incoming request place reinforcements packet. Validates the
     * request and then sends a RequestReply depending on whether the request
@@ -126,6 +143,7 @@ class SkirmishGameMode extends GameMode {
     * @param assignments The proposed assignments Seq[(territory index -> amount)]
     * @param state The GameState context object
     */
+  @Impure.SideEffects
   def requestPlaceReinforcements(callback: GameMode.Callback, actor: PlayerWithActor,
                                  assignments: Seq[(Int, Int)])
                                 (implicit state: GameState): Unit = {
@@ -137,13 +155,12 @@ class SkirmishGameMode extends GameMode {
         val index = tuple._1
         val increment = tuple._2
         val oldArmy = state.boardState(index)
-        oldArmy.foreach(army => state.boardState(index) =
-          Some(OwnedArmy(army.army += increment, army.owner)))
+        oldArmy.foreach(army => state.boardState(index) = Some(army + increment))
       })
       val total = assignments.map(_._2).sum
       val oldState = state.stateOf(actor.player)
       oldState.foreach(ps => state(actor.player) =
-        PlayerState(actor.player, ps.units += total, ps.turnState))
+        PlayerState(actor.player, ps.units + total, ps.turnState))
       state.advanceTurnState(None)
       callback.broadcast(UpdateBoardState(state), None)
       callback.broadcast(UpdatePlayerState(state), None)
@@ -162,6 +179,7 @@ class SkirmishGameMode extends GameMode {
     * @param attack The proposed attack Seq[1st territory index, 2nd territory index, attack amount]
     * @param state The GameState context object
     */
+  @Impure.SideEffects
   def requestAttack(callback: GameMode.Callback, actor: PlayerWithActor,
                     attack: Seq[Int])
                    (implicit state: GameState): Unit = {
@@ -209,6 +227,7 @@ class SkirmishGameMode extends GameMode {
     * @param defenders the number of defenders the person defending has requested
     * @param state The GameState context object
     */
+  @Impure.SideEffects
   def defenseResponse(callback: GameMode.Callback, actor: PlayerWithActor,
                       defenders: Int)
                    (implicit state: GameState): Unit = {
@@ -236,6 +255,7 @@ class SkirmishGameMode extends GameMode {
     * @return a list containing the dice roll results, and then the amount of attackers destroyed,
     *         and then the number of defenders destroyed
     */
+  @Impure
   def attackResult(attackers: Int, defenders: Int, state: GameState): (Seq[Int], Int, Int) = {
     val faces = Resources.DiceFaces
     var attackerResult = (for(_ <- 1 to attackers) yield 1 + scala.util.Random.nextInt(faces)).sortWith(_ > _)
@@ -256,26 +276,27 @@ class SkirmishGameMode extends GameMode {
     if (attackingArmy.isDefined && defendingArmy.isDefined) {
       state.boardState.update(
         state.currentAttack.get.head,
-        Some(OwnedArmy(attackingArmy.get.army += -1 * attackersDestroyed, attackingArmy.get.owner))
+        Some(OwnedArmy(attackingArmy.get.army + (-1 * attackersDestroyed), attackingArmy.get.owner))
       )
       state.boardState.update(
         state.currentAttack.get.tail.head,
-        Some(OwnedArmy(defendingArmy.get.army += -1 * defendersDestroyed, defendingArmy.get.owner))
+        Some(OwnedArmy(defendingArmy.get.army + (-1 * defendersDestroyed), defendingArmy.get.owner))
       )
       if (state.boardState(state.currentAttack.get.tail.head).get.army.size == 0) {
         state.boardState.update(
           state.currentAttack.get.head,
-          Some(OwnedArmy(state.boardState(state.currentAttack.get.head).get.army += -1, attackingArmy.get.owner))
+          Some(OwnedArmy(state.boardState(state.currentAttack.get.head).get.army + -1, attackingArmy.get.owner))
         )
         state.boardState.update(
           state.currentAttack.get.tail.head,
-          Some(OwnedArmy(state.boardState(state.currentAttack.get.tail.head).get.army += 1, attackingArmy.get.owner))
+          Some(OwnedArmy(state.boardState(state.currentAttack.get.tail.head).get.army + 1, attackingArmy.get.owner))
         )
       }
     }
     (attackerResult ++ defenderResult, attackersDestroyed, defendersDestroyed)
   }
 
+  @Impure.SideEffects
   def requestEndTurn(callback: GameMode.Callback, actor: PlayerWithActor)
                      (implicit state: GameState): Unit = {
     val logger = Logger(this.getClass).logger
@@ -298,6 +319,7 @@ class SkirmishGameMode extends GameMode {
     * @param state The GameState context object
     * @return
     */
+  @Impure.SideEffects
   def validateReinforcements(callback: GameMode.Callback, actor: PlayerWithActor,
                              assignments: Seq[(Int, Int)])
                             (implicit state: GameState): Boolean = {
@@ -343,6 +365,7 @@ class SkirmishGameMode extends GameMode {
     * @param state The GameState context object
     * @return
     */
+  @Impure.SideEffects
   def validateAttack(callback: GameMode.Callback, actor: PlayerWithActor,
                      attack: Seq[Int])(implicit state: GameState): Boolean = {
     if (state.isInDefense) {
@@ -400,6 +423,7 @@ class SkirmishGameMode extends GameMode {
     * @param state The GameState context object
     * @return
     */
+  @Impure.SideEffects
   def validateDefenseResponse(callback: GameMode.Callback, actor: PlayerWithActor,
                               defenders: Int)
                              (implicit state: GameState): Boolean = {
@@ -435,6 +459,7 @@ class SkirmishGameMode extends GameMode {
     }
   }
 
+  @Impure.SideEffects
   override def playerDisconnect(actor: PlayerWithActor, callback: Callback)
                                (implicit state: GameState): Unit = {
     if (state.isInDefense) {
@@ -483,6 +508,7 @@ class SkirmishGameMode extends GameMode {
     * @param turnOrder The turn order of the game (sent from the Game actor)
     * @return A GameState object
     */
+  @Pure
   override def makeGameState(turnOrder: Seq[PlayerWithActor]): GameState = {
     val seq = IndexedSeq() ++ turnOrder
     new GameState(seq, gameboard.nodeCount)

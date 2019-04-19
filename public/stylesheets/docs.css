@@ -22,9 +22,9 @@ h3 {
 
 h4 {
   font-family: Roboto, sans-serif;
-  font-size: 1.1rem;
+  font-size: 0.95rem;
+  letter-spacing: 2px;
   text-transform: uppercase;
-  letter-spacing: 3px;
   font-weight: 500;
 }
 
@@ -191,6 +191,8 @@ ul.thumbnail-list > li div {
 }
 
 ul.thumbnail-list > li div h4 {
+  font-size: 1.1rem;
+  letter-spacing: 3px;
   margin-bottom: 0;
 }
 
@@ -221,8 +223,6 @@ div.color-display > div {
 div.color-display > div > h4 {
   margin: 8px 8px 8px 12px;
   display: inline-block;
-  font-size: 0.95rem;
-  letter-spacing: 2px;
 }
 
 div.color-display div.color-block {

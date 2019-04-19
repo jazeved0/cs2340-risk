@@ -19,4 +19,9 @@ case class Gameboard(nodes: Seq[Node], regions: Seq[Inclusive],
     * @return The size of the nodes list
     */
   def nodeCount: Int = nodes.length
+
+  def hasCastle(territoryIndex: Int): Boolean = territoryIndex match {
+    case i if territoryIndex > 0 && territoryIndex <= nodes.length => nodes(i).dto.hasCastle
+    case _ => false
+  }
 }

@@ -22,8 +22,8 @@ object DocsFormat {
   def link(url: String, text: String): Html =
     Html(s"""<a href="$url" target="_blank" rel="noopener">$text</a>""")
 
-  def note(content: Html): Html = {
-    Html(s"""<div class="note"><p><strong>Note: </strong>${content.toString()}</p></div>""")
+  def note(content: Html)(wrapper: Boolean = true): Html = {
+    Html(s"""<div class="note">${if (wrapper) s"""<p><strong>Note: </strong>${content.toString()}</p>""" else content.toString()}</div>""")
   }
 
   def removeLeadingIndent(source: String): String = {

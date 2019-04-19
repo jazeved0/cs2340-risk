@@ -129,4 +129,18 @@ class GameState(private var _turnOrder: Seq[PlayerWithActor], territories: Int) 
       case i => playerStates(i) = newState
     }
   }
+
+  /**
+    * Zips the board state with its indices and filters by territories with
+    * armies owned by the specified player
+    * @param player The player to filter ownership by
+    * @return A list of tuples giving (OwnedArmy, index)
+    */
+  def ownedByZipped(player: Player): Seq[(OwnedArmy, Int)] =
+    this.boardState.zipWithIndex.filter { case (oaOption, _) =>
+      oaOption match {
+        case Some(ownedArmy) => ownedArmy.owner == player
+        case _ => false
+      }
+    }.map { case (oaOption, index) => (oaOption.get, index) }
 }
