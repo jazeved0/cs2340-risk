@@ -22,9 +22,9 @@ h3 {
 
 h4 {
   font-family: Roboto, sans-serif;
-  font-size: 1.1rem;
+  font-size: 0.95rem;
+  letter-spacing: 2px;
   text-transform: uppercase;
-  letter-spacing: 3px;
   font-weight: 500;
 }
 
@@ -72,9 +72,9 @@ h4 {
   margin-left: -1.125em !important;
 }
 
-a#return-home {
+a#return-home, .sub-link {
   position: relative;
-  top: -20px;
+  top: -18px;
 }
 
 a.strong {
@@ -125,6 +125,10 @@ div.note {
   background-color: rgba(91, 120, 187, 0.16);
   border-left: 6px solid #5B78BB;
   margin-bottom: 1rem;
+}
+div.note.yellow-note {
+  background-color: rgba(217, 179, 79, 0.16);
+  border-left: 6px solid #D9B34F;
 }
 div.note > p:last-child {
   margin-bottom: 0;
@@ -191,10 +195,12 @@ ul.thumbnail-list > li div {
 }
 
 ul.thumbnail-list > li div h4 {
+  font-size: 1.1rem;
+  letter-spacing: 3px;
   margin-bottom: 0;
 }
 
-ul.thumbnail-list > li div h5 {
+ul.thumbnail-list > li div h5, .sub-link {
   font-size: 0.9rem;
   font-weight: 400;
   color: #666666;
@@ -221,8 +227,6 @@ div.color-display > div {
 div.color-display > div > h4 {
   margin: 8px 8px 8px 12px;
   display: inline-block;
-  font-size: 0.95rem;
-  letter-spacing: 2px;
 }
 
 div.color-display div.color-block {
@@ -300,6 +304,28 @@ div.phone-demo-container div.phone-demo {
 
 div.phone-demo-container div.phone-demo > img {
   width: 412px;
+}
+
+span.code-break {
+  content: " ";
+  margin-bottom: -36px;
+  display: block;
+}
+
+.terminal-header code {
+  margin-bottom: 0;
+  padding-left: 8px;
+  padding-right: 8px;
+  display: inline-block;
+}
+
+h4.margin {
+  margin-top: 8px;
+}
+
+a.github-link {
+  top: 0;
+  margin-left: 4px;
 }
 
 @media(max-width: 767px) {

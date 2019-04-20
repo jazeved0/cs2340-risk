@@ -1,6 +1,9 @@
 @import views.DocsFormat.terminal
 @import views.DocsFormat.link
+@import views.DocsFormat.hLink
 @import views.DocsFormat.note
+@import views.DocsFormat.logs
+@import views.DocsFormat.code
 
 @()
 <!-- Call base template -->
@@ -8,7 +11,7 @@
   <!-- Head scripts/css -->
   <link rel="stylesheet" media="screen" href="/static/stylesheets/docs.css">
   <link rel="stylesheet" href="/static/vendor/ekko-lightbox.css">
-  <link rel="stylesheet" href="/static/vendor/atom-one-dark.min.css">
+  <link rel="stylesheet" href="/static/vendor/atom-one-dark.css">
 }() {
   <!-- Content -->
   <div class="light-background-container content-wrapper">
@@ -19,16 +22,91 @@
       <h3 id="network-model">Network Model</h3>
       <h3 id="game-flow">Game Flow</h3>
 
-      <!-- Backend -->
+        <!-- Backend -->
       <h2 id="backend">Backend</h2>
       <a class="link-color" href="/docs/api/">Scaladocs</a>
       <a class="link-color" href="/docs/backend.uml.pdf">UML Diagram</a>
       <p>
-        The backend of CS 2340 Risk is built in Scala using the Play Framework and its underlying Akka web server.
+        The backend of CS 2340 Risk is built in Scala using the @link("https://www.playframework.com/", "Play Framework")
+        and its underlying @link("https://akka.io/", "Akka") web server. The backend serves two primary purposes: acting
+        as a webserver that serves static @link("https://github.com/playframework/twirl", "Twirl") pages/other files and
+        acting as a Websocket backend for the gameplay portion of the app. The packages are roughly divided into the following
+        categories:
       </p>
+      <ul>
+        <li><code>actors</code>: Akka actor classes/wrapper classes</li>
+        <li><code>common</code>: Common utility code not related to any specific task</li>
+        <li><code>controllers</code>: Play controller code for general routes, websocket handling, and file routing</li>
+        <li><code>game</code>: Gameplay code and the related traits/classes</li>
+        <li><code>game.mode</code>: Gameplay code that processes gamestate and updates it accordingly</li>
+        <li><code>game.state</code>: Data wrapper objects used to hold state (mix between mutable & immutable)</li>
+        <li><code>models</code>: Miscellaneous data transfer objects</li>
+        <li><code>views</code>: Twirl templates &amp; related formatting code</li>
+      </ul>
 
-      <!-- Packet Flow & Actors -->
-      <h3 id="packet-flow-actors">Packet Flow & Actors</h3>
+      <!-- Scalastyle notes -->
+      @note {
+        <h4 class="margin">Scalastyle Notes</h4>
+        <p>
+          The following @link("http://www.scalastyle.org/", "Scalatyle") warnings are due to deliberate design patterns:
+        </p>
+        <div class="terminal-header"><code>FastIntSet.scala</code>
+          @hLink("https://github.gatech.edu/achafos3/CS2340Sp19Team10/blob/indev/app/common/FastIntSet.scala"){
+            View on Github<i class="fas fa-chevron-right ml-2"></i>
+          }("strong sub-link github-link")
+        </div>
+        @logs("""
+          [warn] \app\common\FastIntSet.scala:18:15: Method name does not match the regular expression '^[a-z][A-Za-z0-9]*$'
+          [warn] \app\common\FastIntSet.scala:23:15: Method name does not match the regular expression '^[a-z][A-Za-z0-9]*$'""")
+        <span class="code-break"></span>
+        @code("""
+          class FastIntSet(private val source: Set[Int]) extends Set[Int] {
+            ...
+            override def +(elem: Int): Set[Int]
+            override def -(elem: Int): Set[Int]
+          }&lbrk;
+          // These methods are required for implementing the Set[T] trait from the Scala collections API""", "scala")
+        <div class="terminal-header"><code>GameState.scala</code>
+          @hLink("https://github.gatech.edu/achafos3/CS2340Sp19Team10/blob/indev/app/game/state/GameState.scala"){
+            View on Github<i class="fas fa-chevron-right ml-2"></i>
+          }("strong sub-link github-link")
+        </div>
+        @logs("""
+          [warn] \app\game\state\GameState.scala:51:6: Method name does not match the regular expression '^[a-z][A-Za-z0-9]*$'""")
+        <span class="code-break"></span>
+        @code("""
+          class GameState(private var _turnOrder: Seq[PlayerWithActor], territories: Int) {
+            ...
+            def turnOrder_=(newOrder: Seq[PlayerWithActor]): Unit = {
+              // maintain proper internal state
+              ...
+              _turnOrder = newOrder
+            }
+          }&lbrk;
+          // This method uses Scala syntax sugar to create a mutator for turnOrder that allows the class to ensure it
+          // has a valid internal state directly after the mutation""", "scala")
+        <div class="terminal-header"><code>Army.scala</code> &amp; <code>OwnedArmy.scala</code>
+          @hLink("https://github.gatech.edu/achafos3/CS2340Sp19Team10/tree/indev/app/models"){
+            View on Github<i class="fas fa-chevron-right ml-2"></i>
+          }("strong sub-link github-link")
+        </div>
+        @logs("""
+          [warn] \app\models\Army.scala:14:6: Method name does not match the regular expression '^[a-z][A-Za-z0-9]*$'
+          [warn] \app\models\OwnedArmy.scala:17:6: Method name does not match the regular expression '^[a-z][A-Za-z0-9]*$'""")
+        <span class="code-break"></span>
+        @code("""
+          case class OwnedArmy(army: Army, owner: Player) {
+            def +(amount: Int): OwnedArmy = OwnedArmy(this.army + amount, this.owner)
+          }&lbrk;
+          case class Army(size: Int) {
+            def +(amount: Int): Army = Army(size + amount)
+          }&lbrk;
+          // These methods allow for natural syntax when incrementing/decrementing troop amounts, as Army/OwnedArmy
+          // are primarily number wrapper DTOs""", "scala")
+      }(wrapper = false)
+
+        <!-- Packet Flow & Actors -->
+      <h3 id="packet-flow-actors">Packet Flow &amp; Actors</h3>
 
       <!-- Caching -->
       <h3 id="caching">Caching</h3>
@@ -121,7 +199,7 @@
       </div>
       <div class="fonts">
         <div>
-          <span class="font-name" style="font-family: Roboto Slab, serif;">Roboto Serif</span>
+          <span class="font-name" style="font-family: Roboto Slab, serif;">Roboto Slab</span>
           <span class="font-description">Emphasis</span>
         </div>
         <div>
@@ -184,7 +262,7 @@
       @note {
         Loading the gameboard screen this way allows for the JavaScript bundler tool, @link("https://webpack.js.org/", "Webpack"),
         to generate module bundles for the lobby and gameboard screens separately, saving on initial load time.
-      }
+      }()
 
       <!-- In-game state -->
       <h3 id="gameboard-screen-vue"><code>GameboardScreen.vue</code></h3>
@@ -224,6 +302,19 @@
           &prmt; docker run -d --name risk-main jazevedo6/cs2340-risk:latest""")
         By default, the application exposes port <strong>80</strong> for HTTP, with direct HTTPS connections disabled in production.
       </p>
+
+      <!-- Dockerfile -->
+      <h3 id="dockerfile">Dockerfile</h3>
+      @hLink("https://github.gatech.edu/achafos3/CS2340Sp19Team10/blob/indev/deploy/Dockerfile"){
+        View on Github<i class="fas fa-chevron-right ml-2"></i>
+      }("strong sub-link")
+      @code("""
+        FROM openjdk:8-jre-alpine
+        COPY svc /svc
+        EXPOSE 80
+        # Add bash interpreter to alpine linux
+        RUN apk add --no-cache bash
+        CMD /svc/bootstrap""", "dockerfile")
 
       <!-- Build Pipeline -->
       <h3 id="build-pipeline">Build Pipeline</h3>
@@ -273,7 +364,7 @@
         @note {
           The <code>:alpine</code> tag is used for the Nginx proxy server to provide
           @link("https://github.com/jwilder/nginx-proxy#jwildernginx-proxyalpine", "full support for HTTP/2")
-        }
+        }()
         @terminal("""
           &prmt; cd
           &prmt; mkdir certs
@@ -302,7 +393,7 @@
 } {
   <!-- Footer scripts/css -->
   <script type="text/javascript" src="/static/vendor/anchor.min.js"></script>
-  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+  <script type="text/javascript" src="/static/vendor/highlight.pack.js"></script>
   <script type="text/javascript" src="/static/vendor/ekko-lightbox.min.js"></script>
   <script type="text/javascript" src="/static/javascripts/docs.js"></script>
 }

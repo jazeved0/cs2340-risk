@@ -1,7 +1,7 @@
 package game.mode
 
 import actors.PlayerWithActor
-import controllers.{InGamePacket, OutPacket, SendGameboard, UpdatePlayerState}
+import controllers._
 import game.Gameboard
 import game.mode.GameMode._
 import game.state.GameState
@@ -43,6 +43,7 @@ trait GameMode {
     *  3. Call makeGameState with the previously assigned turn order
     *  4. Call initializeGameState to perform any initialization actions
     *  5. Broadcast the generated player state
+    *  5. Broadcast the generated board state
     *  6. Broadcast and send any other OutPackets from the latent callbacks
     * @param joinOrder The join order from the Game actor
     * @param callback The Callback object providing a means of sending outgoing
@@ -63,6 +64,7 @@ trait GameMode {
     val gameState = makeGameState(turnOrder)
     initializeGameState(latentCallback)(gameState)
     callback.broadcast(UpdatePlayerState(gameState), None)
+    callback.broadcast(UpdateBoardState(gameState), None)
 
     // Consume earlier built latent callbacks
     messageQueue.foreach { case (flag, payload) => callback(payload, flag) }

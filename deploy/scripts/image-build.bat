@@ -20,8 +20,9 @@ set start_script=bootstrap
 set dockerfile=%deploy_root%\Dockerfile
 set temp_dir=%tmp%\image-build
 set make_war=make-war.ps1
+set transform-script=transform-docs.py
 set result_file=results.txt
-set "options=--war:"" --image:"""
+set "options=--war:"" --image:"" --transform-docs:"
 
 for %%O in (%options%) do for /f "tokens=1,* delims=:" %%A in ("%%O") do set "%%A=%%~B"
 :loop
@@ -103,6 +104,11 @@ POPD
 echo %script_prefix% Preparing image environment
 echo %intermediate_prefix% Copying %deploy_root%\%start_script% to %dist_target%\%start_script%
 copy "%deploy_root%\%start_script%" "%dist_target%\%start_script%" > nul
+
+if NOT "!--transform-docs!"=="" (
+  echo %intermediate_prefix% Transforming docs files
+  call py %~dp0%transform-script%
+)
 
 if "!--war!"=="" (
   REM build docker image

@@ -9,22 +9,51 @@ import scala.util.matching.Regex
 object DocsFormat {
   val TerminalMap: mutable.Map[String, String] = mutable.LinkedHashMap(
     """&lbrk;\S*[\n\r]+""" -> "<br/>",
-    "&prmt; " -> "<span class=\"prompt\"></span>",
-    "&wrmt; " -> "<span class=\"win-prompt\"></span>"
+    "&prmt; " -> "<span class=\"prompt hljs-symbol\"></span>",
+    "&wrmt; " -> "<span class=\"win-prompt hljs-symbol\"></span>"
   )
   val LeadingSpaceRegex: Regex = """^[\r\n]+([ ]*)""".r
   val NewlineRegex: String = """[\r\n]+"""
   val Newline: String = "\n"
 
   def terminal(text: String, highlight: Boolean = true): Html =
-    Html(s"""<pre class="terminal"><code${if (highlight) """ class="bash"""" else ""}>${applyMap(removeLeadingIndent(text), TerminalMap)}</code></pre>""")
+    Html(s"""<pre class="terminal"><code${
+      if (highlight) {
+        """ class="bash""""
+      } else {
+        ""
+      }
+    }>${applyMap(removeLeadingIndent(text), TerminalMap)}</code></pre>""")
+
+  def code(text: String, language: String = ""): Html =
+    Html(s"""<pre class="terminal"><code${
+      if (!language.isEmpty) {
+        s""" class="$language""""
+      } else {
+        ""
+      }
+    }>${applyMap(removeLeadingIndent(text), TerminalMap)}</code></pre>""")
 
   def link(url: String, text: String): Html =
     Html(s"""<a href="$url" target="_blank" rel="noopener">$text</a>""")
 
-  def note(content: Html): Html = {
-    Html(s"""<div class="note"><p><strong>Note: </strong>${content.toString()}</p></div>""")
-  }
+  def hLink(url: String)(content: Html)(classes: String = ""): Html =
+    Html(s"""<a href="$url" target="_blank" rel="noopener" class="$classes">${content.toString}</a>""")
+
+  def note(content: Html)(wrapper: Boolean = true, theme: String = "blue"): Html =
+    Html(s"""<div class="note${ theme match {
+      case "yellow" => " yellow-note"
+      case _ => ""
+    }}">${
+      if (wrapper) {
+        s"""<p><strong>Note: </strong>${content.toString()}</p>"""
+      } else {
+        content.toString()
+      }
+    }</div>""")
+
+  def logs(text: String): Html =
+    Html(s"""<pre class="terminal"><code>${applyMap(removeLeadingIndent(text), TerminalMap)}</code></pre>""")
 
   def removeLeadingIndent(source: String): String = {
     val spaces: String = LeadingSpaceRegex.findAllIn(source).matchData.collectFirst { case i => i }

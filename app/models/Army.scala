@@ -11,5 +11,5 @@ case class Army(size: Int) {
     * @return A new Army object
     */
   // noinspection ScalaStyle
-  def +=(amount: Int): Army = Army(size + amount)
+  def +(amount: Int): Army = Army(size + amount)
 }
