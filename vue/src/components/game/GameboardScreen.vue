@@ -575,6 +575,10 @@
         };
       },
       territoryClick: function (num) {
+        console.log(this.$store.state.game.attackingTerritory);
+        console.log(this.$store.state.game.defendingTerritory);
+        console.log(this.$store.getters.boardStates[num]);
+        console.log(this.$store.state.game.gameboard.territories[num]);
         if (this.isInReinforcement) {
           if (this.$store.state.game.placement.total < this.allocation) {
             this.addTerritory(num);
@@ -584,7 +588,7 @@
           const owned = this.$store.getters.boardStates[num].owner === turnIndex;
           if (owned && this.$store.getters.boardStates[num].amount > 1) {
             this.$store.commit(UPDATE_ATTACK_TERRITORY, num);
-          } else {
+          } else if (!owned) {
             if (this.$store.state.game.attackingTerritory !== -1) {
               if (this.$store.state.game.gameboard.territories[this.$store.state.game.attackingTerritory].connections.includes(num)) {
                 this.$store.commit(UPDATE_DEFEND_TERRITORY, num);
