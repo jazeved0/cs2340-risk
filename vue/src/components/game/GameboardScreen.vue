@@ -327,7 +327,7 @@
         var visited = new Set();
         var que = [];
 
-        var startTerritoryIndex = this.$store.state.game.attackingTerritory;
+        var startTerritoryIndex = this.$store.state.game.movingTerritoryOrigin;
         var startTerritory = this.$store.state.game.gameboard.territories[startTerritoryIndex];
         const turnIndex = this.$store.state.game.turnIndex;
 
@@ -436,7 +436,6 @@
             }
           }
         })
-       // console.log('owo')
       },
       territoryMouseOver: function (num) {
         this.mouseOver = num;
@@ -605,17 +604,13 @@
         };
       },
       territoryClick: function (num) {
-        console.log(this.$store.state.game.attackingTerritory);
-        console.log(this.$store.state.game.defendingTerritory);
-        console.log(this.$store.getters.boardStates[num]);
-        console.log(this.$store.state.game.gameboard.territories[num]);
+        const turnIndex = this.$store.state.game.turnIndex;
+        const owned = this.$store.getters.boardStates[num].owner === turnIndex;
         if (this.isInReinforcement) {
           if (this.$store.state.game.placement.total < this.allocation) {
             this.addTerritory(num);
           }
-        } else if (this.isInAttacking) {
-          const turnIndex = this.$store.state.game.turnIndex;
-          const owned = this.$store.getters.boardStates[num].owner === turnIndex;
+        } else if (this.isInAttacking) { // TODO don't allow selection of territories with no surrounding enemies
           if (owned && this.$store.getters.boardStates[num].amount > 1) {
             this.$store.commit(UPDATE_ATTACK_TERRITORY, num);
           } else if (!owned) {
@@ -626,6 +621,39 @@
             }
           }
         }
+        // else if (this.isInDefending) {
+        //   const numAlliedSurrounding = this.$store.state.game.gameboard.territories[num].connections.filter(t => this.$store.getters.boardStates[t].owner === turnIndex).length;
+        //   if (owned && numAlliedSurrounding > 0) {
+        //     if (this.$store.state.game.movingTerritoryOrigin === -1) {
+        //       this.$store.commit(UPDATE_MOVE_ORIGIN, num);
+        //     }
+        //     else {
+        //       var visited = new Set();
+        //       var que = [];
+        //
+        //       var startTerritoryIndex = this.$store.state.game.movingTerritoryOrigin;
+        //       var startTerritory = this.$store.state.game.gameboard.territories[startTerritoryIndex];
+        //       const turnIndex = this.$store.state.game.turnIndex;
+        //
+        //       que.push(startTerritory);
+        //       visited.add(startTerritoryIndex);
+        //
+        //       while (que.length !== 0) {
+        //         var dequed = que.shift();
+        //         if (dequed.territory === num) {
+        //           this.$store.commit(UPDATE_MOVE_TARGET, num);
+        //           return;
+        //         } else {
+        //           dequed.connections.filter(territory => !visited.has(territory) && this.$store.getters.boardStates[territory].owner === turnIndex).forEach(territory => {
+        //             visited.add(territory);
+        //             que.push(this.$store.state.game.gameboard.territories[territory]);
+        //           });
+        //         }
+        //       }
+        //       return;
+        //     }
+        //   }
+        // }
       },
       addTerritory: function (num) {
         // noinspection JSIgnoredPromiseFromCall
