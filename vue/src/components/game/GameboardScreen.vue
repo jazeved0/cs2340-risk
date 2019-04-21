@@ -142,16 +142,6 @@
         }
         return "";
       },
-      getAdjacentEnemyTerritories: function() {
-        if (this.isInAttacking) {
-          const attacker = this.$store.state.game.attackingTerritory;
-          if (attacker !== -1) {
-            const turnIndex = this.$store.state.game.turnIndex;
-            return this.$store.state.game.gameboard.territories[attacker].connections.filter(territory => this.$store.getters.boardStates[territory].owner !== turnIndex);
-          }
-        }
-        return [];
-      },
       displayAttackingPopup: function() {
         return (this.$store.state.game.attackingTerritory !== -1) && (this.$store.state.game.defendingTerritory !== -1) && this.isInAttacking;
       },
@@ -202,10 +192,7 @@
       isDefending: function() {
         const currentIndex = this.$store.getters.getPlayerIndex;
         if (currentIndex === -1) {
-          //console.log(-1);
           return false;
-        } else {
-          //console.log(this.$store.state.game.playerStateList[currentIndex].turnState.state);
         }
         return this.$store.state.game.playerStateList[currentIndex].turnState.state === 'defense';
       },
@@ -276,10 +263,15 @@
       },
       pathConfigs: function () {
         const mouseOver = this.mouseOver;
-        let selectable = this.selectable;
+        let selectable = this.selectable; // highlights all territories owned by allies
         if (this.isInAttacking && this.$store.state.game.attackingTerritory !== -1) {
-          selectable = this.getAdjacentEnemyTerritories;
+          selectable = this.getAdjacentEnemyTerritories; // highlights all enemy territory surrounding the attacking territory
         }
+        // else if (this.isInMoving && this.$store.state.game.originalTerritory !== -1) {
+        //   selectable = this.getTerritoryMoveLocations();  // highlights all territories that can be moved from one territory
+        // } else if (this.isInMoving && this.$store.state.game.originalTerritory === -1) {
+        //   selectable = this.moveSelectable; // highlights all allied territories that can move troops
+        // }
         let highlightSelectable = this.highlightSelectable;
         const state = this.$store.state;
         return state.game.gameboard.pathData.map(function (item, index) {
@@ -314,6 +306,44 @@
       selectable: function() {
         let selectableTerritories = this.$store.getters.boardStates.filter(ter => ter.owner === this.$store.getters.getPlayerIndex);
         return selectableTerritories.map(ter => ter.territory)
+      },
+      moveSelectable: function() {
+        const turnIndex = this.$store.state.game.turnIndex;
+        let selectableTerritories = this.$store.getters.boardStates.filter(ter => ter.owner === this.$store.getters.getPlayerIndex &&
+            this.$store.state.game.gameboard.territories[ter.territory].connections.filter(t => this.$store.getters.boardStates[t].owner === turnIndex).length > 0);
+        return selectableTerritories.map(ter => ter.territory);
+      },
+      getAdjacentEnemyTerritories: function() {
+        if (this.isInAttacking) {
+          const attacker = this.$store.state.game.attackingTerritoryattackingTerritory;
+          if (attacker !== -1) {
+            const turnIndex = this.$store.state.game.turnIndex;
+            return this.$store.state.game.gameboard.territories[attacker].connections.filter(territory => this.$store.getters.boardStates[territory].owner !== turnIndex);
+          }
+        }
+        return [];
+      },
+      getTerritoryMoveLocations: function() {
+        var visited = new Set();
+        var que = [];
+
+        var startTerritoryIndex = this.$store.state.game.attackingTerritory;
+        var startTerritory = this.$store.state.game.gameboard.territories[startTerritoryIndex];
+        const turnIndex = this.$store.state.game.turnIndex;
+
+        que.push(startTerritory);
+        visited.add(startTerritoryIndex);
+
+        while (que.length !== 0) {
+          var dequed = que.shift();
+          console.log(dequed);
+          dequed.connections.filter(territory => !visited.has(territory) && this.$store.getters.boardStates[territory].owner === turnIndex).forEach(territory => {
+            visited.add(territory);
+          que.push(this.$store.state.game.gameboard.territories[territory]);
+        });
+        }
+        visited.delete(startTerritoryIndex);
+        return Array.from(visited);
       },
       waterConnectionConfigs: function () {
         const gameState = this.$store.state.game;
