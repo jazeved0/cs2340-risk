@@ -1,38 +1,19 @@
 package game.mode
 
 import actors.PlayerWithActor
+import common.{Impure, Pure}
 import controllers._
 import game.Gameboard
-import game.mode.GameMode._
 import game.state.GameState
 
 import scala.collection.mutable
-
-object GameMode {
-  /** Callback parameter wrapper */
-  case class Callback(broadcast: (OutPacket, Option[String]) => Unit,
-                      send: (OutPacket, String) => Unit) {
-    def apply(payload: (OutPacket, Option[String]), flag: CallbackFlag): Unit = {
-      flag match {
-        case Broadcast => broadcast(payload._1, payload._2)
-        case Send => send(payload._1, payload._2.getOrElse(""))
-      }
-    }
-  }
-  /** Used as a generic identifier for the callback function to use.
-    * See <code>GameMode.initializeGame(...)</code> for a usage of these
-    * to implement a latent callback feature */
-  sealed trait CallbackFlag
-  /** A entire-game-lobby broadcast, with the option to exclude one actor */
-  case object Broadcast extends CallbackFlag
-  /** A targeted message send */
-  case object Send extends CallbackFlag
-}
 
 /**
   * Base trait for implementing a game mode (defines ways of processing incoming
   * packets and mutable state objects into internal mutations and outgoing
   * messages/packets)
+  *
+  * Uses Strategy design pattern
   */
 trait GameMode {
   /**
@@ -117,4 +98,39 @@ trait GameMode {
     * @return A GameState object
     */
   def makeGameState(turnOrder: Seq[PlayerWithActor]): GameState
+
+  @Pure
+  def initializeGame(joinOrder: Seq[PlayerWithActor]): GameContext
+
+  /**
+    * Gets gameboard
+    * @return
+    */
+  @Pure
+  def gameboard(implicit context: GameContext): Gameboard
+
+  @Impure.Nondeterministic
+  def assignTurnOrder(joinOrder: Seq[PlayerWithActor]): Seq[PlayerWithActor]
+
+  @Pure
+  def createGameState(turnOrder: Seq[PlayerWithActor]): GameState
+
+  /**
+    * Lifecycle hook for handling a player disconnect
+    * @param actor
+    * @param context
+    * @return
+    */
+  @Pure
+  def playerDisconnect(actor: PlayerWithActor)(implicit context: GameContext): GameContext
+
+  /**
+    * Lifecycle hook for handling an incoming packet
+    * @param packet
+    * @param context
+    * @return
+    */
+  @Pure
+  def handlePacket(packet: InGamePacket)(implicit context: GameContext): GameContext
+
 }
