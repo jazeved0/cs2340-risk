@@ -346,7 +346,9 @@
             deploy.bat [options]
           Options:
             --nobuild       Skips the binary build step
+            --nopackage     Skips the docker image/WAR image build step
             --nopush        Skips tagging and pushing the built docker image
+            --notransform   Skips transforming docs upon image build
             --dockerlogin   Calls docker login before pushing the image; helpful for the first run of the command
             --login         Logs into Azure/AKS services
             --deploy        Deploys the updated image to Kubernetes, switching between tags to force updates""",

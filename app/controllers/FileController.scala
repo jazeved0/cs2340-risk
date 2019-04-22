@@ -55,7 +55,7 @@ class FileController(val controllerComponents: MessagesControllerComponents)
     val substr = replaceRelativePath("", Resources.DocsPath.init)
     // Redirect '/api' URLs to '/api/'
     if (substr == "/api") {
-      UrlRedirect(Resources.DocsPath)
+      UrlRedirect(s"/${Resources.DocsPath}api/")
     } else {
       RelativeFile(root + (if (substr.indexOf('.') == -1) {
         substr + (if (substr.last == '/') "index.html" else ".html")

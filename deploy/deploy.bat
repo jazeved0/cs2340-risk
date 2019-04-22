@@ -34,6 +34,8 @@ set nopush=false
 set deploy=false
 set nobuild=false
 set dockerlogin=false
+set notransform=false
+set nopackage=false
 for %%a in (%*) do (
   if "%%a"=="--login" (
     set login=true
@@ -44,11 +46,17 @@ for %%a in (%*) do (
   if "%%a"=="--nobuild" (
     set nobuild=true
   )
+  if "%%a"=="--nopackage" (
+    set nopackage=true
+  )
   if "%%a"=="--nopush" (
     set nopush=true
   )
   if "%%a"=="--dockerlogin" (
     set dockerlogin=true
+  )
+  if "%%a"=="--notransform" (
+    set notransform=true
   )
 )
 
@@ -59,12 +67,19 @@ set commands_found=true
 if "%nobuild%"=="false" (
   call :command_check "npm"
   call :command_check "sbt"
+  call :command_check "javac"
+)
+if "%nopackage%"=="false" (
   call :command_check "powershell"
   call :command_check "docker"
-  call :command_check "javac"
 ) else (
-  if "%nopush%"=="false" (
-    call :command_check "docker"
+   if "%nopush%"=="false" (
+     call :command_check "docker"
+   )
+ )
+if "%notransform%"=="false" (
+  if "%nopackage%"=="false" (
+    call :command_check "py"
   )
 )
 if "%login%"=="true" (
@@ -83,7 +98,13 @@ if "!commands_found!"=="false" (
 if "%nobuild%"=="false" (
   call %binary_build%
   call :inter_message
-  call %docker_build% --image %local_image%
+)
+if "%nopackage%"=="false" (
+  if "%notransform%"=="false" (
+    call %docker_build% --image %local_image% --transform-docs
+  ) else (
+    call %docker_build% --image %local_image%
+  )
   call :inter_message
 )
 if "%login%"=="true" (

@@ -22,6 +22,7 @@ set temp_dir=%tmp%\image-build
 set make_war=make-war.ps1
 set transform-script=transform-docs.py
 set result_file=results.txt
+set docs_root=share\doc\api
 set "options=--war:"" --image:"" --transform-docs:"
 
 for %%O in (%options%) do for /f "tokens=1,* delims=:" %%A in ("%%O") do set "%%A=%%~B"
@@ -106,8 +107,10 @@ echo %intermediate_prefix% Copying %deploy_root%\%start_script% to %dist_target%
 copy "%deploy_root%\%start_script%" "%dist_target%\%start_script%" > nul
 
 if NOT "!--transform-docs!"=="" (
+  PUSHD %dist_target%
   echo %intermediate_prefix% Transforming docs files
-  call py %~dp0%transform-script%
+  py %~dp0%transform-script% %CD%\%dist_target%\%docs_root%
+  POPD
 )
 
 if "!--war!"=="" (
