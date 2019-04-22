@@ -3,7 +3,7 @@ import Vue from 'vue';
 import Vuex from 'vuex';
 import {ON_SEND_GAMEBOARD, ON_UPDATE_PLAYER_STATE, ON_UPDATE_BOARD_STATE,
         INCREMENT_TROOP, SUBMIT_REINFORCEMENTS, UNSUBMIT_REINFORCEMENTS, UPDATE_ATTACK_TERRITORY,
-        UPDATE_DEFEND_TERRITORY, RESET_ATTACK} from '.././mutation-types';
+        UPDATE_DEFEND_TERRITORY, RESET_ATTACK, UPDATE_MOVE_ORIGIN, UPDATE_MOVE_TARGET} from '.././mutation-types';
  import {ADD_TROOPS} from '.././action-types';
 import {initializeGameboardScreen, NETWORK_CTX} from "./game/InitializeGameboardScreen";
 import {seqStringToArray, specialSeqToArray} from '../.././util.js'
@@ -18,6 +18,8 @@ export default {
     turnIndex: -1,
     attackingTerritory: -1,
     defendingTerritory: -1,
+    movingTerritoryOrigin: -1,
+    movingTerritoryGoal: -1,
     attackers: 0,
     defenders: 0,
     diceRolls: [],
@@ -50,6 +52,12 @@ export default {
     },
     [UPDATE_DEFEND_TERRITORY](state, territory) {
       state.defendingTerritory = territory;
+    },
+    [UPDATE_MOVE_TARGET](state, territory) {
+      state.movingTerritoryOrigin = territory;
+    },
+    [UPDATE_MOVE_ORIGIN](state, territory) {
+      state.movingTerritoryGoal = territory;
     },
     [ON_UPDATE_PLAYER_STATE](state, data) {
       console.log(data);
