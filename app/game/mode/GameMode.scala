@@ -50,6 +50,7 @@ trait GameMode {
     // Consume earlier built latent callbacks
     messageQueue.foreach { case (flag, payload) => callback(payload, flag) }
     gameState
+    // TODO fix
   }
 
   /** Abstract getter (implement with lazy val if possible) */
@@ -91,6 +92,8 @@ trait GameMode {
     */
   def playerDisconnect(player: PlayerWithActor, callback: Callback)(implicit state: GameState): Unit
 
+
+
   /**
     * Subclass hook that allows subclasses to register custom GameState implementations
     * to be used when initializing games.
@@ -99,21 +102,35 @@ trait GameMode {
     */
   def makeGameState(turnOrder: Seq[PlayerWithActor]): GameState
 
+
+
+
+
+
+
+
+
+  // TODO fix
+
+
+
   @Pure
-  def initializeGame(joinOrder: Seq[PlayerWithActor]): GameContext
+  def initializeGame(joinOrder: Seq[PlayerWithActor]): GameContext = {
+    // TODO implement
+  }
 
   /**
     * Gets gameboard
     * @return
     */
   @Pure
-  def gameboard(implicit context: GameContext): Gameboard
+  abstract def gameboard: Gameboard
 
   @Impure.Nondeterministic
-  def assignTurnOrder(joinOrder: Seq[PlayerWithActor]): Seq[PlayerWithActor]
+  abstract def assignTurnOrder(joinOrder: Seq[PlayerWithActor]): Seq[PlayerWithActor]
 
   @Pure
-  def createGameState(turnOrder: Seq[PlayerWithActor]): GameState
+  abstract def createGameState(turnOrder: Seq[PlayerWithActor]): GameState
 
   /**
     * Lifecycle hook for handling a player disconnect
@@ -122,7 +139,7 @@ trait GameMode {
     * @return
     */
   @Pure
-  def playerDisconnect(actor: PlayerWithActor)(implicit context: GameContext): GameContext
+  abstract def playerDisconnect(actor: PlayerWithActor)(implicit context: GameContext): GameContext
 
   /**
     * Lifecycle hook for handling an incoming packet
@@ -131,6 +148,5 @@ trait GameMode {
     * @return
     */
   @Pure
-  def handlePacket(packet: InGamePacket)(implicit context: GameContext): GameContext
-
+  abstract def handlePacket(packet: InGamePacket)(implicit context: GameContext): GameContext
 }

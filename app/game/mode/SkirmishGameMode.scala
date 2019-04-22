@@ -45,6 +45,8 @@ class SkirmishGameMode extends GameMode {
     }
   }
 
+  // TODO fix
+
   /**
     * Creates a PlayerState object for the given player, starting the first player
     * according to the turn order at the Reinforcement turn state

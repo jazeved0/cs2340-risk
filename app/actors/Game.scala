@@ -7,8 +7,7 @@ import actors.GameSupervisor.{CanHost, CanJoin}
 import akka.actor.{Actor, ActorRef, Cancellable, PoisonPill, Props}
 import common.{Resources, UniqueIdProvider, UniqueValueManager, Util}
 import controllers._
-import game.mode.GameMode
-import game.mode.GameMode._
+import game.mode.{GameContext, GameMode}
 import game.state.GameState
 import models.{Player, PlayerSettings}
 import play.api.libs.json.Json
@@ -99,9 +98,9 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
   def startGame(): Unit = {
     // Update GameLobbyState enum and delegate to GameMode
     this.state = StateMachine.InGame
-    gameState = Some(gameMode.initializeGame(
-      players.values.toList,
-      Callback(broadcastCallback, sendCallback)))
+    val newGameState = gameMode.initializeGame(players.values.toList)
+      .consume(sendCallback, broadcastCallback)
+    gameState = Some(newGameState)
   }
 
   /**
@@ -183,7 +182,10 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
   def receiveInGame(inGamePacket: InGamePacket): Unit = {
     inGamePacket match {
       case p if gameState.isDefined =>
-        gameMode.handlePacket(p, Callback(broadcastCallback, sendCallback))(gameState.get)
+        this.gameState = gameState.map(gs =>
+          gameMode.handlePacket(p)(GameContext(gs))
+            .consume(sendCallback, broadcastCallback)
+        )
       case p =>
         badPacket(p)
     }
@@ -242,7 +244,7 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
         notifyGame(constructGameUpdate)
       } else {
         // Send current lobby information
-        connected += playerId -> PlayerWithActor(playerId, Player.apply, actor)
+        connected += playerId -> PlayerWithActor(playerId, Player.apply(), actor)
         currentResponseTimes += playerId -> System.currentTimeMillis()
         actor ! constructGameUpdate
       }
@@ -370,12 +372,15 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
           connected -= playerId
         }
 
-      case StateMachine.InGame =>
-        if (players.isDefinedAt(playerId)) {
-          gameState.foreach(s => gameMode.playerDisconnect(
-            players(playerId), Callback(broadcastCallback, sendCallback))(s))
+      case StateMachine.InGame => players.get(playerId) match {
+        case Some(actor) =>
+          this.gameState = gameState.map(gs =>
+            gameMode.playerDisconnect(actor)(GameContext(gs))
+              .consume(sendCallback, broadcastCallback)
+          )
           removePotentialHost(playerId)
-        }
+        case None => // do nothing
+      }
     }
   }
 
