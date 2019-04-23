@@ -1,16 +1,47 @@
 package game.state
 
 import actors.PlayerWithActor
-import common.Util
+import common.{Pure, Util}
 import game.Gameboard
 import game.state.TurnState.Idle
 import models._
 
 import scala.collection.mutable
 
-// TODO refactor to this class, make immutable
-case class GameState(turnOrder: Seq[PlayerWithActor], gameboard: Gameboard)
+/**
+  * Immutable game state object used to hold all relevant information about
+  * the state of a single Game instance
+  * @param turnOrder The order that turns take place, by the player actor
+  * @param playerStates The state of each player, sorted by turn order
+  * TODO refactor to use new DTO case class: TerritoryState
+  * @param boardState The state of each element on the board
+  * @param gameboard The gameboard DTO of the current game state
+  */
+case class GameState(turnOrder: Seq[PlayerWithActor],
+                     playerStates: Seq[PlayerState],
+                     boardState: IndexedSeq[OwnedArmy],
+                     gameboard: Gameboard) {
+  @Pure
+  def size: Int = turnOrder.length
 
+  /**
+    * Zips the board state with its indices and filters by territories with
+    * armies owned by the specified player
+    * @param player The player to filter ownership by
+    * @return A list of tuples giving (OwnedArmy, index)
+    */
+  @Pure
+  def ownedByZipped(player: Player): Seq[(OwnedArmy, Int)] =
+    this.boardState.zipWithIndex.filter { case (ownedArmy, _) =>
+      ownedArmy.owner == player
+    }
+}
+
+
+
+
+
+// TODO refactor to this class, make immutable
 /**
   * Mutable game state object used to hold all relevant information about
   * the state of a single Game instance

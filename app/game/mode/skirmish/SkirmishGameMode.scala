@@ -1,17 +1,15 @@
-package game.mode
+package game.mode.skirmish
 
 import actors.PlayerWithActor
 import common.{Impure, Pure, Resources, Util}
 import controllers._
-import game.Gameboard
-import game.mode.GameMode._
-import game.state.TurnState._
+import game.mode.GameMode
 import game.state.{GameState, PlayerState, TurnState}
-import models.{Army, NeutralPlayer, OwnedArmy, Player}
+import game.{GameContext, Gameboard}
+import models.{NeutralPlayer, OwnedArmy, Player}
 import play.api.Logger
 
 import scala.math.min
-import scala.util.Random
 
 /**
   * Concrete implementation of GameMode bound for DI at runtime. Defines the rules
@@ -19,103 +17,19 @@ import scala.util.Random
   * [[https://theop.games/wp-content/uploads/2019/02/got_risk_rules.pdf]] for the rules
   */
 class SkirmishGameMode extends GameMode {
-  type StateType = GameState
   /** GameMode-specific gameboard, loaded through Resource injection */
-  lazy override val gameboard: Gameboard = Resources.SkirmishGameboard
+  lazy val gameboard: Gameboard = Resources.SkirmishGameboard
 
   @Impure.Nondeterministic
-  override def assignTurnOrder(players: Seq[PlayerWithActor]): Seq[PlayerWithActor] =
-    Random.shuffle(players)
+  override def hookInitializeGame(implicit context: GameContext): GameContext =
+    // Use sub-object to handle game initialization
+    InitializationHandler.apply
 
-  @Impure
-  override def initializeGameState(callback: Callback)(implicit state: GameState): Unit = {
-    // Assign territories to players
-    val perTerritory = Resources.SkirmishInitialArmy
-    val territoryIndices = Util.listBuffer(Random.shuffle(state.boardState.indices.toList))
-    calculateAllocations(state).zipWithIndex.foreach { case (allocation, playerIndex) =>
-      // Sample and then remove from remaining territories
-      val sample = territoryIndices.take(allocation)
-      territoryIndices --= sample
-      // Add OwnedArmy's to each of the sampled territories
-      val player = state.turnOrder(playerIndex).player
-      val army = Some(OwnedArmy(Army(perTerritory), player))
-      sample.foreach(state.boardState.update(_, army))
-      // Update the total army count for the player and assign turn states
-      state(player) = initialPlayerState(playerIndex, allocation * perTerritory)
-    }
-  }
 
-  // TODO fix
 
-  /**
-    * Creates a PlayerState object for the given player, starting the first player
-    * according to the turn order at the Reinforcement turn state
-    * @param playerIndex The index of the player
-    * @param armies The total number of armies they have
-    * @param state The state of the game
-    * @return A new PlayerState object for them
-    */
-  @Pure
-  def initialPlayerState(playerIndex: Int, armies: Int)(implicit state: GameState): PlayerState = {
-    val player = state.playerStates(playerIndex).player
-    playerIndex match {
-      case 0 => PlayerState(player, Army(armies), reinforcement(player))
-      case _ => PlayerState(player, Army(armies), TurnState(Idle))
-    }
-  }
 
-  /**
-    * Utility method that creates a reinforcement state machine object and
-    * calculates the reinforcement allocation as necessary
-    * @param player The player to use to calculate reinforcements
-    * @param state The GameState context object
-    * @return A new TurnState object for Reinforcement State containing the
-    *         calculated allocation
-    */
-  @Pure
-  def reinforcement(player: Player)(implicit state: GameState): TurnState =
-    TurnState(Reinforcement, "amount" -> calculateReinforcement(player))
 
-  /**
-    * Performs the calculation logic according to values injected from Resources
-    * for the target player
-    * @param player The player to calculate reinforcements for
-    * @param state The GameState context object
-    * @return The number of reinforcements the player should receive, as an Int
-    */
-  @Pure
-  def calculateReinforcement(player: Player)(implicit state: GameState): Int = {
-    val conquered = state.ownedByZipped(player)
-    val territories = conquered.length
-    val castles = conquered.count { case (_, index) => gameboard.hasCastle(index) }
-    val base = Resources.SkirmishReinforcementBase
-    val divisor = Resources.SkirmishReinforcementDivisor
-    // Calculate according to the formula max(floor(territories + castles) / 3), 3)
-    Math.max(Math.floor((territories + castles) / divisor.toDouble), base.toDouble).toInt
-  }
-
-  /**
-    * Calculates initial allocations for all players in the game (by turn order),
-    * equally dividing territories randomly between each player and giving the
-    * remainder, if any, equally to the last players
-    * @param state The GameState context object
-    * @return A list giving the number of army tokens each player should receive,
-    *         ordered by the turn order
-    */
-  @Pure
-  def calculateAllocations(implicit state: GameState): Seq[Int] = {
-    val base = state.boardState.length / state.gameSize
-    val remainder = state.boardState.length % state.gameSize
-    if (remainder == 0) {
-      List.fill(state.gameSize)(base)
-    } else {
-      // Give equal amounts to each player (base), while distributing the
-      // remainder equally to the last players by turn order
-      (0 until state.gameSize)
-        .map(i => if (i >= state.gameSize - remainder) base + 1 else base)
-    }
-  }
-
+  // TODO refactor
   @Impure.SideEffects
   override def handlePacket(packet: InGamePacket, callback: Callback)
                            (implicit state: GameState): Unit = {
