@@ -4,8 +4,8 @@ import common.{Impure, Pure, Resources, Util}
 import game.GameContext
 import game.mode.skirmish.PlayerStateHandler._
 import game.state.TurnState.Idle
-import game.state.{PlayerState, TurnState}
-import models.{Army, OwnedArmy}
+import game.state.{PlayerState, TerritoryState, TurnState}
+import models.Army
 
 import scala.util.Random
 
@@ -15,21 +15,6 @@ import scala.util.Random
   */
 object InitializationHandler {
   lazy val perTerritory: Int = Resources.SkirmishInitialArmy
-
-  /**
-    * Applies the handler logic to the incoming game context
-    * @param context Incoming context wrapping current game state
-    * @return The updated GameContext wrapping the updated state
-    */
-  @Impure.Nondeterministic
-  def apply(implicit context: GameContext): GameContext = {
-    val territoryCount = context.state.gameboard.nodeCount
-    val allocations = calculateAllocations(territoryCount, context.state.size)
-    val territoryAssignments = assignTerritories(allocations, territoryCount)
-    context.map(state =>
-      state.withBoardState(makeBoardState(territoryAssignments))
-           .withPlayerStates(makePlayerStates(territoryAssignments)))
-  }
 
   /**
     * Calculates initial allocations for all players in the game (by turn order),
@@ -88,13 +73,13 @@ object InitializationHandler {
     */
   @Pure
   def makeBoardState(territoryAssignments: Seq[Set[Int]])
-                    (implicit context: GameContext): IndexedSeq[OwnedArmy] = {
+                    (implicit context: GameContext): IndexedSeq[TerritoryState] = {
     val territoryCount = context.state.gameboard.nodeCount
     // Mutable local board state collection
-    val boardState: Array[Option[OwnedArmy]] = Array.fill(territoryCount)(None)
+    val boardState: Array[Option[TerritoryState]] = Array.fill(territoryCount)(None)
     (territoryAssignments zip context.state.turnOrder).foreach {
       case (territories, actor) =>
-        val armyOption = Some(OwnedArmy(Army(perTerritory), actor.player))
+        val armyOption = Some(TerritoryState(perTerritory, actor.player))
         // Mutate local collection
         territories.foreach(t => boardState(t) = armyOption)
     }
@@ -112,14 +97,14 @@ object InitializationHandler {
     */
   @Pure
   def makePlayerStates(territoryAssignments: Seq[Set[Int]])
-                      (implicit context: GameContext): Seq[PlayerState] = {
+                      (implicit context: GameContext): IndexedSeq[PlayerState] = {
     val totalArmies = territoryAssignments.map(_.size * perTerritory)
     val FirstPlayer = context.state.turnOrder.head.player
     (totalArmies zip context.state.turnOrder).map {
       case (armySize, actor) => actor.player match {
-        case FirstPlayer =>PlayerState(FirstPlayer,  Army(armySize), reinforcement(FirstPlayer))
-        case player =>      PlayerState(player,      Army(armySize), TurnState(Idle))
+        case FirstPlayer => PlayerState(FirstPlayer,  Army(armySize), reinforcement(FirstPlayer))
+        case player =>      PlayerState(player,       Army(armySize), TurnState(Idle))
       }
-    }
+    }.toIndexedSeq
   }
 }

@@ -4,7 +4,9 @@ import actors.PlayerWithActor
 import common.{Impure, Pure, Resources, Util}
 import controllers._
 import game.mode.GameMode
-import game.mode.skirmish.ProgressionHandler.handle
+import game.mode.skirmish.InitializationHandler._
+import game.mode.skirmish.ProgressionHandler._
+import game.mode.skirmish.ValidationHandler._
 import game.state.{GameState, TurnState}
 import game.{GameContext, Gameboard}
 import models.{OwnedArmy, Player}
@@ -19,18 +21,20 @@ class SkirmishGameMode extends GameMode {
   lazy val gameboard: Gameboard = Resources.SkirmishGameboard
 
   @Impure.Nondeterministic
-  override def hookInitializeGame(implicit context: GameContext): GameContext =
-    // Use sub-object to handle game initialization
-    InitializationHandler.apply
+  override def hookInitializeGame(implicit context: GameContext): GameContext = {
+    val territoryCount = context.state.gameboard.nodeCount
+    val allocations = calculateAllocations(territoryCount, context.state.size)
+    val territoryAssignments = assignTerritories(allocations, territoryCount)
+    context.map(state =>
+      state.withBoardState(makeBoardState(territoryAssignments))
+           .withPlayerStates(makePlayerStates(territoryAssignments)))
+  }
 
   @Impure.Nondeterministic
-  override def hookPacket(packet: InGamePacket)
-                         (implicit context: GameContext): GameContext =
-  // Use sub-object to handle packet validation
-    ValidationHandler.process(packet) match {
+  override def hookPacket(packet: InGamePacket)(implicit context: GameContext): GameContext =
+    validate(packet) match {
       case ValidationResult(false, ctx) => ctx
-      // Use sub-object to handle packet processing
-      case ValidationResult(true, ctx) => ProgressionHandler.apply(packet)(ctx)
+      case ValidationResult(true, ctx) => handle(packet)(ctx)
     }
 
   // TODO implement/refactor
@@ -41,6 +45,8 @@ class SkirmishGameMode extends GameMode {
   @Pure
   override def createGameState(turnOrder: IndexedSeq[PlayerWithActor]): GameState =
     GameState(turnOrder, Vector(), Vector(), gameboard)
+
+
 
 
   // TODO refactor

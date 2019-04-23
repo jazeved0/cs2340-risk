@@ -17,7 +17,7 @@ object ValidationHandler {
     * @return A context object wrapping the updated game context and the result
     */
   @Pure
-  def process(packet: InPacket)(implicit context: GameContext): ValidationResult =
+  def validate(packet: InPacket)(implicit context: GameContext): ValidationResult =
     packet match {
       // TODO write/rewrite validation cases
       case _ => ValidationResult(result = true)
