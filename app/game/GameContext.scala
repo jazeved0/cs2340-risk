@@ -111,8 +111,8 @@ case class GameContext(state: GameState, private val packetOrder: List[PacketCon
     }
 
     def send(ctx: PacketContext): Unit = ctx match {
-      case PacketContext(_, Some(target), Send) => sendFunc(ctx.packet, target)
-      case PacketContext(_, _, Broadcast) => broadcastFunc(ctx.packet, ctx.targetContext)
+      case PacketContext(_, Some(target), Send) => sendFunc     (ctx.packet, target)
+      case PacketContext(_, _, Broadcast)       => broadcastFunc(ctx.packet, ctx.targetContext)
       case _ => // do nothing
     }
 

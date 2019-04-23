@@ -26,15 +26,15 @@ class SkirmishGameMode extends GameMode {
     val allocations = calculateAllocations(territoryCount, context.state.size)
     val territoryAssignments = assignTerritories(allocations, territoryCount)
     context.map(state =>
-      state.withBoardState(makeBoardState(territoryAssignments))
-           .withPlayerStates(makePlayerStates(territoryAssignments)))
+      state.copy(boardState   = makeBoardState(territoryAssignments),
+                 playerStates = makePlayerStates(territoryAssignments)))
   }
 
   @Impure.Nondeterministic
   override def hookPacket(packet: InGamePacket)(implicit context: GameContext): GameContext =
     validate(packet) match {
       case ValidationResult(false, ctx) => ctx
-      case ValidationResult(true, ctx) => handle(packet)(ctx)
+      case ValidationResult(true,  ctx) => handle(packet)(ctx)
     }
 
   // TODO implement/refactor
