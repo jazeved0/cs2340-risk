@@ -34,7 +34,6 @@ trait GameMode {
     val state = createGameState(turnOrder)
     // Call initialize game hook
     val processedContext = hookInitializeGame(GameContext(state))
-    // Send packets in deliberate order
     GameContext(processedContext.state)
       .thenBroadcast(SendGameboard(processedContext.state.gameboard))
       .thenBroadcast(UpdatePlayerState(processedContext.state))
@@ -51,8 +50,8 @@ trait GameMode {
     *         be in the same order
     */
   @Impure.Nondeterministic
-  def assignTurnOrder(joinOrder: Seq[PlayerWithActor]): Seq[PlayerWithActor] =
-    Random.shuffle(joinOrder)
+  def assignTurnOrder(joinOrder: Seq[PlayerWithActor]): IndexedSeq[PlayerWithActor] =
+    Vector() ++ Random.shuffle(joinOrder)
 
   /**
     * Subclass hook that allows subclasses to register custom GameState
@@ -61,7 +60,7 @@ trait GameMode {
     * @return A GameState object
     */
   @Pure
-  abstract def createGameState(turnOrder: Seq[PlayerWithActor]): GameState
+  abstract def createGameState(turnOrder: IndexedSeq[PlayerWithActor]): GameState
 
   /**
     * Lifecycle hook for handling game state initialization
@@ -73,17 +72,6 @@ trait GameMode {
   def hookInitializeGame(implicit context: GameContext): GameContext = pass
 
   /**
-    * Lifecycle hook for handling a player disconnect
-    * @param actor The actor of the player that is leaving
-    * @param context Incoming context wrapping current game state
-    * @return An outgoing context wrapping the updated game state as well as any
-    *         packets that will be sent as a result of handling the disconnect
-    */
-  @Pure
-  def hookPlayerDisconnect(actor: PlayerWithActor)
-                          (implicit context: GameContext): GameContext = pass
-
-  /**
     * Lifecycle hook for handling an incoming packet
     * @param packet The packet instance (contains source player id)
     * @param context Incoming context wrapping current game state
@@ -93,6 +81,17 @@ trait GameMode {
   @Pure
   def hookPacket(packet: InGamePacket)
                 (implicit context: GameContext): GameContext = pass
+
+  /**
+    * Lifecycle hook for handling a player disconnect
+    * @param actor The actor of the player that is leaving
+    * @param context Incoming context wrapping current game state
+    * @return An outgoing context wrapping the updated game state as well as any
+    *         packets that will be sent as a result of handling the disconnect
+    */
+  @Pure
+  def hookPlayerDisconnect(actor: PlayerWithActor)
+                          (implicit context: GameContext): GameContext = pass
 
   /**
     * Default implementation of lifecycle hook that returns unmodified context

@@ -13,13 +13,12 @@ import scala.collection.mutable
   * the state of a single Game instance
   * @param turnOrder The order that turns take place, by the player actor
   * @param playerStates The state of each player, sorted by turn order
-  * TODO refactor to use new DTO case class: TerritoryState
   * @param boardState The state of each element on the board
   * @param gameboard The gameboard DTO of the current game state
   */
-case class GameState(turnOrder: Seq[PlayerWithActor],
-                     playerStates: Seq[PlayerState],
-                     boardState: IndexedSeq[OwnedArmy],
+case class GameState(turnOrder: IndexedSeq[PlayerWithActor],
+                     playerStates: IndexedSeq[PlayerState],
+                     boardState: IndexedSeq[TerritoryState],
                      gameboard: Gameboard) {
   @Pure
   def size: Int = turnOrder.length
@@ -31,9 +30,9 @@ case class GameState(turnOrder: Seq[PlayerWithActor],
     * @return A list of tuples giving (OwnedArmy, index)
     */
   @Pure
-  def ownedByZipped(player: Player): Seq[(OwnedArmy, Int)] =
-    this.boardState.zipWithIndex.filter { case (ownedArmy, _) =>
-      ownedArmy.owner == player
+  def ownedByZipped(player: Player): IndexedSeq[(TerritoryState, Int)] =
+    this.boardState.zipWithIndex.filter { case (territoryState, _) =>
+      territoryState.owner == player
     }
 
   /**
@@ -43,8 +42,8 @@ case class GameState(turnOrder: Seq[PlayerWithActor],
     *         state untouched
     */
   @Pure
-  def withBoardState(newBoardState: IndexedSeq[OwnedArmy]): GameState =
-    this(turnOrder, playerStates, newBoardState, gameboard)
+  def withBoardState(newBoardState: IndexedSeq[TerritoryState]): GameState =
+    this.copy(boardState = newBoardState)
 
   /**
     * Recreates the game state with updated player states
@@ -53,8 +52,8 @@ case class GameState(turnOrder: Seq[PlayerWithActor],
     *         states untouched
     */
   @Pure
-  def withPlayerStates(newPlayerStates: Seq[PlayerState]): GameState =
-    this(turnOrder, newPlayerStates, boardState, gameboard)
+  def withPlayerStates(newPlayerStates: IndexedSeq[PlayerState]): GameState =
+    this.copy(playerStates = newPlayerStates)
 }
 
 

@@ -1,5 +1,6 @@
 package models
 
+// TODO remove
 /**
   * DTO representing an army that is owned by a player (has colored tokens).
   * Fully serializable
