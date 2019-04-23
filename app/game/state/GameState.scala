@@ -2,10 +2,14 @@ package game.state
 
 import actors.PlayerWithActor
 import common.Util
+import game.Gameboard
 import game.state.TurnState.Idle
 import models._
 
 import scala.collection.mutable
+
+// TODO refactor to this class, make immutable
+case class GameState(turnOrder: Seq[PlayerWithActor], gameboard: Gameboard)
 
 /**
   * Mutable game state object used to hold all relevant information about
@@ -15,7 +19,7 @@ import scala.collection.mutable
   * partially serialized (see <code>UpdateBoardState</code> and
   * <code>UpdatePlayerState</code> for examples of partial serializations)
   */
-class GameState(private var _turnOrder: Seq[PlayerWithActor], territories: Int) {
+class GameState2(private var _turnOrder: Seq[PlayerWithActor], territories: Int) {
   /** mutable/growable buffer containing (in turn order) every player's state */
   var playerStates: mutable.Buffer[PlayerState] = Util.buffer(
     _turnOrder.map(actor => PlayerState(actor.player, Army(0), TurnState(Idle))))

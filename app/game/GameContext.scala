@@ -1,8 +1,8 @@
-package game.mode
+package game
 
 import common.{Impure, Pure}
 import controllers.OutPacket
-import game.mode.GameContext.{Broadcast, PacketContext, Send}
+import game.GameContext.{Broadcast, PacketContext, Send}
 import game.state.GameState
 
 import scala.annotation.tailrec
@@ -62,6 +62,16 @@ case class GameContext(state: GameState, private val packetOrder: List[PacketCon
     case "" => this(state, PacketContext(packet, None,     Broadcast) :: packetOrder)
     case id => this(state, PacketContext(packet, Some(id), Broadcast) :: packetOrder)
   }
+
+  /**
+    * Creates a new GameContext object, adding each packet of the source context
+    * to the packet order of the current instance
+    * @param source The other context object with the packet order to use
+    * @return A new game context instance with the state preserved
+    */
+  @Pure
+  def thenSendAll(source: GameContext): GameContext =
+    this(state, source.packetOrder ::: packetOrder)
 
   /**
     * Creates a new GameContext object, modifying the internal game state
