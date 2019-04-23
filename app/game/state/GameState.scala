@@ -35,6 +35,26 @@ case class GameState(turnOrder: Seq[PlayerWithActor],
     this.boardState.zipWithIndex.filter { case (ownedArmy, _) =>
       ownedArmy.owner == player
     }
+
+  /**
+    * Recreates the game state with updated board state
+    * @param newBoardState The new board state to use
+    * @return A new GameState object with everything other than board
+    *         state untouched
+    */
+  @Pure
+  def withBoardState(newBoardState: IndexedSeq[OwnedArmy]): GameState =
+    this(turnOrder, playerStates, newBoardState, gameboard)
+
+  /**
+    * Recreates the game state with updated player states
+    * @param newPlayerStates The new player states to use
+    * @return A new GameState object with everything other than player
+    *         states untouched
+    */
+  @Pure
+  def withPlayerStates(newPlayerStates: Seq[PlayerState]): GameState =
+    this(turnOrder, newPlayerStates, boardState, gameboard)
 }
 
 

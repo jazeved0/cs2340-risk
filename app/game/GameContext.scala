@@ -28,6 +28,7 @@ object GameContext {
     * @param state The game state instance
     * @return New instance of GameContext with an empty packet order
     */
+  @Pure
   def apply(state: GameState): GameContext = new GameContext(state, Nil)
 }
 

@@ -2,9 +2,10 @@ package game.mode.skirmish
 
 import common.{Impure, Pure, Resources, Util}
 import game.GameContext
-import game.state.TurnState.{Idle, Reinforcement}
-import game.state.{GameState, PlayerState, TurnState}
-import models.{Army, OwnedArmy, Player}
+import game.mode.skirmish.PlayerStateHandler._
+import game.state.TurnState.Idle
+import game.state.{PlayerState, TurnState}
+import models.{Army, OwnedArmy}
 
 import scala.util.Random
 
@@ -13,6 +14,8 @@ import scala.util.Random
   * skirmish game mode
   */
 object InitializationHandler {
+  lazy val perTerritory: Int = Resources.SkirmishInitialArmy
+
   /**
     * Applies the handler logic to the incoming game context
     * @param context Incoming context wrapping current game state
@@ -20,31 +23,12 @@ object InitializationHandler {
     */
   @Impure.Nondeterministic
   def apply(implicit context: GameContext): GameContext = {
-    val perTerritory = Resources.SkirmishInitialArmy
     val territoryCount = context.state.gameboard.nodeCount
     val allocations = calculateAllocations(territoryCount, context.state.size)
-
-    // Update board state
-    val boardState: Array[Option[OwnedArmy]] = Array.fill(territoryCount)(None)
     val territoryAssignments = assignTerritories(allocations, territoryCount)
-    (territoryAssignments zip context.state.turnOrder).foreach {
-      case (territories, actor) =>
-        val armyOption = Some(OwnedArmy(Army(perTerritory), actor.player))
-        // Mutate local board state collection
-        territories.foreach(t => boardState(t) = armyOption)
-    }
-
-    // Update player states
-    val totalArmies = territoryAssignments.map(_.size * perTerritory)
-    val playerStates = (totalArmies zip context.state.turnOrder).map {
-      case (armySize, actor) => initialPlayerState(actor.player, armySize)
-    }
-
-    // Generate new game state with old turnOrder and gameboard
-    // TODO consider making more clean
-    val newState = GameState(context.state.turnOrder, playerStates,
-      boardState.flatten, context.state.gameboard)
-    context.withState(newState)
+    context.map(state =>
+      state.withBoardState(makeBoardState(territoryAssignments))
+           .withPlayerStates(makePlayerStates(territoryAssignments)))
   }
 
   /**
@@ -95,53 +79,47 @@ object InitializationHandler {
   }
 
   /**
-    * Creates a PlayerState object for the given player, starting the first player
-    * according to the turn order at the Reinforcement turn state
-    * @param player The player
-    * @param armies The total number of armies they have
+    * Initializes the board state according to the assignments created
+    * @param territoryAssignments A list of sets of territories to be given to
+    *                             each player
     * @param context Incoming context wrapping current game state
-    * @return A new PlayerState object for them
+    * @return An indexed sequence of OwnedArmy's representing the army on each
+    *         territory, by territory index
     */
   @Pure
-  def initialPlayerState(player: Player, armies: Int)
-                        (implicit context: GameContext): PlayerState = {
-    val firstPlayer = context.state.turnOrder.head.player
-    player match {
-      case _ if player == firstPlayer =>
-        PlayerState(player, Army(armies), reinforcement(player))
-      case _ =>
-        PlayerState(player, Army(armies), TurnState(Idle))
+  def makeBoardState(territoryAssignments: Seq[Set[Int]])
+                    (implicit context: GameContext): IndexedSeq[OwnedArmy] = {
+    val territoryCount = context.state.gameboard.nodeCount
+    // Mutable local board state collection
+    val boardState: Array[Option[OwnedArmy]] = Array.fill(territoryCount)(None)
+    (territoryAssignments zip context.state.turnOrder).foreach {
+      case (territories, actor) =>
+        val armyOption = Some(OwnedArmy(Army(perTerritory), actor.player))
+        // Mutate local collection
+        territories.foreach(t => boardState(t) = armyOption)
     }
+    boardState.flatten
   }
 
   /**
-    * Utility method that creates a reinforcement state machine object and
-    * calculates the reinforcement allocation as necessary
-    * @param player The player to use to calculate reinforcements
+    * Initializes the player states according to the assignments created
+    *
+    * @param territoryAssignments A list of sets of territories to be given to
+    *                             each player
     * @param context Incoming context wrapping current game state
-    * @return A new TurnState object for Reinforcement State containing the
-    *         calculated allocation
+    * @return A sequence of PlayerState objects representing the state of each
+    *         player in the game, ordered by turn order
     */
   @Pure
-  def reinforcement(player: Player)(implicit context: GameContext): TurnState =
-    TurnState(Reinforcement, "amount" -> calculateReinforcement(player))
-
-  /**
-    * Performs the calculation logic according to values injected from Resources
-    * for the target player
-    * @param player The player to calculate reinforcements for
-    * @param context Incoming context wrapping current game state
-    * @return The number of reinforcements the player should receive, as an Int
-    */
-  @Pure
-  def calculateReinforcement(player: Player)(implicit context: GameContext): Int = {
-    val conquered = context.state.ownedByZipped(player)
-    val gameboard = context.state.gameboard
-    val territories = conquered.length
-    val castles = conquered.count { case (_, index) => gameboard.hasCastle(index) }
-    val base = Resources.SkirmishReinforcementBase
-    val divisor = Resources.SkirmishReinforcementDivisor
-    // Calculate according to the formula max(floor(territories + castles) / 3), 3)
-    Math.max(Math.floor((territories + castles) / divisor.toDouble), base.toDouble).toInt
+  def makePlayerStates(territoryAssignments: Seq[Set[Int]])
+                      (implicit context: GameContext): Seq[PlayerState] = {
+    val totalArmies = territoryAssignments.map(_.size * perTerritory)
+    val FirstPlayer = context.state.turnOrder.head.player
+    (totalArmies zip context.state.turnOrder).map {
+      case (armySize, actor) => actor.player match {
+        case FirstPlayer =>PlayerState(FirstPlayer,  Army(armySize), reinforcement(FirstPlayer))
+        case player =>      PlayerState(player,      Army(armySize), TurnState(Idle))
+      }
+    }
   }
 }
