@@ -43,8 +43,8 @@ case class ConcretePlayer(settingsOption: Option[PlayerSettings]) extends Player
 
 case object NeutralPlayer extends Player(Some(PlayerSettings("_neutral", Int.MinValue))) {
   override def equals(a: Any): Boolean = a match {
-    case NeutralPlayer => true
-    case _ => false
+    case p: Player => p.settings.contains(this.settings.get)
+    case _         => false
   }
   override def hashCode(): Int = settings.hashCode
 }
