@@ -4,6 +4,7 @@ import actors.PlayerWithActor
 import common.{Impure, Pure, Resources, Util}
 import controllers._
 import game.mode.GameMode
+import game.mode.skirmish.SkirmishGameContext._
 import game.state.{GameState, TurnState}
 import game.{GameContext, Gameboard}
 import models.Player
@@ -35,26 +36,15 @@ class SkirmishGameMode extends GameMode {
       case ValidationResult(true,  ctx) => ProgressionHandler.handle(packet)(ctx)
     }
 
-  // TODO implement/refactor
   @Pure
   override def hookPlayerDisconnect(actor: PlayerWithActor)
-                                   (implicit context: GameContext): GameContext = pass
-
-  @Pure
-  override def createGameState(turnOrder: IndexedSeq[PlayerWithActor]): GameState =
-    GameState(turnOrder, Vector(), Vector(), gameboard)
+                                   (implicit context: GameContext): GameContext = {
+    if (context.state.isInDefense) {
 
 
 
 
-
-
-
-  // TODO refactor
-  @Impure.SideEffects
-  override def playerDisconnect(actor: PlayerWithActor, callback: Callback)
-                               (implicit state: GameState): Unit = {
-    if (state.isInDefense) {
+      // TODO implement/refactor
       val currentState = state.stateOf(actor.player).get.turnState
       currentState.state match {
         case TurnState.Defense => {
@@ -89,8 +79,17 @@ class SkirmishGameMode extends GameMode {
       state.advanceTurnState(None, "amount" -> calculateReinforcement(state.currentPlayer))
     }
 
+
+
+
+
     // Notify game of changes (no need to send to the disconnecting player)
-    callback.broadcast(UpdateBoardState(state), Some(actor.id))
-    callback.broadcast(UpdatePlayerState(state), Some(actor.id))
+    context
+      .thenBroadcastBoardState(actor.id)
+      .thenBroadcastPlayerState(actor.id)
   }
+
+  @Pure
+  override def createGameState(turnOrder: IndexedSeq[PlayerWithActor]): GameState =
+    GameState(turnOrder, Vector(), Vector(), gameboard)
 }

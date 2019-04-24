@@ -1,5 +1,6 @@
 package game.state
 
+import common.Pure
 import game.state.TurnState.State
 
 object TurnState {
@@ -38,6 +39,7 @@ object TurnState {
     * @param prev previous State of the player
     * @return succeeding state of the player
     */
+  @Pure
   def nextState(prev: State): State = prev match {
     case Idle => Reinforcement
     case Reinforcement => Attack
@@ -46,12 +48,12 @@ object TurnState {
     case _ => Idle
   }
 
+  @Pure
   def nextDefendingState(prev: State): State = prev match {
     case Idle => Defense
     case Defense => Idle
     case _ => Idle
   }
-
 }
 
 /**
@@ -61,10 +63,13 @@ object TurnState {
   * @param payload An optional varargs of key -> value mappings
   */
 case class TurnState(state: State, payload: (String, Any)*) {
+  @Pure
   def advanceState(payload: (String, Any)*): TurnState =
     TurnState(TurnState.nextState(this.state), payload:_*)
+  @Pure
   def advanceDefenseState(payload: (String, Any)*): TurnState = {
     TurnState(TurnState.nextDefendingState(this.state), payload: _*)
   }
+  @Pure
   def clearPayload(): TurnState = TurnState(this.state)
 }

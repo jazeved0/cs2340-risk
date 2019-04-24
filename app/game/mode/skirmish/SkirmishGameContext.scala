@@ -2,8 +2,10 @@ package game.mode.skirmish
 
 import actors.PlayerWithActor
 import common.Pure
+import controllers.{UpdateBoardState, UpdatePlayerState}
 import game.GameContext
 import game.state.{PlayerState, TurnState}
+import models.{Army, Player}
 
 object SkirmishGameContext {
   /**
@@ -28,40 +30,21 @@ class SkirmishGameContext(context: GameContext) {
     val next    = context.state.nextPlayer
     context.state.stateOf(current.player) match {
       case Some(currentState) =>
-        // Apply a mapping function to each player's state
-        val playerStateProcessor: PlayerState => PlayerState =
-          currentState.turnState.advanceState() match {
-            // Advance the current one to idle and then the next one to reinforcement
-            case TurnState(TurnState.Idle, _) =>
-              val nextState = PlayerStateHandler.reinforcement(next.player)(context)
-              advanceAndInitialize(current, next, nextState)
-            // Advance the current one to whatever is next
-            case state =>
-              advance(current, state)
-          }
-        context.map(gs => gs.copy(
-          playerStates = gs.playerStates.map(playerStateProcessor),
-          turn         = gs.nextTurn
-        ))
-      case None => context // pass
-    }
-  }
+        currentState.turnState.advanceState() match {
+          // Advance the current one to idle and then the next one to reinforcement
+          case TurnState(TurnState.Idle, _) =>
+            val nextState = PlayerStateHandler.reinforcement(next.player)(context)
+            context.map(gs => gs.copy(
+              playerStates = gs.playerStates.map(advanceAndInitialize(current, next, nextState)),
+              turn = gs.nextTurn
+            ))
 
-  /**
-    * Partially applied processing function that advances the state of a single
-    * player in the turn order
-    * @param current The target player to update
-    * @param toState The turn state to replace their current one with
-    * @param process The un-curried parameter used to map all player states
-    * @return A mapping result depending on the input un-curried parameter
-    */
-  @Pure
-  def advance(current: PlayerWithActor, toState: TurnState)
-             (process: PlayerState): PlayerState = {
-    val CurrentPlayer = current.player
-    process.player match {
-      case CurrentPlayer => process.copy(turnState = toState)
-      case _             => process
+          // Advance the current one to whatever is next
+          case state =>
+            context.updatePlayerState(currentState.copy(turnState = state))
+        }
+
+      case None => context // pass
     }
   }
 
@@ -85,4 +68,67 @@ class SkirmishGameContext(context: GameContext) {
       case _             => process
     }
   }
+
+  /**
+    * Advances the turn state of the defending player during the defense/attack phase
+    * @param defender The player that will be defending
+    * @param payload Any payload arguments to add to the newly constructed player state
+    * @return An updated game context object
+    */
+  @Pure
+  def advanceAttackTurnState(defender: Player, payload: (String, Any)*): GameContext = {
+    context.state.stateOf(defender) match {
+      case Some(currentState) =>
+        val nextState = currentState.turnState.advanceDefenseState(payload:_*)
+        val nextPlayerState = constructPlayerState(defender, nextState)
+        context.updatePlayerState(nextPlayerState)
+      case None => context // pass
+    }
+  }
+
+  /**
+    * Constructs a player state object given the arguments
+    * @param player The player to make a player state for
+    * @param turnState The target turn state to use
+    * @return A new player state object
+    */
+  def constructPlayerState(player: Player, turnState: TurnState): PlayerState =
+    context.state.stateOf(player) match {
+      case Some(state) => PlayerState(player, state.units, turnState)
+      case None        => PlayerState(player, Army.Empty,  turnState)
+    }
+
+  /**
+    * Helper method to broadcast board state based on the current context
+    * @return An updated GameContext
+    */
+  @Pure
+  def thenBroadcastBoardState: GameContext =
+    context.thenBroadcast(UpdateBoardState(context.state))
+
+  /**
+    * Helper method to broadcast player state based on the current context
+    * @return An updated GameContext
+    */
+  @Pure
+  def thenBroadcastPlayerState: GameContext =
+    context.thenBroadcast(UpdatePlayerState(context.state))
+
+  /**
+    * Helper method to broadcast board state based on the current context
+    * @param idExclude A player Id to exclude from the broadcast
+    * @return An updated GameContext
+    */
+  @Pure
+  def thenBroadcastBoardState(idExclude: String = ""): GameContext =
+    context.thenBroadcast(UpdateBoardState(context.state), idExclude)
+
+  /**
+    * Helper method to broadcast player state based on the current context
+    * @param idExclude A player Id to exclude from the broadcast
+    * @return An updated GameContext
+    */
+  @Pure
+  def thenBroadcastPlayerState(idExclude: String = ""): GameContext =
+    context.thenBroadcast(UpdatePlayerState(context.state), idExclude)
 }

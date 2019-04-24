@@ -3,7 +3,7 @@ package game
 import common.{Impure, Pure}
 import controllers.OutPacket
 import game.GameContext.{Broadcast, PacketContext, Send}
-import game.state.GameState
+import game.state.{GameState, PlayerState}
 
 import scala.annotation.tailrec
 
@@ -91,6 +91,22 @@ case class GameContext(state: GameState, private val packetOrder: List[PacketCon
     */
   @Pure
   def map(func: GameState => GameState): GameContext = this(func(state), packetOrder)
+
+  /**
+    * Updates the player state according to the contained player
+    * @param playerState The new player state to use
+    * @return A new game context if the player is in the game, else the same one
+    */
+  @Pure
+  def updatePlayerState(playerState: PlayerState): GameContext = {
+    val index = state.playerStates.indexWhere(_.player == playerState.player)
+    index match {
+      case -1 => this
+      case _  => this.map(gs => gs.copy(
+        playerStates = gs.playerStates.updated(index, playerState)
+      ))
+    }
+  }
 
   /**
     * Sends all packets in the current packet order, calling the given broadcast
