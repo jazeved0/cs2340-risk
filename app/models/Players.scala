@@ -28,9 +28,9 @@ object Player extends UniqueIdProvider[WrappedString] {
 
 /**
   * Serializable player DTO, doesn't include any server secrets
-  * @param settingsOption An option of player settings associated with this player object
+  * @param settings An option of player settings associated with this player object
   */
-case class ConcretePlayer(settingsOption: Option[PlayerSettings]) extends Player(settingsOption) {
+case class ConcretePlayer(override val settings: Option[PlayerSettings]) extends Player(settings) {
   /** Slower than comparing PlayerWithActors by their ID, only use when that
     * isn't available */
   override def equals(a: Any): Boolean = a match {

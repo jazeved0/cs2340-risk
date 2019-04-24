@@ -13,7 +13,7 @@ object ValidationContext {
   val logger: slf4j.Logger = Logger(this.getClass).logger
 
   /**
-    * Logs a failed validation to the debug logger level
+    * Logs a failed validation to the error logger level
     *
     * @param logName The name of the class in the logging output
     * @param message The reason of the failed validation
@@ -23,7 +23,7 @@ object ValidationContext {
   def log(logName: String, message: String)(implicit sender: PlayerWithActor): Unit = {
     val name = sender.player.settings.map(ps => ps.name).getOrElse("")
     val id   = sender.id
-    logger.warn(s"Validation failed when handling <$logName> packet sent by '$name' [id=$id]: $message")
+    logger.error(s"Validation failed when handling <$logName> packet sent by '$name' [id=$id]: $message")
   }
 
   sealed trait Mode

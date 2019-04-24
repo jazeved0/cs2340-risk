@@ -4,7 +4,6 @@ import actors.PlayerWithActor
 import common.{Impure, Pure, Resources, Util}
 import controllers._
 import game.mode.GameMode
-import game.mode.skirmish.ProgressionHandler.{defenseResponse, requestAttack, requestEndTurn, requestPlaceReinforcements}
 import game.mode.skirmish.SkirmishGameContext._
 import game.state._
 import game.{GameContext, Gameboard}
@@ -25,9 +24,11 @@ class SkirmishGameMode extends GameMode {
     val territoryCount = context.state.gameboard.nodeCount
     val allocations = calculateAllocations(territoryCount, context.state.size)
     val territoryAssignments = assignTerritories(allocations, territoryCount)
-    context.map(state =>
-      state.copy(boardState   = makeBoardState(territoryAssignments),
-                 playerStates = makePlayerStates(territoryAssignments)))
+    val processedContext = context.map(state =>
+      state.copy(boardState = makeBoardState(territoryAssignments)))
+    // Make player states with updated board state
+    processedContext.map(state =>
+      state.copy(playerStates = makePlayerStates(territoryAssignments)(processedContext)))
   }
 
   @Impure.Nondeterministic
@@ -42,7 +43,6 @@ class SkirmishGameMode extends GameMode {
       case None        => context // pass
     }
   }
-
 
   @Pure
   override def hookPlayerDisconnect(actor: PlayerWithActor)

@@ -44,8 +44,8 @@ object ValidationHandler {
   @Pure
   def requestPlaceReinforcements(assignments: Seq[(Int, Int)])
                                 (implicit context: GameContext, sender: PlayerWithActor): ValidationResult = {
-    val state = context.state.stateOf(sender.player)
-    val calculated = PlayerStateHandler.calculateReinforcement(sender.player)
+    val state       = context.state.stateOf(sender.player)
+    val calculated  = PlayerStateHandler.calculateReinforcement(sender.player)
     val totalPlaced = assignments.map(tup => tup._2).sum
     begin("RequestPlaceReinforcements")
       .check("Player is out of turn") {
