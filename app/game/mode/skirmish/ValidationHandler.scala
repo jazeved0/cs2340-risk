@@ -5,6 +5,8 @@ import common.Pure
 import controllers._
 import game.GameContext
 import game.mode.skirmish.ValidationContext._
+import game.state.AttackState
+import game.state.TurnState._
 
 /**
   * Sub-object of Progression Handler that processes incoming packets and
@@ -17,6 +19,7 @@ object ValidationHandler {
     *
     * @param packet  The incoming packet from the network to validate
     * @param context Incoming context wrapping current game state
+    * @param sender  The player actor that initiated the request
     * @return A context object wrapping the updated game context and the result
     */
   @Pure
@@ -24,175 +27,123 @@ object ValidationHandler {
               (implicit context: GameContext, sender: PlayerWithActor): ValidationResult =
       packet match {
         case RequestPlaceReinforcements(_, _, assignments) => requestPlaceReinforcements(assignments)
-//        case RequestAttack(_, _, attack)                   => requestAttack(attack)
-//        case DefenseResponse(_, _, defenders)              => defenseResponse(defenders)
-//        case RequestEndTurn(_, _)                          => requestEndTurn
+        case RequestAttack(_, _, attack)                   => requestAttack(attack)
+        case DefenseResponse(_, _, defenders)              => defenseResponse(defenders)
+        case RequestEndTurn(_, _)                          => requestEndTurn
         case _                                             => ValidationResult(result = false)
       }
 
+  /**
+    * Validates a RequestPlaceReinforcements packet
+    *
+    * @param assignments The proposed assignments Seq[(territory index -> amount)]
+    * @param sender      The player actor that initiated the request
+    * @param context     Incoming context wrapping current game state
+    * @return A context object wrapping the updated game context and the result
+    */
   @Pure
   def requestPlaceReinforcements(assignments: Seq[(Int, Int)])
-                                (implicit context: GameContext, sender: PlayerWithActor): ValidationResult =
-    begin
-        .check {
-          true
-        }
-        .checkFalse {
-          false
-        }
-        .consume(Reply)
-
-  // TODO refactor
-  /**
-    * Validates the reinforcement request given by the player
-    *
-    * @param callback    The Callback object providing a means of sending outgoing
-    *                    packets to either the entire lobby or to one player
-    * @param actor       The player that initiated the request
-    * @param assignments The proposed assignments Seq[(territory index -> amount)]
-    * @param state       The GameState context object
-    * @return
-    */
-  @Impure.SideEffects
-  def validateReinforcements(callback: GameMode.Callback, actor: PlayerWithActor,
-                             assignments: Seq[(Int, Int)])
-                            (implicit state: GameState): Boolean = {
-
-
-
-    val calculated = calculateReinforcement(actor.player)
+                                (implicit context: GameContext, sender: PlayerWithActor): ValidationResult = {
+    val state = context.state.stateOf(sender.player)
+    val calculated = PlayerStateHandler.calculateReinforcement(sender.player)
     val totalPlaced = assignments.map(tup => tup._2).sum
-    val invalidAssignment = assignments.exists(
-      assignment => state.boardState(assignment._1).exists(army => army.owner != actor.player)
-    )
-
-    if (state.isInState(actor.player, TurnState.Reinforcement)) {
-      if (invalidAssignment) {
-        callback.send(RequestReply(RequestResponse.Rejected,
-          s"Invalid territory placement; either a selected territory is undefined" +
-            s" or that player does not own one of the territories."
-        ), actor.id)
-        false
-      } else if (totalPlaced == calculated) {
-        // Valid
-        true
-      } else {
-        // Invalid
-        val descriptor = if (calculated > totalPlaced) "many" else "few"
-        callback.send(RequestReply(RequestResponse.Rejected, s"Too $descriptor " +
-          s"reinforcements in attempted placement $totalPlaced for " +
-          s"allocation $calculated"), actor.id)
-        false
+    begin("RequestPlaceReinforcements")
+      .check("Player is out of turn") {
+        context.state.currentPlayer == sender
       }
-    } else {
-      callback.send(RequestReply(RequestResponse.Rejected, "Invalid state to " +
-        "place reinforcements"), actor.id)
-      false
-    }
+      .check(state.isDefined)
+      .check(state.get.turnState.state == Reinforcement)
+      .check("Player is placing wrong amount of territories") {
+        calculated == totalPlaced
+      }
+      .checkFalse("Player does not own all territories") {
+        assignments.exists {
+          case (index, _) => context.state.boardState(index).owner != sender.player
+        }
+      }
+      .consume(Reply)
   }
 
   /**
-    * Validates the attack request given by the player
+    * Validates a RequestAttack packet
     *
-    * @param callback The Callback object providing a means of sending outgoing
-    *                 packets to either the entire lobby or to one player
-    * @param actor    The player that initiated the request
-    * @param attack   The proposed attack Seq[1st territory index, 2nd territory index, attack amount]
-    *                 1st territory is attacking, 2nd territory is defending
-    * @param state    The GameState context object
-    * @return
+    * @param attackData Incoming data from the packet
+    * @param sender     The player actor that initiated the request
+    * @param context    Incoming context wrapping current game state
+    * @return A context object wrapping the updated game context and the result
     */
-  @Impure.SideEffects
-  def validateAttack(callback: GameMode.Callback, actor: PlayerWithActor,
-                     attack: Seq[Int])(implicit state: GameState): Boolean = {
-    if (state.isInDefense) {
-      callback.send(RequestReply(RequestResponse.Rejected,
-        s"Invalid attack request; there is already an ongoing attack"), actor.id)
-      false
-    } else if (attack.length != 3) {
-      callback.send(RequestReply(RequestResponse.Rejected,
-        s"Invalid attack request; attack must be an array of 3 integers"), actor.id)
-      false
-    } else if (state.currentPlayer != actor.player) {
-      callback.send(RequestReply(RequestResponse.Rejected,
-        s"Invalid attack request; it is not that player's attacking turn"), actor.id)
-      false
-    } else {
-      val attackingIndex = attack.head
-      val defendingIndex = attack.tail.head
-      val attackAmount = attack.tail.tail.head
-      val invalidOwner = state.boardState(attackingIndex).fold(true)(
-        armyWithOwner => armyWithOwner.owner != actor.player
-      )
-      val validAttack = gameboard.nodes(attackingIndex).dto.connections.contains(defendingIndex)
-      val invalidAmount = state.boardState(attackingIndex).fold(true) {
-        armyWithOwner => attackAmount >= armyWithOwner.army.size
-      } || attackAmount < 1
-      if (invalidOwner) {
-        callback.send(RequestReply(RequestResponse.Rejected,
-          s"Invalid attack request; either the attacking territory could not be found"
-            + " or the current player does not own that territory."), actor.id)
-        false
-      } else if (!validAttack) {
-        callback.send(RequestReply(RequestResponse.Rejected,
-          s"Invalid attack request; the defending territory is not adjacent"
-            + " to the attacking territory."), actor.id)
-        false
-      } else if (invalidAmount) {
-        callback.send(RequestReply(RequestResponse.Rejected,
-          s"Invalid attack request; the attacking troop amount must be non-zero and lower"
-            + " than the troop amount in the attacking territory"), actor.id)
-        false
-      } else {
-        //Valid
-        true
+  @Pure
+  def requestAttack(attackData: Seq[Int])
+                   (implicit context: GameContext, sender: PlayerWithActor): ValidationResult = {
+    val state = context.state.stateOf(sender.player)
+    val attack = if (attackData.size == 3) Some(AttackState(attackData)) else None
+    begin("RequestAttack")
+      .check("Player is out of turn") {
+        context.state.currentPlayer == sender
       }
-    }
+      .check(state.isDefined)
+      .check(state.get.turnState.state == Attack)
+      .check(attack.isDefined)
+      .checkFalse("There is already an ongoing attack") {
+        context.state.isInDefense
+      }
+      .check("Attacker doesn't own attacking territory") {
+        val attackingTerritoryState = context.state.boardState(attack.get.attackingIndex)
+        attackingTerritoryState.owner == sender.player
+      }
+      .check("Target territory is not adjacent") {
+        val attackingTerritoryDTO = context.state.gameboard.nodes(attack.get.attackingIndex).dto
+        attackingTerritoryDTO.connections.contains(attack.get.defendingIndex)
+      }
+      .check("Attack amount is invalid") {
+        val attackingTerritoryState = context.state.boardState(attack.get.attackingIndex)
+        val amount = attack.get.attackAmount
+        amount >= 1 && amount <= attackingTerritoryState.size
+      }
+      .consume(Reply)
   }
 
   /**
-    * Validates the defense response given by the player
+    * Validates a DefenseResponse packet
     *
-    * @param callback  The Callback object providing a means of sending outgoing
-    *                  packets to either the entire lobby or to one player
-    * @param actor     The player that initiated the request
-    * @param defenders the number of defenders the person defending has requested
-    * @param state     The GameState context object
-    * @return
+    * @param defenders The number of defenders committed (from the packet)
+    * @param sender    The player actor that initiated the request
+    * @param context   Incoming context wrapping current game state
+    * @return A context object wrapping the updated game context and the result
     */
-  @Impure.SideEffects
-  def validateDefenseResponse(callback: GameMode.Callback, actor: PlayerWithActor,
-                              defenders: Int)
-                             (implicit state: GameState): Boolean = {
-    val attackHappening = state.isInDefense
-    val isDefender = state.stateOf(actor.player).fold(false)(
-      playerState => playerState.turnState.state == TurnState.Defense
-    )
-    if (!attackHappening) {
-      callback.send(RequestReply(RequestResponse.Rejected,
-        s"Invalid defense response; no attack is currently occurring."
-      ), actor.id)
-      false
-    } else if (!isDefender) {
-      callback.send(RequestReply(RequestResponse.Rejected,
-        s"Invalid defense response; this player is not currently defending."
-      ), actor.id)
-      false
-    } else {
-      val currentAttack: Seq[Int] = state.currentAttack.get
-      val defendingTerritory: Int = currentAttack.tail.head
-      val validDefenders = state.boardState(defendingTerritory).fold(false)(
-        ownedArmy => defenders <= ownedArmy.army.size && defenders >= 1
-      )
-      if (!validDefenders) {
-        callback.send(RequestReply(RequestResponse.Rejected,
-          s"Invalid defense response; the defender amount given is invalid."
-        ), actor.id)
-        false
-      } else {
-        //Valid
-        true
+  @Pure
+  def defenseResponse(defenders: Int)
+                     (implicit context: GameContext, sender: PlayerWithActor): ValidationResult = {
+    val state = context.state.stateOf(sender.player)
+    begin("DefenseResponse")
+      .check(state.isDefined)
+      .check(state.get.turnState.state == Defense)
+      .check("There is not an ongoing attack") {
+        context.state.isInDefense
       }
-    }
+      .check("Invalid defender amount") {
+        val currentAttack = context.state.currentAttack.get
+        val defendingTerritory = context.state.boardState(currentAttack.defendingIndex)
+        defenders >= 1 && defenders <= defendingTerritory.size
+      }
+      .consume(Reply)
+  }
+
+  /**
+    * Validates a RequestEndTurn packet
+    *
+    * @param sender    The player actor that initiated the request
+    * @param context   Incoming context wrapping current game state
+    * @return A context object wrapping the updated game context and the result
+    */
+  def requestEndTurn(implicit context: GameContext, sender: PlayerWithActor): ValidationResult = {
+    val state = context.state.stateOf(sender.player)
+    begin("RequestEndTurn")
+      .check("Player is out of turn") {
+        context.state.currentPlayer == sender
+      }
+      .check(state.isDefined)
+//      .check(state.get.turnState.state == Maneuver)
+      .consume(Reply)
   }
 }
