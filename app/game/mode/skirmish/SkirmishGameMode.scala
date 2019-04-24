@@ -4,6 +4,7 @@ import actors.PlayerWithActor
 import common.{Impure, Pure, Resources, Util}
 import controllers._
 import game.mode.GameMode
+import game.mode.skirmish.ProgressionHandler.{defenseResponse, requestAttack, requestEndTurn, requestPlaceReinforcements}
 import game.mode.skirmish.SkirmishGameContext._
 import game.state._
 import game.{GameContext, Gameboard}
@@ -30,11 +31,18 @@ class SkirmishGameMode extends GameMode {
   }
 
   @Impure.Nondeterministic
-  override def hookPacket(packet: InGamePacket)(implicit context: GameContext): GameContext =
-    ValidationHandler.validate(packet) match {
-      case ValidationResult(false, ctx) => ctx
-      case ValidationResult(true,  ctx) => ProgressionHandler.handle(packet)(ctx)
+  override def hookPacket(packet: InGamePacket)(implicit context: GameContext): GameContext = {
+    context.state.turnOrder.find(a => a.id == packet.playerId) match {
+      case Some(actor) =>
+        implicit val p: PlayerWithActor = actor
+        ValidationHandler.validate(packet) match {
+          case ValidationResult(false, ctx) => ctx
+          case ValidationResult(true,  ctx) => ProgressionHandler.handle(packet)(ctx, p)
+        }
+      case None        => context // pass
     }
+  }
+
 
   @Pure
   override def hookPlayerDisconnect(actor: PlayerWithActor)

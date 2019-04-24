@@ -1,8 +1,10 @@
 package game.mode.skirmish
 
+import actors.PlayerWithActor
 import common.Pure
-import controllers.InPacket
+import controllers._
 import game.GameContext
+import game.mode.skirmish.ValidationContext._
 
 /**
   * Sub-object of Progression Handler that processes incoming packets and
@@ -18,12 +20,27 @@ object ValidationHandler {
     * @return A context object wrapping the updated game context and the result
     */
   @Pure
-  def validate(packet: InPacket)(implicit context: GameContext): ValidationResult =
-    packet match {
-      // TODO write/rewrite validation cases
-      case _ => ValidationResult(result = true)
-    }
+  def validate(packet: InPacket)
+              (implicit context: GameContext, sender: PlayerWithActor): ValidationResult =
+      packet match {
+        case RequestPlaceReinforcements(_, _, assignments) => requestPlaceReinforcements(assignments)
+//        case RequestAttack(_, _, attack)                   => requestAttack(attack)
+//        case DefenseResponse(_, _, defenders)              => defenseResponse(defenders)
+//        case RequestEndTurn(_, _)                          => requestEndTurn
+        case _                                             => ValidationResult(result = false)
+      }
 
+  @Pure
+  def requestPlaceReinforcements(assignments: Seq[(Int, Int)])
+                                (implicit context: GameContext, sender: PlayerWithActor): ValidationResult =
+    begin
+        .check {
+          true
+        }
+        .checkFalse {
+          false
+        }
+        .consume(Reply)
 
   // TODO refactor
   /**
@@ -40,6 +57,9 @@ object ValidationHandler {
   def validateReinforcements(callback: GameMode.Callback, actor: PlayerWithActor,
                              assignments: Seq[(Int, Int)])
                             (implicit state: GameState): Boolean = {
+
+
+
     val calculated = calculateReinforcement(actor.player)
     val totalPlaced = assignments.map(tup => tup._2).sum
     val invalidAssignment = assignments.exists(

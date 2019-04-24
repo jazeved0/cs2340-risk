@@ -22,21 +22,18 @@ object ProgressionHandler {
     *
     * @param packet  The incoming packet from the network to process
     * @param context Incoming context wrapping current game state
+    * @param sender  The player actor that initiated the request
     * @return The updated GameContext wrapping the updated state
     */
   @Impure.Nondeterministic
-  def handle(packet: InGamePacket)(implicit context: GameContext): GameContext =
-    context.state.turnOrder.find(a => a.id == packet.playerId) match {
-      case Some(actor) =>
-        implicit val p: PlayerWithActor = actor
-        packet match {
-          case RequestPlaceReinforcements(_, _, assignments) => requestPlaceReinforcements(assignments)
-          case RequestAttack(_, _, attack)                   => requestAttack(attack)
-          case DefenseResponse(_, _, defenders)              => defenseResponse(defenders)
-          case RequestEndTurn(_, _)                          => requestEndTurn
-        }
-      case None => context // pass
-    }
+  def handle(packet: InGamePacket)
+            (implicit context: GameContext, sender: PlayerWithActor): GameContext =
+      packet match {
+        case RequestPlaceReinforcements(_, _, assignments) => requestPlaceReinforcements(assignments)
+        case RequestAttack(_, _, attack)                   => requestAttack(attack)
+        case DefenseResponse(_, _, defenders)              => defenseResponse(defenders)
+        case RequestEndTurn(_, _)                          => requestEndTurn
+      }
 
   /**
     * Handles incoming request place reinforcements packet. After successful
