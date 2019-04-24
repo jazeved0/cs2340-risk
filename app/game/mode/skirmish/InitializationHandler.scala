@@ -20,8 +20,9 @@ object InitializationHandler {
     * Calculates initial allocations for all players in the game (by turn order),
     * equally dividing territories randomly between each player and giving the
     * remainder, if any, equally to the last players
+    *
     * @param territoryCount The number of territories on the map
-    * @param playerCount The number of players in the game
+    * @param playerCount    The number of players in the game
     * @return A list giving the number of army tokens each player should receive,
     *         ordered by the turn order
     */
@@ -43,8 +44,9 @@ object InitializationHandler {
   /**
     * Assigns territories to players, drawing randomly from a pool of territory
     * indices
+    *
     * @param territoryAmounts The amount of territories to draw for each player
-    * @param territoryCount The amount of territories in total
+    * @param territoryCount   The amount of territories in total
     * @return A list of sets of territories to be given to each player
     */
   @Impure.Nondeterministic
@@ -65,9 +67,10 @@ object InitializationHandler {
 
   /**
     * Initializes the board state according to the assignments created
+    *
     * @param territoryAssignments A list of sets of territories to be given to
     *                             each player
-    * @param context Incoming context wrapping current game state
+    * @param context              Incoming context wrapping current game state
     * @return An indexed sequence of OwnedArmy's representing the army on each
     *         territory, by territory index
     */
@@ -83,7 +86,10 @@ object InitializationHandler {
         // Mutate local collection
         territories.foreach(t => boardState(t) = armyOption)
     }
-    boardState.flatten
+    boardState.map {
+      case Some(territoryState) => territoryState
+      case None                 => TerritoryState(0)
+    }
   }
 
   /**
@@ -91,7 +97,7 @@ object InitializationHandler {
     *
     * @param territoryAssignments A list of sets of territories to be given to
     *                             each player
-    * @param context Incoming context wrapping current game state
+    * @param context              Incoming context wrapping current game state
     * @return A sequence of PlayerState objects representing the state of each
     *         player in the game, ordered by turn order
     */

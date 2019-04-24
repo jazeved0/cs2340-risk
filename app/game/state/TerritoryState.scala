@@ -15,13 +15,15 @@ object TerritoryState {
 
 /**
   * Represents the state of a single territory on the board
-  * @param army The army that is on the territory (wrapper for Int)
+  *
+  * @param army  The army that is on the territory (wrapper for Int)
   * @param owner The player option that owns the territory
   *              (can be "the" neutral player)
   */
 case class TerritoryState(army: Army, owner: Player) {
   /**
     * Adds the number of army tokens to the board state
+    *
     * @param other The other army to add
     * @return A new territory state with the owner preserved
     */
@@ -38,6 +40,7 @@ case class TerritoryState(army: Army, owner: Player) {
 
   /**
     * The size of the internal army
+    *
     * @return The size, as an integer
     */
   @Pure

@@ -13,7 +13,8 @@ object PlayerStateHandler {
   /**
     * Utility method that creates a reinforcement state machine object and
     * calculates the reinforcement allocation as necessary
-    * @param player The player to use to calculate reinforcements
+    *
+    * @param player  The player to use to calculate reinforcements
     * @param context Incoming context wrapping current game state
     * @return A new TurnState object for Reinforcement State containing the
     *         calculated allocation
@@ -25,7 +26,8 @@ object PlayerStateHandler {
   /**
     * Performs the calculation logic according to values injected from Resources
     * for the target player
-    * @param player The player to calculate reinforcements for
+    *
+    * @param player  The player to calculate reinforcements for
     * @param context Incoming context wrapping current game state
     * @return The number of reinforcements the player should receive, as an Int
     */

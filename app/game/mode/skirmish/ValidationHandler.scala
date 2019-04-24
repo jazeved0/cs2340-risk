@@ -1,10 +1,8 @@
 package game.mode.skirmish
 
-import actors.PlayerWithActor
-import common.{Impure, Pure}
-import controllers.{InPacket, RequestReply, RequestResponse}
+import common.Pure
+import controllers.InPacket
 import game.GameContext
-import game.state.{GameState, TurnState}
 
 /**
   * Sub-object of Progression Handler that processes incoming packets and
@@ -14,7 +12,8 @@ object ValidationHandler {
   /**
     * Applies the validation pipeline to the incoming packet, having the
     * opportunity to send packets or mutate the game state in response
-    * @param packet The incoming packet from the network to validate
+    *
+    * @param packet  The incoming packet from the network to validate
     * @param context Incoming context wrapping current game state
     * @return A context object wrapping the updated game context and the result
     */
@@ -26,16 +25,15 @@ object ValidationHandler {
     }
 
 
-
   // TODO refactor
   /**
     * Validates the reinforcement request given by the player
     *
-    * @param callback The Callback object providing a means of sending outgoing
-    *                 packets to either the entire lobby or to one player
-    * @param actor The player that initiated the request
+    * @param callback    The Callback object providing a means of sending outgoing
+    *                    packets to either the entire lobby or to one player
+    * @param actor       The player that initiated the request
     * @param assignments The proposed assignments Seq[(territory index -> amount)]
-    * @param state The GameState context object
+    * @param state       The GameState context object
     * @return
     */
   @Impure.SideEffects
@@ -78,10 +76,10 @@ object ValidationHandler {
     *
     * @param callback The Callback object providing a means of sending outgoing
     *                 packets to either the entire lobby or to one player
-    * @param actor The player that initiated the request
-    * @param attack The proposed attack Seq[1st territory index, 2nd territory index, attack amount]
-    *               1st territory is attacking, 2nd territory is defending
-    * @param state The GameState context object
+    * @param actor    The player that initiated the request
+    * @param attack   The proposed attack Seq[1st territory index, 2nd territory index, attack amount]
+    *                 1st territory is attacking, 2nd territory is defending
+    * @param state    The GameState context object
     * @return
     */
   @Impure.SideEffects
@@ -107,7 +105,7 @@ object ValidationHandler {
         armyWithOwner => armyWithOwner.owner != actor.player
       )
       val validAttack = gameboard.nodes(attackingIndex).dto.connections.contains(defendingIndex)
-      val invalidAmount = state.boardState(attackingIndex).fold(true){
+      val invalidAmount = state.boardState(attackingIndex).fold(true) {
         armyWithOwner => attackAmount >= armyWithOwner.army.size
       } || attackAmount < 1
       if (invalidOwner) {
@@ -135,11 +133,11 @@ object ValidationHandler {
   /**
     * Validates the defense response given by the player
     *
-    * @param callback The Callback object providing a means of sending outgoing
-    *                 packets to either the entire lobby or to one player
-    * @param actor The player that initiated the request
+    * @param callback  The Callback object providing a means of sending outgoing
+    *                  packets to either the entire lobby or to one player
+    * @param actor     The player that initiated the request
     * @param defenders the number of defenders the person defending has requested
-    * @param state The GameState context object
+    * @param state     The GameState context object
     * @return
     */
   @Impure.SideEffects

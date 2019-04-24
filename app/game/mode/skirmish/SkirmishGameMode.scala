@@ -5,9 +5,9 @@ import common.{Impure, Pure, Resources, Util}
 import controllers._
 import game.mode.GameMode
 import game.mode.skirmish.SkirmishGameContext._
-import game.state.{GameState, TurnState}
+import game.state._
 import game.{GameContext, Gameboard}
-import models.Player
+import models.NeutralPlayer
 
 /**
   * Concrete implementation of GameMode bound for DI at runtime. Defines the rules
@@ -39,54 +39,83 @@ class SkirmishGameMode extends GameMode {
   @Pure
   override def hookPlayerDisconnect(actor: PlayerWithActor)
                                    (implicit context: GameContext): GameContext = {
-    if (context.state.isInDefense) {
-
-
-
-
-      // TODO implement/refactor
-      val currentState = state.stateOf(actor.player).get.turnState
-      currentState.state match {
-        case TurnState.Defense => {
-          //Puts defender in Idle
-          state.advanceTurnState(Some(actor.player))
-          state.currentAttack = None
-        }
-        case TurnState.Attack => {
-          //Puts defender in Idle
-          state.advanceTurnState(Some(state.boardState(state.currentAttack.get.tail.head).get.owner))
-          state.currentAttack = None
-        }
-        case _ =>
-      }
-    }
-
-    state.modifyTurnAfterDisconnecting(state.turnOrder.indexOf(actor))
-
     // Release all owned territories
-    state.boardState.zipWithIndex
-      .filter { case (armyOption, _) => armyOption.forall(oa => oa.owner == actor.player) }
-      .foreach {
-        case (ownedArmyOption, index) => ownedArmyOption.foreach {
-          ownedArmy => state.boardState.update(index, Some(OwnedArmy(ownedArmy.army, Player())))
-        }
-      }
-    // Remove from turn order
-    state.turnOrder = Util.remove(actor, state.turnOrder)
-    state.clearPayloads()
-
-    if (state.gameSize != 0 && state.stateOf(state.currentPlayer).get.turnState.state == TurnState.Idle) {
-      state.advanceTurnState(None, "amount" -> calculateReinforcement(state.currentPlayer))
+    val DisconnectingPlayer = actor.player
+    val boardState = context.state.boardState.map {
+      case TerritoryState(army, DisconnectingPlayer) => TerritoryState(army, NeutralPlayer)
+      case territoryState                            => territoryState
     }
 
+    // Remove from turn order
+    val newTurnOrder = Util.remove(actor, context.state.turnOrder)
+    val oldStates = context.state.turnOrder.zipWithIndex.toMap
+    val newPlayerStates = newTurnOrder.map(actor => context.state.playerStates(oldStates(actor)))
 
+    val processedContext = processDisconnectAttackState(actor)
+      .map(gs => gs.copy(
+        turnOrder    = newTurnOrder,
+        playerStates = newPlayerStates,
+        turn         = gs.turnUponDisconnect(actor),
+        boardState   = boardState
+      ))
+      .clearPayloads
 
+    // Move state forward if necessary
+    (if (processedContext.state.isEmpty) {
+      context.state.stateOf(context.state.currentPlayer.player) match {
+        case Some(PlayerState(_, _, TurnState(TurnState.Idle, _))) =>
+          processedContext
+            .advanceTurnState
 
-
-    // Notify game of changes (no need to send to the disconnecting player)
-    context
+        case _ => processedContext // pass
+      }
+    } else {
+      processedContext
+    })
+      // Notify game of changes (no need to send to the disconnecting player)
       .thenBroadcastBoardState(actor.id)
       .thenBroadcastPlayerState(actor.id)
+  }
+
+  /**
+    * Processes the current attack state upon a player disconnect, ensuring the
+    * attack state gets resolved if the disconnecting player is one of the players
+    * involved
+    * @param actor The disconnecting player
+    * @param context Incoming context wrapping current game state
+    * @return An updated game context object
+    */
+  @Pure
+  def processDisconnectAttackState(actor: PlayerWithActor)
+                                  (implicit context: GameContext): GameContext = {
+    if (context.state.isInDefense) {
+      context.state.stateOf(actor.player) match {
+        // Puts defender in Idle
+        case Some(PlayerState(_, _, TurnState(TurnState.Defense, _))) =>
+          context
+            .advanceAttackTurnState(actor.player)
+            .map(gs => gs.copy(
+              currentAttack = None
+            ))
+
+        // Puts defender in Idle
+        case Some(PlayerState(_, _, TurnState(TurnState.Attack,  _))) =>
+          context.state.currentAttack match {
+            case Some(AttackState(_, defendingIndex, _)) =>
+              val defender = context.state.boardState(defendingIndex).owner
+              context
+                .advanceAttackTurnState(defender)
+                .map(gs => gs.copy(
+                  currentAttack = None
+                ))
+            case _ => context // pass
+          }
+
+        case _ => context // pass
+      }
+    } else {
+      context // pass
+    }
   }
 
   @Pure

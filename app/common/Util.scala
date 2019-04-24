@@ -72,6 +72,16 @@ object Util {
   def remove[A, B >: A](elem: B, list: Seq[A]): Seq[A] = list diff List(elem)
 
   /**
+    * Removes an element from an immutable IndexedSeq
+    * @param elem The element to remove
+    * @param list The original list
+    * @tparam A The type of elements in the list
+    * @tparam B The type of element to remove (may be a subtype due to polymorphism)
+    * @return A new list without the target item
+    */
+  def remove[A, B >: A](elem: B, list: IndexedSeq[A]): IndexedSeq[A] = list diff Vector(elem)
+
+  /**
     * Factory method for a mutable ListBuffer given an initial collection
     * @param traversableOnce The source collection
     * @tparam T The type of element to contain in the collection

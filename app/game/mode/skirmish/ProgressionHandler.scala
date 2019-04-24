@@ -19,12 +19,13 @@ object ProgressionHandler {
   /**
     * Handles an incoming packet, processing the current game state using it and
     * potentially sending other packets out as a result
-    * @param packet The incoming packet from the network to process
+    *
+    * @param packet  The incoming packet from the network to process
     * @param context Incoming context wrapping current game state
     * @return The updated GameContext wrapping the updated state
     */
   @Impure.Nondeterministic
-  def handle(packet: InPacket)(implicit context: GameContext): GameContext =
+  def handle(packet: InGamePacket)(implicit context: GameContext): GameContext =
     context.state.turnOrder.find(a => a.id == packet.playerId) match {
       case Some(actor) =>
         implicit val p: PlayerWithActor = actor
@@ -41,9 +42,10 @@ object ProgressionHandler {
     * Handles incoming request place reinforcements packet. After successful
     * validation, adjusts game state as necessary and move the turn state's
     * state machine forwards
+    *
     * @param assignments The proposed assignments Seq[(territory index -> amount)]
-    * @param context Incoming context wrapping current game state
-    * @param sender The player that initiated the request
+    * @param context     Incoming context wrapping current game state
+    * @param sender      The player that initiated the request
     * @return An updated game context object
     */
   @Pure
@@ -58,7 +60,7 @@ object ProgressionHandler {
     // Calculate new player state
     val total = assignments.map { case (_, increment) => increment }.sum
     val playerStates = context.state.playerStates.map {
-      case state @ PlayerState(player, units, _) if player == sender.player =>
+      case state@PlayerState(player, units, _) if player == sender.player =>
         state.copy(units = units + total)
       case otherState => otherState
     }
@@ -75,9 +77,10 @@ object ProgressionHandler {
 
   /**
     * Handles RequestAttack packets, updating game state as necessary
+    *
     * @param attackData Incoming data from the packet
-    * @param context Incoming context wrapping current game state
-    * @param sender The player that initiated the request
+    * @param context    Incoming context wrapping current game state
+    * @param sender     The player that initiated the request
     * @return An updated game context object
     */
   @Impure.Nondeterministic
@@ -105,7 +108,8 @@ object ProgressionHandler {
 
   /**
     * Simulates the entire attack-defense phase against a neutral territory
-    * @param attack The information about the attack coming from the network
+    *
+    * @param attack  The information about the attack coming from the network
     * @param context Incoming context wrapping current game state
     * @return An updated game context object
     */
@@ -140,7 +144,8 @@ object ProgressionHandler {
 
   /**
     * Wrapper class for the result of an attack
-    * @param diceRolls The resulting dice rolls
+    *
+    * @param diceRolls          The resulting dice rolls
     * @param attackersDestroyed The number of attacking troops destroyed
     * @param defendersDestroyed The number of defending troops destroyed
     */
@@ -152,16 +157,17 @@ object ProgressionHandler {
 
   /**
     * Calculates the result of an attack, simulating the dice rolls and saving their result
+    *
     * @param attackers The number of attacking troops to use
     * @param defenders The number of defending troops to use
-    * @param context Incoming context wrapping current game state
+    * @param context   Incoming context wrapping current game state
     * @return The result of the attack, contained in a wrapper object
     */
   @Impure.Nondeterministic
   def attackResult(attackers: Int, defenders: Int)(implicit context: GameContext): AttackResult = {
     val faces = Resources.DiceFaces
-    val attackerResult = (for(_ <- 1 to attackers) yield 1 + scala.util.Random.nextInt(faces)).sorted
-    val defenderResult = (for(_ <- 1 to defenders) yield 1 + scala.util.Random.nextInt(faces)).sorted
+    val attackerResult = (for (_ <- 1 to attackers) yield 1 + scala.util.Random.nextInt(faces)).sorted
+    val defenderResult = (for (_ <- 1 to defenders) yield 1 + scala.util.Random.nextInt(faces)).sorted
 
     var attackersDestroyed: Int = 0
     var defendersDestroyed: Int = 0
@@ -178,7 +184,8 @@ object ProgressionHandler {
 
   /**
     * Processes the result of an attack and applies the changes to the board state
-    * @param result The attack result wrapper object
+    *
+    * @param result  The attack result wrapper object
     * @param context Incoming context wrapping current game state
     * @return An updated game context object
     */
@@ -210,16 +217,17 @@ object ProgressionHandler {
 
   /**
     * Handles a DefenseResponse packet and simulates the dice roll battle
+    *
     * @param defenders The number of defenders committed (from the packet)
-    * @param context Incoming context wrapping current game state
-    * @param sender The player that initiated the request
+    * @param context   Incoming context wrapping current game state
+    * @param sender    The player that initiated the request
     * @return An updated game context object
     */
   @Impure.Nondeterministic
   def defenseResponse(defenders: Int)
                      (implicit context: GameContext, sender: PlayerWithActor): GameContext = {
     context.state.currentAttack match {
-      case Some(currentAttack @ AttackState(_, _, attackAmount)) =>
+      case Some(currentAttack@AttackState(_, _, attackAmount)) =>
         val result = attackResult(attackAmount, defenders)
         val attackData = currentAttack.unapply ++ Seq(defenders)
 
@@ -240,8 +248,9 @@ object ProgressionHandler {
   /**
     * Handles a RequestEndTurn packet coming in from the network and advances turn
     * state as appropriate
+    *
     * @param context Incoming context wrapping current game state
-    * @param sender The player that initiated the request
+    * @param sender  The player that initiated the request
     * @return An updated game context object
     */
   @Pure

@@ -23,6 +23,7 @@ trait GameMode {
     *  5. Broadcast the generated player state
     *  5. Broadcast the generated board state
     *  6. Broadcast and send any other OutPackets from the latent callbacks
+    *
     * @param joinOrder The join order from the Game actor
     * @return An outgoing context wrapping the updated game state as well as any
     *         packets that will be sent as a result of initializing the game
@@ -45,6 +46,7 @@ trait GameMode {
   /**
     * Assigns turn order of each player based on their position of joining
     * (first player is the host)
+    *
     * @param joinOrder The order by which players joined the lobby
     * @return A list of the same player with actor objects that may or may not
     *         be in the same order
@@ -56,14 +58,16 @@ trait GameMode {
   /**
     * Subclass hook that allows subclasses to register custom GameState
     * implementations to be used when initializing games.
+    *
     * @param turnOrder The turn order of the game (sent from the Game actor)
     * @return A GameState object
     */
   @Pure
-  abstract def createGameState(turnOrder: IndexedSeq[PlayerWithActor]): GameState
+  def createGameState(turnOrder: IndexedSeq[PlayerWithActor]): GameState
 
   /**
     * Lifecycle hook for handling game state initialization
+    *
     * @param context Incoming context wrapping current game state
     * @return An outgoing context wrapping the updated game state as well as any
     *         packets that will be sent as a result of handling the initialization
@@ -73,7 +77,8 @@ trait GameMode {
 
   /**
     * Lifecycle hook for handling an incoming packet
-    * @param packet The packet instance (contains source player id)
+    *
+    * @param packet  The packet instance (contains source player id)
     * @param context Incoming context wrapping current game state
     * @return An outgoing context wrapping the updated game state as well as any
     *         packets that will be sent as a result of handling the packet
@@ -84,7 +89,8 @@ trait GameMode {
 
   /**
     * Lifecycle hook for handling a player disconnect
-    * @param actor The actor of the player that is leaving
+    *
+    * @param actor   The actor of the player that is leaving
     * @param context Incoming context wrapping current game state
     * @return An outgoing context wrapping the updated game state as well as any
     *         packets that will be sent as a result of handling the disconnect
@@ -95,6 +101,7 @@ trait GameMode {
 
   /**
     * Default implementation of lifecycle hook that returns unmodified context
+    *
     * @param context Incoming context wrapping current game state
     * @return The same context object
     */
