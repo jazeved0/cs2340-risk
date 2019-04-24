@@ -19,9 +19,32 @@ import scala.collection.mutable
 case class GameState(turnOrder: IndexedSeq[PlayerWithActor],
                      playerStates: IndexedSeq[PlayerState],
                      boardState: IndexedSeq[TerritoryState],
-                     gameboard: Gameboard) {
+                     gameboard: Gameboard,
+                     turn: Int = 0) {
+  @Pure
+  def currentPlayer: PlayerWithActor = turnOrder(turn)
+
+  @Pure
+  def nextPlayer: PlayerWithActor = turnOrder(nextTurn)
+
   @Pure
   def size: Int = turnOrder.length
+
+  @Pure
+  def nextTurn: Int = (turn + 1) % size
+
+  /**
+    * Gets the state of the given player, or None if it was not found
+    * @param player The target player to get the state for
+    * @return A PlayerState option representing the current player state of the
+    *         given player if they were found within the turn order
+    */
+  @Pure
+  def stateOf(player: Player): Option[PlayerState] = turnOrder
+    .indexWhere(pa => pa.player == player) match {
+    case -1 => None
+    case index => playerStates.lift(index)
+  }
 
   /**
     * Zips the board state with its indices and filters by territories with
@@ -34,26 +57,6 @@ case class GameState(turnOrder: IndexedSeq[PlayerWithActor],
     this.boardState.zipWithIndex.filter { case (territoryState, _) =>
       territoryState.owner == player
     }
-
-  /**
-    * Recreates the game state with updated board state
-    * @param newBoardState The new board state to use
-    * @return A new GameState object with everything other than board
-    *         state untouched
-    */
-  @Pure
-  def withBoardState(newBoardState: IndexedSeq[TerritoryState]): GameState =
-    this.copy(boardState = newBoardState)
-
-  /**
-    * Recreates the game state with updated player states
-    * @param newPlayerStates The new player states to use
-    * @return A new GameState object with everything other than player
-    *         states untouched
-    */
-  @Pure
-  def withPlayerStates(newPlayerStates: IndexedSeq[PlayerState]): GameState =
-    this.copy(playerStates = newPlayerStates)
 }
 
 

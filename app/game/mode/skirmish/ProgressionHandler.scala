@@ -1,13 +1,15 @@
 package game.mode.skirmish
 
 import actors.PlayerWithActor
-import common.{Impure, Resources}
+import common.{Impure, Pure, Resources, Util}
 import controllers._
 import game.GameContext
-import game.state.{GameState, PlayerState, TurnState}
-import models.OwnedArmy
+import SkirmishGameContext._
+import game.state.{GameState, PlayerState, TerritoryState, TurnState}
+import models.Army
 import play.api.Logger
 
+import scala.collection.mutable.ArrayBuffer
 import scala.math.min
 
 /**
@@ -24,73 +26,69 @@ object ProgressionHandler {
     */
   @Impure.Nondeterministic
   def handle(packet: InPacket)(implicit context: GameContext): GameContext =
-    packet match {
-      // TODO write/rewrite handling cases
-      case _ => context
+    context.state.turnOrder.find(a => a.id == packet.playerId) match {
+      case Some(actor) =>
+        implicit val p: PlayerWithActor = actor
+        packet match {
+          case RequestPlaceReinforcements(_, _, assignments) => requestPlaceReinforcements(assignments)
+          case RequestAttack(_, _, attack)                   => requestAttack(attack)
+          case DefenseResponse(_, _, defenders)              => defenseResponse(defenders)
+          case RequestEndTurn(_, _)                          => requestEndTurn
+        }
+      case None => context // pass
     }
-
-
-
-
-
-
-
-
-
-
-  // OLD CASES
-  // TODO refactor
-  @Impure.SideEffects
-  override def handlePacket(packet: InGamePacket, callback: Callback)
-                           (implicit state: GameState): Unit = {
-    state.turnOrder.find(a => a.id == packet.playerId).foreach { player =>
-      packet match {
-        case RequestPlaceReinforcements(_, _, assignments) =>
-          requestPlaceReinforcements(callback, player, assignments)
-        case RequestAttack(_, _, attack) =>
-          requestAttack(callback, player, attack)
-        case DefenseResponse(_, _, defenders) =>
-          defenseResponse(callback, player, defenders)
-        case RequestEndTurn(_, _) =>
-          requestEndTurn(callback, player)
-      }
-    }
-  }
 
   /**
-    * Handles incoming request place reinforcements packet. Validates the
-    * request and then sends a RequestReply depending on whether the request
-    * gets approved. If it is approved, adjust game state as necessary and
-    * move the turn state's state machine forwards
+    * Handles incoming request place reinforcements packet. After successful
+    * validation, adjusts game state as necessary and move the turn state's
+    * state machine forwards
     *
-    * @param callback The Callback object providing a means of sending outgoing
-    *                 packets to either the entire lobby or to one player
-    * @param actor The player that initiated the request
     * @param assignments The proposed assignments Seq[(territory index -> amount)]
-    * @param state The GameState context object
+    * @param context Incoming context wrapping current game state
+    * @param sender The player that initiated the request
     */
-  @Impure.SideEffects
-  def requestPlaceReinforcements(callback: GameMode.Callback, actor: PlayerWithActor,
-                                 assignments: Seq[(Int, Int)])
-                                (implicit state: GameState): Unit = {
-    val logger = Logger(this.getClass).logger
-    logger.error("henlo")
-    if (validateReinforcements(callback, actor, assignments)) {
-      callback.send(RequestReply(RequestResponse.Accepted), actor.id)
-      assignments.foreach(tuple => {
-        val index = tuple._1
-        val increment = tuple._2
-        val oldArmy = state.boardState(index)
-        oldArmy.foreach(army => state.boardState(index) = Some(army + increment))
-      })
-      val total = assignments.map(_._2).sum
-      val oldState = state.stateOf(actor.player)
-      oldState.foreach(ps => state(actor.player) =
-        PlayerState(actor.player, ps.units + total, ps.turnState))
-      state.advanceTurnState(None)
-      callback.broadcast(UpdateBoardState(state), None)
-      callback.broadcast(UpdatePlayerState(state), None)
+  @Pure
+  def requestPlaceReinforcements(assignments: Seq[(Int, Int)])
+                                (implicit context: GameContext, sender: PlayerWithActor): GameContext = {
+    // Calculate new board state with mutable buffer
+    val boardBuffer: ArrayBuffer[TerritoryState] = Util.arrayBuffer(context.state.boardState)
+    assignments.foreach {
+      case (index, increment) => boardBuffer(index) = boardBuffer(index) add Army(increment)
     }
+
+    // Calculate new player state
+    val total = assignments.map { case (_, increment) => increment }.sum
+    val playerStates = context.state.playerStates.map {
+      case state @ PlayerState(player, units, _) if player == sender.player =>
+        state.copy(units = units + total)
+      case otherState => otherState
+    }
+
+    context
+      .map(gs => gs.copy(
+        boardState   = boardBuffer.toIndexedSeq,
+        playerStates = playerStates
+      ))
+      .advanceTurnState
+      .thenBroadcast(UpdateBoardState(context.state))
+      .thenBroadcast(UpdatePlayerState(context.state))
+  }
+
+  @Pure
+  def requestAttack(attack: Seq[Int])
+                   (implicit context: GameContext, sender: PlayerWithActor): GameContext = {
+    context
+  }
+
+  @Pure
+  def defenseResponse(defenders: Int)
+                     (implicit context: GameContext, sender: PlayerWithActor): GameContext = {
+    context
+  }
+
+  @Pure
+  def requestEndTurn(implicit context: GameContext, sender: PlayerWithActor): GameContext = {
+    context
   }
 
   /**

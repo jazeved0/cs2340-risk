@@ -4,12 +4,9 @@ import actors.PlayerWithActor
 import common.{Impure, Pure, Resources, Util}
 import controllers._
 import game.mode.GameMode
-import game.mode.skirmish.InitializationHandler._
-import game.mode.skirmish.ProgressionHandler._
-import game.mode.skirmish.ValidationHandler._
 import game.state.{GameState, TurnState}
 import game.{GameContext, Gameboard}
-import models.{OwnedArmy, Player}
+import models.Player
 
 /**
   * Concrete implementation of GameMode bound for DI at runtime. Defines the rules
@@ -22,6 +19,7 @@ class SkirmishGameMode extends GameMode {
 
   @Impure.Nondeterministic
   override def hookInitializeGame(implicit context: GameContext): GameContext = {
+    import game.mode.skirmish.InitializationHandler._
     val territoryCount = context.state.gameboard.nodeCount
     val allocations = calculateAllocations(territoryCount, context.state.size)
     val territoryAssignments = assignTerritories(allocations, territoryCount)
@@ -32,9 +30,9 @@ class SkirmishGameMode extends GameMode {
 
   @Impure.Nondeterministic
   override def hookPacket(packet: InGamePacket)(implicit context: GameContext): GameContext =
-    validate(packet) match {
+    ValidationHandler.validate(packet) match {
       case ValidationResult(false, ctx) => ctx
-      case ValidationResult(true,  ctx) => handle(packet)(ctx)
+      case ValidationResult(true,  ctx) => ProgressionHandler.handle(packet)(ctx)
     }
 
   // TODO implement/refactor
@@ -45,6 +43,9 @@ class SkirmishGameMode extends GameMode {
   @Pure
   override def createGameState(turnOrder: IndexedSeq[PlayerWithActor]): GameState =
     GameState(turnOrder, Vector(), Vector(), gameboard)
+
+
+
 
 
 

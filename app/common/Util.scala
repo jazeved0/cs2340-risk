@@ -3,7 +3,7 @@ package common
 import akka.parboiled2.util.Base64
 
 import scala.collection.mutable
-import scala.collection.mutable.ListBuffer
+import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 import scala.util.Random
 
 /**
@@ -89,4 +89,13 @@ object Util {
     */
   def buffer[T](traversableOnce: TraversableOnce[T]): mutable.Buffer[T] =
     mutable.Buffer[T]() ++ traversableOnce
+
+  /**
+    * Factory method for a mutable ArrayBuffer given an initial collection
+    * @param traversableOnce The source collection
+    * @tparam T The type of element to contain in the collection
+    * @return A new collection instance
+    */
+  def arrayBuffer[T](traversableOnce: TraversableOnce[T]): ArrayBuffer[T] =
+    mutable.ArrayBuffer[T]() ++ traversableOnce
 }

@@ -21,8 +21,16 @@ object TerritoryState {
   */
 case class TerritoryState(army: Army, owner: Player) {
   /**
+    * Adds the number of army tokens to the board state
+    * @param other The other army to add
+    * @return A new territory state with the owner preserved
+    */
+  def add(other: Army): TerritoryState = this.copy(army = army + other.size)
+
+  /**
     * Whether the territory is a Neutral one (spawned as a result of player
     * disconnect)
+    *
     * @return True if the territory is neutral, false otherwise
     */
   @Pure
