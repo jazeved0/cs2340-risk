@@ -44,6 +44,17 @@ object GameContext {
   */
 case class GameContext(state: GameState, private val packetOrder: List[PacketContext]) {
   /**
+    * Processes the GameContext object, contingent upon a conditional function
+    *
+    * @param predicate The test to apply to determine whether the process the context
+    * @param process   The processing function applied when the predicate is true
+    * @return          A new GameContext object to be used in a processing pipeline
+    */
+  @Pure
+  def processIf(predicate: GameState => Boolean)(process: GameContext => GameContext): GameContext =
+    if(predicate(this.state)) process(this) else this
+
+  /**
     * Creates a new GameContext object, appending a Send packet context to the
     * packet order
     *

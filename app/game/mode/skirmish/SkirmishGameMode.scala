@@ -40,7 +40,7 @@ class SkirmishGameMode extends GameMode {
           case ValidationResult(false, ctx) => ctx
           case ValidationResult(true,  ctx) => ProgressionHandler.handle(packet)(ctx, p)
         }
-      case None        => context // pass
+      case None => context // pass
     }
   }
 
@@ -59,29 +59,24 @@ class SkirmishGameMode extends GameMode {
     val oldStates = context.state.turnOrder.zipWithIndex.toMap
     val newPlayerStates = newTurnOrder.map(actor => context.state.playerStates(oldStates(actor)))
 
-    val processedContext = processDisconnectAttackState(actor)
+    context
       .map(gs => gs.copy(
         turnOrder    = newTurnOrder,
         playerStates = newPlayerStates,
         turn         = gs.turnUponDisconnect(actor),
         boardState   = boardState
       ))
-      .clearPayloads
-
-    // Move state forward if necessary
-    (if (processedContext.state.isEmpty) {
-      context.state.stateOf(context.state.currentPlayer.player) match {
-        case Some(PlayerState(_, _, TurnState(TurnState.Idle, _))) =>
-          processedContext
-            .advanceTurnState
-
-        case _ => processedContext // pass
+      .processIf(_.isInDefense) { ctx =>
+        processDisconnectAttackState(actor)(ctx)
+          .clearPayloads
       }
-    } else {
-      processedContext
-    })
-      // Notify game of changes (no need to send to the disconnecting player)
-      .thenBroadcastBoardState(actor.id)
+      .processIf (!_.isEmpty) { ctx =>
+        context.state.stateOf(context.state.currentPlayer.player) match {
+          case Some(PlayerState(_, _, TurnState(TurnState.Idle, _))) => ctx.advanceTurnState
+          case _                                                     => ctx // pass
+        }
+      }
+      .thenBroadcastBoardState(actor.id) // exclude disconnecting player
       .thenBroadcastPlayerState(actor.id)
   }
 
@@ -96,7 +91,6 @@ class SkirmishGameMode extends GameMode {
   @Pure
   def processDisconnectAttackState(actor: PlayerWithActor)
                                   (implicit context: GameContext): GameContext = {
-    if (context.state.isInDefense) {
       context.state.stateOf(actor.player) match {
         // Puts defender in Idle
         case Some(PlayerState(_, _, TurnState(TurnState.Defense, _))) =>
@@ -121,9 +115,6 @@ class SkirmishGameMode extends GameMode {
 
         case _ => context // pass
       }
-    } else {
-      context // pass
-    }
   }
 
   @Pure
