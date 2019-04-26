@@ -32,7 +32,8 @@ object ProgressionHandler {
         case RequestPlaceReinforcements(_, _, assignments) => requestPlaceReinforcements(assignments)
         case RequestAttack(_, _, attack)                   => requestAttack(attack)
         case DefenseResponse(_, _, defenders)              => defenseResponse(defenders)
-        case RequestEndTurn(_, _)                          => requestEndTurn
+        case RequestEndAttack(_, _)                        => requestEndAttack
+        case RequestDoManeuver(_, _, origin, amt, dest)    => requestDoManeuver(origin, amt, dest)
       }
 
   /**
@@ -243,7 +244,7 @@ object ProgressionHandler {
   }
 
   /**
-    * Handles a RequestEndTurn packet coming in from the network and advances turn
+    * Handles a RequestEndAttack packet coming in from the network and advances turn
     * state as appropriate
     *
     * @param context Incoming context wrapping current game state
@@ -251,11 +252,35 @@ object ProgressionHandler {
     * @return An updated game context object
     */
   @Pure
-  def requestEndTurn(implicit context: GameContext, sender: PlayerWithActor): GameContext =
-    // Update turn state twice to skip maneuver phase
+  def requestEndAttack(implicit context: GameContext, sender: PlayerWithActor): GameContext =
     context
-      .advanceTurnState
       .advanceTurnState
       .thenBroadcastBoardState
       .thenBroadcastPlayerState
+
+  /**
+    * Handles a RequestDoManeuver packet coming in from the network and advances turn
+    * state as appropriate
+    *
+    * @param origin  The index of the origin territory
+    * @param amount  The number of troops that the player is maneuvering
+    * @param dest    The index of the delineation territory
+    * @param context Incoming context wrapping current game state
+    * @param sender  The player that initiated the request
+    * @return An updated game context object
+    */
+  @Pure
+  def requestDoManeuver(origin: Int, amount: Int, dest: Int)
+                       (implicit context: GameContext, sender: PlayerWithActor): GameContext = {
+    val boardBuffer: ArrayBuffer[TerritoryState] = Util.arrayBuffer(context.state.boardState)
+    boardBuffer(origin) = boardBuffer(origin) add Army(-amount)
+    boardBuffer(dest)   = boardBuffer(dest)   add Army( amount)
+    context
+      .map(gs => gs.copy(
+        boardState = boardBuffer.toIndexedSeq
+      ))
+      .advanceTurnState
+      .thenBroadcastBoardState
+      .thenBroadcastPlayerState
+  }
 }

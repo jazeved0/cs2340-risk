@@ -1,12 +1,14 @@
 package game.mode.skirmish
 
 import actors.PlayerWithActor
-import common.Pure
+import common.{Pure, Util}
 import controllers._
 import game.GameContext
 import game.mode.skirmish.ValidationContext._
-import game.state.AttackState
 import game.state.TurnState._
+import game.state.{AttackState, TerritoryState}
+
+import scala.collection.immutable.Queue
 
 /**
   * Sub-object of Progression Handler that processes incoming packets and
@@ -29,7 +31,8 @@ object ValidationHandler {
         case RequestPlaceReinforcements(_, _, assignments) => requestPlaceReinforcements(assignments)
         case RequestAttack(_, _, attack)                   => requestAttack(attack)
         case DefenseResponse(_, _, defenders)              => defenseResponse(defenders)
-        case RequestEndTurn(_, _)                          => requestEndTurn
+        case RequestEndAttack(_, _)                        => requestEndAttack
+        case RequestDoManeuver(_, _, origin, amt, dest)    => requestDoManeuver(origin, amt, dest)
         case _                                             => ValidationResult(result = false)
       }
 
@@ -37,8 +40,8 @@ object ValidationHandler {
     * Validates a RequestPlaceReinforcements packet
     *
     * @param assignments The proposed assignments Seq[(territory index -> amount)]
-    * @param sender      The player actor that initiated the request
     * @param context     Incoming context wrapping current game state
+    * @param sender      The player actor that initiated the request
     * @return A context object wrapping the updated game context and the result
     */
   @Pure
@@ -48,9 +51,7 @@ object ValidationHandler {
     val calculated  = PlayerStateHandler.calculateReinforcement(sender.player)
     val totalPlaced = assignments.map(tup => tup._2).sum
     begin("RequestPlaceReinforcements")
-      .check("Player is out of turn") {
-        context.state.currentPlayer == sender
-      }
+      .check("Player is out of turn")(inTurn)
       .check(state.isDefined)
       .check(state.get.turnState.state == Reinforcement)
       .check("Player is placing wrong amount of territories") {
@@ -68,8 +69,8 @@ object ValidationHandler {
     * Validates a RequestAttack packet
     *
     * @param attackData Incoming data from the packet
-    * @param sender     The player actor that initiated the request
     * @param context    Incoming context wrapping current game state
+    * @param sender     The player actor that initiated the request
     * @return A context object wrapping the updated game context and the result
     */
   @Pure
@@ -78,19 +79,12 @@ object ValidationHandler {
     val state = context.state.stateOf(sender.player)
     val attack = if (attackData.size == 3) Some(AttackState(attackData)) else None
     begin("RequestAttack")
-      .check("Player is out of turn") {
-        context.state.currentPlayer == sender
-      }
+      .check("Player is out of turn")(inTurn)
       .check(state.isDefined)
       .check(state.get.turnState.state == Attack)
       .check(attack.isDefined)
-      .checkFalse("There is already an ongoing attack") {
-        context.state.isInDefense
-      }
-      .check("Attacker doesn't own attacking territory") {
-        val attackingTerritoryState = context.state.boardState(attack.get.attackingIndex)
-        attackingTerritoryState.owner == sender.player
-      }
+      .checkFalse("There is already an ongoing attack")(inDefense)
+      .check("Attacker doesn't own attacking territory")(ownsTerritory(attack.get.attackingIndex))
       .check("Target territory is not adjacent") {
         val attackingTerritoryDTO = context.state.gameboard.nodes(attack.get.attackingIndex).dto
         attackingTerritoryDTO.connections.contains(attack.get.defendingIndex)
@@ -107,8 +101,8 @@ object ValidationHandler {
     * Validates a DefenseResponse packet
     *
     * @param defenders The number of defenders committed (from the packet)
-    * @param sender    The player actor that initiated the request
     * @param context   Incoming context wrapping current game state
+    * @param sender    The player actor that initiated the request
     * @return A context object wrapping the updated game context and the result
     */
   @Pure
@@ -118,9 +112,7 @@ object ValidationHandler {
     begin("DefenseResponse")
       .check(state.isDefined)
       .check(state.get.turnState.state == Defense)
-      .check("There is not an ongoing attack") {
-        context.state.isInDefense
-      }
+      .check("There is not an ongoing attack")(inDefense)
       .check("Invalid defender amount") {
         val currentAttack = context.state.currentAttack.get
         val defendingTerritory = context.state.boardState(currentAttack.defendingIndex)
@@ -130,20 +122,76 @@ object ValidationHandler {
   }
 
   /**
-    * Validates a RequestEndTurn packet
+    * Validates a RequestEndAttack packet
     *
-    * @param sender    The player actor that initiated the request
-    * @param context   Incoming context wrapping current game state
+    * @param context Incoming context wrapping current game state
+    * @param sender  The player actor that initiated the request
     * @return A context object wrapping the updated game context and the result
     */
-  def requestEndTurn(implicit context: GameContext, sender: PlayerWithActor): ValidationResult = {
+  @Pure
+  def requestEndAttack(implicit context: GameContext, sender: PlayerWithActor): ValidationResult = {
     val state = context.state.stateOf(sender.player)
-    begin("RequestEndTurn")
-      .check("Player is out of turn") {
-        context.state.currentPlayer == sender
-      }
+    begin("RequestEndAttack")
+      .check("Player is out of turn")(inTurn)
       .check(state.isDefined)
-//      .check(state.get.turnState.state == Maneuver)
+      .check(state.get.turnState.state == Attack)
+      .check("Player is in the middle of an attack")(inDefense)
       .consume(Reply)
   }
+
+  /**
+    * Validates a RequestDoManeuver packet
+    *
+    * @param origin      The index of the origin territory
+    * @param amount      The number of troops that the player is maneuvering
+    * @param destination The index of the delineation territory
+    * @param context     Incoming context wrapping current game state
+    * @param sender      The player actor that initiated the request
+    * @return A context object wrapping the updated game context and the result
+    */
+  @Pure
+  def requestDoManeuver(origin: Int, amount: Int, destination: Int)
+                       (implicit context: GameContext, sender: PlayerWithActor): ValidationResult = {
+    val state = context.state.stateOf(sender.player)
+    begin("RequestDoManeuver")
+      .check("Player is out of turn")(inTurn)
+      .check(state.isDefined)
+      .check(state.get.turnState.state == Maneuver)
+      .check("Player does not own the origin territory")(ownsTerritory(origin))
+      .check("Player does not own the destination territory")(ownsTerritory(destination))
+      .check("Origin territory doesn't have enough troops") {
+        context.state.boardState(origin).size > amount
+      }
+      .check(origin != destination)
+      .check("Origin and destination territories aren't connected") {
+        val owned = context.state.boardState.zipWithIndex.filter {
+          case (TerritoryState(_, owner), _) => owner == sender.player
+        }.map {
+          case (_, index) => index
+        }.toSet
+        Util.bfs[Int](origin, index => Queue[Int]() ++
+          (context.state.gameboard.nodes.lift(index) match {
+            case Some(node) => node.dto.connections.intersect(owned)
+            case None => Nil
+          })
+        ) contains destination
+      }
+      .consume(Reply)
+  }
+
+  // Helper methods
+  @Pure
+  def ownsTerritory(index: Int)(implicit context: GameContext, sender: PlayerWithActor): Boolean =
+    context.state.boardState.lift(index) match {
+      case Some(territoryState) => territoryState.owner == sender.player
+      case None                 => false
+    }
+
+  @Pure
+  def inDefense(implicit context: GameContext, sender: PlayerWithActor): Boolean =
+    context.state.isInDefense
+
+  @Pure
+  def inTurn(implicit context: GameContext, sender: PlayerWithActor): Boolean =
+    context.state.currentPlayer == sender
 }

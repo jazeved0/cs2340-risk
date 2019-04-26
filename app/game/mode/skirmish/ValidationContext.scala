@@ -114,8 +114,8 @@ case class ValidationContext(failed: Boolean, name: String = "",  message: Optio
       case Reply => this match {
         case ValidationContext(true, _, messageOption) =>
           val msg = messageOption
-            .map(s => s"[$logName] Validation failed: $s")
-            .getOrElse("[$logName] Validation failed")
+            .map(s =>  s"[$logName] Validation failed: $s")
+            .getOrElse(s"[$logName] Validation failed")
           ValidationResult(result = false)(
             context
               .thenSend(RequestReply(RequestResponse.Rejected, msg), sender.id))

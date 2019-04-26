@@ -37,8 +37,10 @@ case class RequestPlaceReinforcements(gameId: String, playerId: String, assignme
   * `attack` contains 3 integers: the first territory index, the second territory index, and the amount of attacking
   * armies, in that order */
 case class RequestAttack(gameId: String, playerId: String, attack: Seq[Int]) extends InGamePacket
-/** Requests to end the current turn and validate army assignment and attack data */
-case class RequestEndTurn(gameId: String, playerId: String) extends InGamePacket
+/** Requests to end the current turn's attack phase */
+case class RequestEndAttack(gameId: String, playerId: String) extends InGamePacket
+/** Requests to place troops during the maneuver phase at the end of the turn */
+case class RequestDoManeuver(gameId: String, playerId: String, origin: Int, amount: Int, destination: Int) extends InGamePacket
 /** Serves to receive the chosen amount of defending troops from a player in the Defense phase */
 case class DefenseResponse(gameId: String, playerId: String, defenders: Int) extends InGamePacket
 
@@ -136,7 +138,8 @@ object JsonMarshallers {
   implicit val pingResponse: Reads[PingResponse] = Json.reads[PingResponse]
   implicit val requestPlaceReinforcements: Reads[RequestPlaceReinforcements] = Json.reads[RequestPlaceReinforcements]
   implicit val requestAttack: Reads[RequestAttack] = Json.reads[RequestAttack]
-  implicit val requestEndTurn: Reads[RequestEndTurn] = Json.reads[RequestEndTurn]
+  implicit val requestEndTurn: Reads[RequestEndAttack] = Json.reads[RequestEndAttack]
+  implicit val requestDoManeuver: Reads[RequestDoManeuver] = Json.reads[RequestDoManeuver]
   implicit val defenseResponse: Reads[DefenseResponse] = Json.reads[DefenseResponse]
 
   // Unused Deserializers; necessary for macros to work

@@ -2,6 +2,7 @@ package common
 
 import akka.parboiled2.util.Base64
 
+import scala.collection.immutable.Queue
 import scala.collection.mutable
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 import scala.util.Random
@@ -108,4 +109,21 @@ object Util {
     */
   def arrayBuffer[T](traversableOnce: TraversableOnce[T]): ArrayBuffer[T] =
     mutable.ArrayBuffer[T]() ++ traversableOnce
+
+  /**
+    * Performs a breadth first search on the graph specified by the start node
+    * and the node -> edge mapping function
+    *
+    * @param start    The node to start at
+    * @param getEdges A node -> edge list mapping function that defines the graph
+    * @tparam Node    The type of each Node
+    * @return A stream providing the traversal
+    */
+  def bfs[Node](start: Node, getEdges: Node => Queue[Node]): Stream[Node] = {
+    def rBfs(edges: Queue[Node]): Stream[Node] = edges match {
+      case node +: tail => node #:: rBfs(tail ++ getEdges(node))
+      case _            => Stream.Empty
+    }
+    start #:: rBfs(getEdges(start))
+  }
 }
