@@ -16,10 +16,10 @@ object DocsFormat {
   val NewlineRegex: String = """[\r\n]+"""
   val Newline: String = "\n"
 
-  def terminal(text: String, highlight: Boolean = true): Html =
+  def terminal(text: String, cssClass: String = "bash"): Html =
     Html(s"""<pre class="terminal"><code${
-      if (highlight) {
-        """ class="bash""""
+      if (!cssClass.isEmpty) {
+       s""" class="$cssClass""""
       } else {
         ""
       }

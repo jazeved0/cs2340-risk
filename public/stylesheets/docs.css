@@ -25,7 +25,8 @@ h4 {
   font-size: 0.95rem;
   letter-spacing: 2px;
   text-transform: uppercase;
-  font-weight: 500;
+  margin-top: 1.4rem;
+  font-weight: 600;
 }
 
 /* Colored link styles */
@@ -68,8 +69,15 @@ h4 {
   color: #455488;
   text-decoration: none;
 }
-*:hover > .anchorjs-link {
+*:hover > .anchorjs-link:not(.right-fade) {
   margin-left: -1.125em !important;
+}
+*:hover > .anchorjs-link.right-fade {
+  margin-right: -1.125em !important;
+}
+
+div.color-display a.anchorjs-link {
+  display: none;
 }
 
 a#return-home, .sub-link {
@@ -124,6 +132,7 @@ div.note {
   padding: 12px 20px;
   background-color: rgba(91, 120, 187, 0.16);
   border-left: 6px solid #5B78BB;
+  margin-top: 1.5rem;
   margin-bottom: 1rem;
 }
 div.note.yellow-note {
@@ -169,6 +178,11 @@ ol li p em {
   visibility: hidden;
 }
 
+h4[id]:before {
+  margin-top: -88px;
+  height: 88px;
+}
+
 ul.thumbnail-list {
   list-style-type: none;
   margin-top: 24px;
@@ -196,7 +210,9 @@ ul.thumbnail-list > li div {
 
 ul.thumbnail-list > li div h4 {
   font-size: 1.1rem;
+  font-weight: 500;
   letter-spacing: 3px;
+  margin-top: 0;
   margin-bottom: 0;
 }
 
@@ -222,6 +238,30 @@ div.color-display > div {
   box-shadow: 2px 2px 8px 2px rgba(0, 0, 0, 0.15);
   margin-top: 4px;
   margin-bottom: 4px;
+}
+
+div.map-container pre.terminal {
+  margin-bottom: 0;
+}
+
+div.map-container > div {
+  margin-top: 4px;
+  margin-bottom: 4px;
+}
+
+div.map-container > div:first-child {
+  width: 59%;
+  border-radius: 6px;
+}
+
+div.map-container > div:last-child {
+  width: 39%;
+}
+
+div.map-container > div:not(.no-shadow) {
+  padding: 12px;
+  background-color: #ffffff;
+  box-shadow: 2px 2px 8px 2px rgba(0, 0, 0, 0.15);
 }
 
 div.color-display > div > h4 {
@@ -328,6 +368,15 @@ a.github-link {
   margin-left: 4px;
 }
 
+b {
+  font-weight: 500;
+}
+
+div.leading-terminal > pre.terminal {
+  padding: 8px 10px;
+  margin-top: 12px;
+}
+
 @media(max-width: 767px) {
   ul.thumbnail-list {
     padding-left: 0;
@@ -342,5 +391,9 @@ a.github-link {
 
   div.color-display > div {
     width: 49%;
+  }
+
+  div.map-container > div {
+    width: 100%!important;
   }
 }
