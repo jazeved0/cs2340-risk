@@ -170,17 +170,12 @@ ol li p em {
   color: #6a717d!important;
 }
 
-*[id]:before {
+*[id]:not(nav):before {
   display: block;
   content: " ";
-  margin-top: -92px;
-  height: 92px;
+  margin-top: -90px;
+  height: 90px;
   visibility: hidden;
-}
-
-h4[id]:before {
-  margin-top: -88px;
-  height: 88px;
 }
 
 ul.thumbnail-list {
@@ -372,9 +367,73 @@ b {
   font-weight: 500;
 }
 
+nav[data-toggle=toc] .nav .nav>li>.nav>li>a {
+  padding-left: 40px;
+}
+
 div.leading-terminal > pre.terminal {
   padding: 8px 10px;
   margin-top: 12px;
+}
+
+nav[data-toggle=toc] {
+  top: 100px;
+  overflow-x: hidden;
+  border-left: 3px solid #5B78BB;
+}
+
+nav[data-toggle=toc] > ul.nav {
+  overflow: hidden;
+}
+
+nav[data-toggle=toc] .nav-link+ul {
+  display: flex!important;
+}
+
+nav[data-toggle=toc]>.nav>li:first-child>a:first-child {
+  padding-top: 0!important;
+  margin-top: -5px;
+}
+
+nav[data-toggle=toc] .nav>li:last-child > ul {
+  padding-bottom: 0!important;
+}
+
+nav[data-toggle=toc] .nav>li:last-child > ul > li:last-child > a {
+  margin-bottom: -2px;
+}
+
+nav[data-toggle=toc] .nav>li>a {
+  padding-left: 16px!important;
+}
+
+nav[data-toggle=toc] .nav>li>a:hover, nav[data-toggle=toc] .nav>li>a:active, nav[data-toggle=toc] .nav>li.active>a {
+  border-left: 2px solid #5B78BB!important;
+  color: #5B78BB!important;
+  font-weight: 600!important;
+}
+
+nav[data-toggle=toc] .nav .nav>li>a {
+  padding-left: 28px!important;
+}
+
+nav[data-toggle=toc] .nav .nav>li>.nav>li>a {
+  padding-left: 40px!important;
+}
+
+@media (max-width: 1199.9px) {
+  .container {
+    max-width: none;
+    width: 100%;
+  }
+
+  nav[data-toggle=toc] .nav .nav>li>a {
+    padding-left: 12px!important;
+  }
+
+  nav[data-toggle=toc] .nav .nav>li>.nav>li>a {
+    padding-left: 18px!important;
+  }
 }
 
 @media (min-width: 1300px) {

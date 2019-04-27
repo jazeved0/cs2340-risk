@@ -1,4 +1,4 @@
-@(title: String)(head: Html = Html(""))(headerContent: Html = Html(""))(content: Html = Html(""))(footerScripts: Html = Html(""))
+@(title: String, bodyAttr: String = "")(head: Html = Html(""))(headerContent: Html = Html(""))(content: Html = Html(""))(footerScripts: Html = Html(""))
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -22,7 +22,7 @@
         <meta property="og:site_name" content="CS 2340 Risk"/>
         @head
     </head>
-    <body>
+    <body @Html(bodyAttr)>
         <div class="footer-content-wrapper">
             <!-- Header -->
             @header(headerContent)
