@@ -377,6 +377,12 @@ div.leading-terminal > pre.terminal {
   margin-top: 12px;
 }
 
+@media (min-width: 1300px) {
+  .container{
+    max-width: 1260px;
+  }
+}
+
 @media(max-width: 767px) {
   ul.thumbnail-list {
     padding-left: 0;

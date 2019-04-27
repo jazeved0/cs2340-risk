@@ -7,7 +7,7 @@
 
 @()
 <!-- Call base template -->
-@base("CS 2340 Risk | Design Docs") {
+@base("CS 2340 Risk | Design Docs", """data-spy="scroll" data-target="#toc"""") {
   <!-- Head scripts/css -->
   <link rel="stylesheet" media="screen" href="/static/stylesheets/docs.css">
   <link rel="stylesheet" href="/static/vendor/ekko-lightbox.css">
@@ -18,7 +18,10 @@
   <div class="light-background-container content-wrapper">
     <div class="container py-5">
       <div class="row">
-        <div class="col-sm-12">
+        <div class="col-md-2 d-none d-md-block">
+          <nav id="toc" data-toggle="toc" class="sticky-top"></nav>
+        </div>
+        <div class="col-md-10">
           <a id="return-home" href="/" class="strong"><i class="fas fa-chevron-left mr-2"></i>Return Home</a>
           <h1>Design Docs</h1>
 
@@ -76,8 +79,8 @@
               }("strong sub-link github-link")
             </div>
             @logs("""
-              [warn] \app\common\FastIntSet.scala:18:15: Method name does not match the regular expression '^[a-z][A-Za-z0-9]*$'
-              [warn] \app\common\FastIntSet.scala:23:15: Method name does not match the regular expression '^[a-z][A-Za-z0-9]*$'""")
+              [warn] FastIntSet.scala:18:15: Method name does not match the regular expression '^[a-z][A-Za-z0-9]*$'
+              [warn] FastIntSet.scala:23:15: Method name does not match the regular expression '^[a-z][A-Za-z0-9]*$'""")
             <span class="code-break"></span>
             @code("""
               class FastIntSet(private val source: Set[Int]) extends Set[Int] {
@@ -341,8 +344,8 @@
                         "x": "77.1",
                         "y": "54.7"
                       },
-                      "data": "m50 73.7h18.1l9.6 ...",
-                      "iconData": "m21 65h18l9.7 6 4.7 ..."
+                      "data": "m50 73.7h18.1l9...",
+                      "iconData": "m21 65h18l9..."
                     },
                     {
                       "node": 1,
@@ -350,8 +353,8 @@
                         "x": "171.8",
                         "y": "60.5"
                       },
-                      "data": "m137.8 72.7 9 14.1c3 ...",
-                      "iconData": "m22 59 6.5 10c2.2 ...",
+                      "data": "m137.8 72.7 9...",
+                      "iconData": "m22 59 6.5...",
                       "castle": [
                         "179.9",
                         "71.6"
