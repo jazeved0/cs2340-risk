@@ -57,9 +57,9 @@ object ValidationHandler {
       .check("Player is placing wrong amount of territories") {
         calculated == totalPlaced
       }
-      .checkFalse("Player does not own all territories") {
-        assignments.exists {
-          case (index, _) => context.state.boardState(index).owner != sender.player
+      .check("Player does not own all territories") {
+        assignments.forall {
+          case (index, _) => ownsTerritory(index)
         }
       }
       .consume(Reply)
@@ -83,7 +83,7 @@ object ValidationHandler {
       .check(state.isDefined)
       .check(state.get.turnState.state == Attack)
       .check(attack.isDefined)
-      .checkFalse("There is already an ongoing attack")(inDefense)
+      .checkFalse("There is already an ongoing attack")(inBattle)
       .check("Attacker doesn't own attacking territory")(ownsTerritory(attack.get.attackingIndex))
       .check("Target territory is not adjacent") {
         val attackingTerritoryDTO = context.state.gameboard.nodes(attack.get.attackingIndex).dto
@@ -112,7 +112,7 @@ object ValidationHandler {
     begin("DefenseResponse")
       .check(state.isDefined)
       .check(state.get.turnState.state == Defense)
-      .check("There is not an ongoing attack")(inDefense)
+      .check("There is not an ongoing attack")(inBattle)
       .check("Invalid defender amount") {
         val currentAttack = context.state.currentAttack.get
         val defendingTerritory = context.state.boardState(currentAttack.defendingIndex)
@@ -135,7 +135,7 @@ object ValidationHandler {
       .check("Player is out of turn")(inTurn)
       .check(state.isDefined)
       .check(state.get.turnState.state == Attack)
-      .check("Player is in the middle of an attack")(inDefense)
+      .checkFalse("Player is in the middle of an attack")(inBattle)
       .consume(Reply)
   }
 
@@ -188,8 +188,8 @@ object ValidationHandler {
     }
 
   @Pure
-  def inDefense(implicit context: GameContext, sender: PlayerWithActor): Boolean =
-    context.state.isInDefense
+  def inBattle(implicit context: GameContext, sender: PlayerWithActor): Boolean =
+    context.state.inBattle
 
   @Pure
   def inTurn(implicit context: GameContext, sender: PlayerWithActor): Boolean =

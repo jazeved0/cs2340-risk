@@ -42,7 +42,7 @@ case class GameState(turnOrder: IndexedSeq[PlayerWithActor],
     * Returns whether or not the game is currently in a Defense phase
     */
   @Pure
-  def isInDefense: Boolean = currentAttack.isDefined
+  def inBattle: Boolean = currentAttack.isDefined
 
   /**
     * Gets the state of the given player, or None if it was not found

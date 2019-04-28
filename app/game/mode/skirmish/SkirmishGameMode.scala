@@ -66,7 +66,7 @@ class SkirmishGameMode extends GameMode {
         turn         = gs.turnUponDisconnect(actor),
         boardState   = boardState
       ))
-      .processIf(_.isInDefense) { ctx =>
+      .processIf(_.inBattle) { ctx =>
         processDisconnectAttackState(actor)(ctx)
           .clearPayloads
       }

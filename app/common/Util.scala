@@ -126,4 +126,18 @@ object Util {
     }
     start #:: rBfs(getEdges(start))
   }
+
+  /**
+    * Generates a random list of integers within a specified Range object,
+    * then sorts those integers from greatest to least
+    * Integers are generated between `start`, and `end`, exclusive!
+    * @param len length of the generated list
+    * @param start starting value
+    * @param end the ending value for the range
+    * @return the sorted list as described above
+    */
+  def sortedRandomList(len: Int, start: Int, end: Int): Seq[Int] = {
+    (for (_ <- 1 to len) yield start + scala.util.Random.nextInt(end - start)).sortWith(_ > _)
+  }
+
 }

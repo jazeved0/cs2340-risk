@@ -164,18 +164,15 @@ object ProgressionHandler {
   @Impure.Nondeterministic
   def attackResult(attackers: Int, defenders: Int)(implicit context: GameContext): AttackResult = {
     val faces = Resources.DiceFaces
-    val attackerResult = (for (_ <- 1 to attackers) yield 1 + scala.util.Random.nextInt(faces)).sorted
-    val defenderResult = (for (_ <- 1 to defenders) yield 1 + scala.util.Random.nextInt(faces)).sorted
+    //generates random integers ranging from 1 to `faces`
+    val attackerResult = Util.sortedRandomList(attackers, 1, faces)
+    val defenderResult = Util.sortedRandomList(attackers, 1, faces)
 
-    var attackersDestroyed: Int = 0
-    var defendersDestroyed: Int = 0
-    for (i <- 0 until min(attackers, defenders)) {
-      if (attackerResult(i) <= defenderResult(i)) {
-        attackersDestroyed += 1
-      } else if (attackerResult(i) > defenderResult(i)) {
-        defendersDestroyed += 1
-      }
+    val diceMatchUps = attackerResult zip defenderResult
+    val attackersDestroyed = diceMatchUps.count {
+      case (attackRoll, defendRoll) => attackRoll <= defendRoll
     }
+    val defendersDestroyed = diceMatchUps.size - attackersDestroyed
 
     AttackResult(attackerResult ++ defenderResult, attackersDestroyed, defendersDestroyed)
   }
