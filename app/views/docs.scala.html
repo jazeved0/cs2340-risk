@@ -10,9 +10,9 @@
 @base("CS 2340 Risk | Design Docs", """data-spy="scroll" data-target="#toc" data-offset="80"""") {
   <!-- Head scripts/css -->
   <link rel="stylesheet" media="screen" href="/static/stylesheets/docs.css">
-  <link rel="stylesheet" href="/static/vendor/ekko-lightbox.css">
   <link rel="stylesheet" href="/static/vendor/atom-one-dark.css">
   <link rel="stylesheet" href="/static/vendor/bootstrap-toc.min.css">
+  <link rel="stylesheet" href="/static/vendor/ekko-lightbox.css">
 }() {
   <!-- Content -->
   <div class="light-background-container content-wrapper">
@@ -95,7 +95,52 @@
 
 
           <h3 id="game-flow">Game Flow</h3>
-          <!-- TODO Add this -->
+          <a class="link-color" href="/docs/rules.pdf">Rules</a>
+          <p>
+            The actual gameplay of the Risk game is derived from the Game of Thrones edition of Risk&mdash;specifically
+            their 'Skirmish' mode (see rule above). The following is a rough outline of the flow of the game from start
+            to finish:
+          </p>
+          <ol>
+            <li>
+              <p>
+                At the start of the game, players are evenly assigned each territory in the game, recieving 2 army tokens
+                on each. Remaining territories are given to the last players in the turn order, starting from the last one.
+              </p>
+            </li>
+            <li>
+              <p>
+                Turns are decided randomly, and players take their turns following that order for the rest of the game. In
+                each turn, players have three different phases:
+              </p>
+              <ol>
+                <li>
+                  <p>
+                    <b>Reinforcement</b>: In this phase, players receive additional troops depending on how many territories
+                    they occupy (boosted with castles) and are allowed to place them however they wish.
+                  </p>
+                </li>
+                <li>
+                  <p>
+                    <b>Attack</b>: In this phase, players are allowed to initiate attacks on neighboring enemy territories,
+                    choosing to commit 1, 2 or 3 troops to the attack. The defending player is then notified and can commit
+                    1 or 2 troops to their own defense. Attack results are determined by dice roll (see rules), and if the
+                    attacker wins the territory, they move one of their own units into the newly conquered territory.
+                  </p>
+                </li>
+                <li>
+                  <p>
+                    <b>Maneuver</b>: In the final phase of their turn, players can move troops from one territory they own
+                    to any other, provided that they are connected through territories that the player also owns. They can
+                    do this only once and must leave at least one unit remaining on the original territory.
+                  </p>
+                </li>
+              </ol>
+            </li>
+            <li>
+              <b>Winning</b>
+            </li>
+          </ol>
 
 
 
@@ -384,11 +429,9 @@
             attack confirmation dialog or the territory assignment screen.
           </p>
           <div class="row-container map-container mb-3">
-            <div>
-              <div class="text-center">
-                <a href="/static/images/docs/map_raw.png" data-toggle="lightbox">
-                  <img src="/static/images/docs/map_raw.svg" class="rounded mt-2" alt="deployment diagram" style="max-height: 500px;">
-                </a>
+            <div class="p-3">
+              <div class="position-relative full-size">
+                <img src="/static/images/docs/map.svg" class="rounded" alt="deployment diagram" data-toggle="lightbox" data-remote="/static/images/docs/map.jpg">
               </div>
             </div>
             <div class="no-shadow">

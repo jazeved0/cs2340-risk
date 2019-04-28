@@ -13,13 +13,3 @@ $(document).on('click', '[data-toggle="lightbox"]', function(event) {
   event.preventDefault();
   $(this).ekkoLightbox();
 });
-
-// $(function() {
-//   var navSelector = "#toc";
-//   var nav = $(navSelector);
-//   Toc.init(nav);
-//   $("body").scrollspy({
-//     target: navSelector,
-//     offset: 50
-//   });
-// });
