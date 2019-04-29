@@ -7,6 +7,7 @@ import game.GameContext
 import game.mode.skirmish.SkirmishGameContext._
 import game.state._
 import models.{Army, NeutralPlayer}
+import play.api.Logger
 
 import scala.collection.mutable.ArrayBuffer
 import scala.math.min
@@ -166,12 +167,19 @@ object ProgressionHandler {
     val faces = Resources.DiceFaces
     //generates random integers ranging from 1 to `faces`
     val attackerResult = Util.sortedRandomList(attackers, 1, faces)
-    val defenderResult = Util.sortedRandomList(attackers, 1, faces)
+    val defenderResult = Util.sortedRandomList(defenders, 1, faces)
 
     val diceMatchUps = attackerResult zip defenderResult
+
     val attackersDestroyed = diceMatchUps.count {
       case (attackRoll, defendRoll) => attackRoll <= defendRoll
     }
+
+    val logger = Logger(this.getClass).logger
+    logger.error("" + attackers)
+    logger.error("" + defenders)
+    logger.error(diceMatchUps.toString)
+    logger.error("" + diceMatchUps.size)
     val defendersDestroyed = diceMatchUps.size - attackersDestroyed
 
     AttackResult(attackerResult ++ defenderResult, attackersDestroyed, defendersDestroyed)
