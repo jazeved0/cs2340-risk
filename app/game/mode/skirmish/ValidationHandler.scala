@@ -85,6 +85,7 @@ object ValidationHandler {
       .check(attack.isDefined)
       .checkFalse("There is already an ongoing attack")(inBattle)
       .check("Attacker doesn't own attacking territory")(ownsTerritory(attack.get.attackingIndex))
+      .checkFalse("Attacker owns defending territory")(ownsTerritory(attack.get.defendingIndex))
       .check("Target territory is not adjacent") {
         val attackingTerritoryDTO = context.state.gameboard.nodes(attack.get.attackingIndex).dto
         attackingTerritoryDTO.connections.contains(attack.get.defendingIndex)
@@ -113,6 +114,7 @@ object ValidationHandler {
       .check(state.isDefined)
       .check(state.get.turnState.state == Defense)
       .check("There is not an ongoing attack")(inBattle)
+      .check(ownsTerritory(context.state.currentAttack.get.defendingIndex))
       .check("Invalid defender amount") {
         val currentAttack = context.state.currentAttack.get
         val defendingTerritory = context.state.boardState(currentAttack.defendingIndex)
@@ -159,8 +161,8 @@ object ValidationHandler {
       .check(state.get.turnState.state == Maneuver)
       .check("Player does not own the origin territory")(ownsTerritory(origin))
       .check("Player does not own the destination territory")(ownsTerritory(destination))
-      .check("Origin territory doesn't have enough troops") {
-        context.state.boardState(origin).size > amount
+      .check("Invalid amount to pull from origin territory") {
+        amount >= 1 && amount < context.state.boardState(origin).size
       }
       .check(origin != destination)
       .check("Origin and destination territories aren't connected") {
