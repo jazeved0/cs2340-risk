@@ -7,7 +7,7 @@ import {ON_SEND_GAMEBOARD, ON_UPDATE_PLAYER_STATE, ON_UPDATE_BOARD_STATE,
  import {ADD_TROOPS} from '.././action-types';
 import {initializeGameboardScreen, NETWORK_CTX} from "./game/InitializeGameboardScreen";
 import {seqStringToArray, specialSeqToArray} from '../.././util.js'
-import {UPDATE_ATTACKERS, UPDATE_DEFENDERS} from "../mutation-types";
+import {UPDATE_ATTACKERS, UPDATE_DEFENDERS, UPDATE_DEFENDING_PLAYER_INDEX, UPDATE_ATTACKING_PLAYER_INDEX} from "../mutation-types";
 
 Vue.use(Vuex);
 
@@ -20,6 +20,8 @@ export default {
     defendingTerritory: -1,
     movingTerritoryOrigin: -1,
     movingTerritoryGoal: -1,
+    defendingPlayerIndex: -1,
+    attackingPlayerIndex: -1,
     attackers: 0,
     defenders: 0,
     diceRolls: [],
@@ -47,6 +49,12 @@ export default {
     tryInitializeGameboardScreen: initializeGameboardScreen
   },
   mutations: {
+    [UPDATE_ATTACKING_PLAYER_INDEX](state, newAttackingPlayerIndex) {
+      state.attackingPlayerIndex = newAttackingPlayerIndex;
+    },
+    [UPDATE_DEFENDING_PLAYER_INDEX](state, newDefendingPlayerIndex) {
+      state.defendingPlayerIndex = newDefendingPlayerIndex;
+    },
     [UPDATE_ATTACK_TERRITORY](state, territory) {
       state.attackingTerritory = territory;
     },
@@ -166,13 +174,14 @@ export default {
   getters: {
     playerStates(state, getters, rootState) {
       const resolveMapping = (playerState, index) => {
-        if ('player' in playerState) {
+        if ('player' in playerState && 'turnState' in playerState) {
           return {
             name: playerState.player.settings.name,
             color: '#' + rootState.settings.settings.colors[playerState.player.settings.ordinal],
             armies: playerState.units.size,
             turnOrder: index,
-            currentTurn: playerState.player.settings.ordinal === 0
+            currentTurn: playerState.player.settings.ordinal === 0,
+            turnState: playerState.turnState.state
           };
         } else return {};
       };

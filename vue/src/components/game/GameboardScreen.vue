@@ -71,6 +71,10 @@
     <div v-show="displayDiceRoll">
     <dice-roll-modal v-if="displayDiceRoll"></dice-roll-modal>
     </div>
+    <b-toast v-if="displayResultToast" title="result toast" visible="true" solid>
+      {{ this.$store.state.game.attackResults[0] }} attackers were destroyed, and
+      {{ this.$store.state.game.attackResults[1] }} defenders were destroyed.
+    </b-toast>
     <b-alert
         show
         dismissible
@@ -103,10 +107,12 @@
   import {ADD_TROOPS} from  "../../store/action-types.js"
   import {SUBMIT_REINFORCEMENTS, UNSUBMIT_REINFORCEMENTS, START_RESPONSE_WAIT,
           STOP_RESPONSE_WAIT, SET_ERROR_MESSAGE, UPDATE_DEFEND_TERRITORY, UPDATE_ATTACK_TERRITORY,
-          } from "../../store/mutation-types.js"
+          UPDATE_DEFENDING_PLAYER_INDEX, UPDATE_ATTACKING_PLAYER_INDEX} from "../../store/mutation-types.js"
+  import Toasted from 'vue-toasted';
 
   // noinspection JSUnresolvedFunction
   Vue.use(VueKonva);
+  Vue.use(Toasted);
 
   export default {
     components: {
@@ -122,9 +128,26 @@
       //'movement-popup': MovementScreen,
     },
     computed: {
+      attackerName: function() {
+        const attackerIndex = this.$store.state.game.attackingPlayerIndex;
+        return this.$store.state.game.playerStateList[attackerIndex].settings.name;
+      },
+      defenderName: function() {
+        const defenderIndex = this.$store.state.game.defendingPlayerIndex;
+        return this.$store.state.game.playerStateList[defenderIndex].settings.name;
+      },
       displayDiceRoll: function() {
-        const state = this.$store.state.game;
-        return (state.diceRolls.length > 0);
+        const state = this.$store.state;
+        const playerIndex =  this.$store.getters.getPlayerIndex;
+        const turnState = this.$store.getters.playerStates[playerIndex].turnState;
+        return (state.game.diceRolls.length > 0 && (playerIndex == state.game.attackingPlayerIndex || playerIndex == state.game.defendingPlayerIndex));
+      },
+      displayResultToast: function() {
+        const state = this.$store.state;
+        const playerIndex =  this.$store.getters.getPlayerIndex;
+        const turnState = this.$store.getters.playerStates[playerIndex].turnState;
+        console.log(state.game.diceRolls.length > 0 && !(playerIndex == state.game.attackingPlayerIndex || playerIndex == state.game.defendingPlayerIndex));
+        return (state.game.diceRolls.length > 0 && !(playerIndex == state.game.attackingPlayerIndex || playerIndex == state.game.defendingPlayerIndex));
       },
       getInstructions: function() {
         const turnIndex = this.$store.state.game.turnIndex;
@@ -194,14 +217,22 @@
         if (turnIndex === -1) {
           return false;
         }
-        return this.$store.state.game.attackers === 0 && this.localTurn && this.$store.state.game.playerStateList[turnIndex].turnState.state === 'attack';
+        const result = this.$store.state.game.attackers === 0 && this.localTurn && this.$store.state.game.playerStateList[turnIndex].turnState.state === 'attack'
+        if (result == true) {
+          this.$store.commit(UPDATE_ATTACKING_PLAYER_INDEX, turnIndex);
+        }
+        return result;
       },
       isDefending: function() {
         const currentIndex = this.$store.getters.getPlayerIndex;
         if (currentIndex === -1) {
           return false;
         }
-        return this.$store.state.game.playerStateList[currentIndex].turnState.state === 'defense';
+        const result = this.$store.state.game.playerStateList[currentIndex].turnState.state === 'defense'
+        if (result == true) {
+          this.$store.commit(UPDATE_DEFENDING_PLAYER_INDEX, currentIndex);
+        }
+        return result;
       },
       allocation: function() {
         const turnIndex = this.$store.state.game.turnIndex;

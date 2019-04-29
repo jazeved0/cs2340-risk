@@ -1,19 +1,12 @@
 <template>
     <div>
-        <b-modal id="diceRollModal" :visible="true" no-close-on-esc no-close-on-backdrop hide-header-close ok-only
+        <b-modal class="flex justify-content-center ml-auto mr-auto" :visible="true" no-close-on-esc no-close-on-backdrop hide-header-close ok-only
              @ok="resetAttack">
             <p>
                 The attacker attacked with {{ this.$store.state.game.attackers }} armies, and the defender chose the defend with {{ this.$store.state.game.defenders }}
                 armies. The results are:
             </p>
             <div id="overallContainer">
-                <!-- <swapping-squares-spinner
-                    id="spinner"
-                    :animation-duration="1000"
-                    :size="60"
-                    :color="'#ff1d5e'"
-                    v-if="loading"
-                /> -->
                 <p>Attacking rolls: </p>
                 <div class="diceImageContainer">
                     <!--attack rolls-->
@@ -79,9 +72,9 @@
 </script>
 
 <style>
-    #diceRollModal {
+    /* #diceRollModal {
         position: relative
-    }
+    } */
 
     .diceImageContainer {
         display: flex;
