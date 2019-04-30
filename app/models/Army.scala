@@ -1,5 +1,9 @@
 package models
 
+object Army {
+  val Empty = Army(0)
+}
+
 /**
   * Army DTO
   * @param size The size of the army (number of stacking army tokens)
