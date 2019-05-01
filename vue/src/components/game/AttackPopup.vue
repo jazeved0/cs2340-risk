@@ -207,4 +207,20 @@
     align-items: center;
     justify-content: center;
   }
+
+  @media screen and (max-width: 600px) {
+
+    .territory-portrait {
+      margin-bottom: 5px;
+      margin-top: 5px;
+    }
+
+    .territory-images {
+      display: flex;
+      flex-direction: column;
+      width: max-content;
+      align-content: center;
+    }
+  }
+
 </style>

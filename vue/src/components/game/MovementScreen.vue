@@ -27,22 +27,22 @@
           <p2 class="army-text"> {{ getGoalArmies }} Armies </p2>
         </div>
       </div>
-      <div>
-        <b-form">
-          <b-form-group
-              id="army-input"
-              label="Enter the amount of troops you wish to move: "
-              label-for="input-1"
-              description="You must keep at least one army in each of your territories at all times!">
-            <b-form-input
-                id="input-1"
-                v-model="data.armyNumber"
-                type="armyCount"
-                required
-                placeholder="Enter a Number">
-            </b-form-input>
-          </b-form-group>
+      <p class="mt-2">Enter the amount of armies you wish to move: </p>
+      <div class="mb-3 mt-2">
+        <b-form-group
+            id="army-input"
+            label="Enter the amount of troops you wish to move: "
+            label-for="input-1">
+          <b-form-input
+              id="input-1"
+              v-model="armyNumber"
+              type="armyCount"
+              required
+              placeholder="Enter a Number">
+          </b-form-input>
+        </b-form-group>
       </div>
+      <p>Note: You must leave at least one army behind. </p>
     </b-modal>
   </div>
 </template>
@@ -52,15 +52,15 @@
   export default {
     data: function() {
       return {
-        armyNumber: 0,
+         armyNumber: 0,
       }
     },
     computed: {
       disableMovement() {
         if (!isNaN(this.armyNumber)) {
-          return parseInt(this.armyNumber) > 0 && parseInt(this.armyNumber) <= this.$store.getters.boardStates[this.getOriginArmies].amount - 1;
+          return !((parseInt(this.armyNumber) > 0) && (parseInt(this.armyNumber) < this.getOriginArmies));
         }
-        return false;
+        return true;
       },
       originTerritory() {
         return this.$store.state.game.movingTerritoryOrigin;
@@ -84,10 +84,16 @@
         return this.$store.getters.boardStates;
       },
       getOriginTerritoryName: function () {
+        if (this.originTerritory === -1) {
+          return "";
+        }
         const territoryArmies = this.getBoardState;
         return territoryArmies[this.originTerritory].territory.toString();
       },
       getGoalTerritoryName: function() {
+        if (this.goalTerritory === -1) {
+          return "";
+        }
         const territoryArmies = this.getBoardState;
         return territoryArmies[this.goalTerritory].territory.toString();
       },
@@ -110,17 +116,20 @@
       resetMovingTerritories: function() {
         this.$store.commit(UPDATE_MOVE_TARGET, -1);
         this.$store.commit(UPDATE_MOVE_ORIGIN, -1);
-        this.disableAttackButton = true;
+        this.armyNumber = 0;
       },
       sendMovePacket: function() {
         const packet = {
-          _type: "controllers.RequestMovement",
+          _type: "controllers.RequestDoManeuver",
           gameId: this.$store.state.gameId,
           playerId: this.$store.state.playerId,
-          attack: [this.originTerritory, this.goalTerritory, this.armyNumber]
+          origin: this.originTerritory,
+          amount: this.armyNumber,
+          destination: this.goalTerritory
         };
-        this.resetMovingTerritories;
+        console.log(packet);
         this.$socket.sendObj(packet);
+        this.resetMovingTerritories;
       },
       getPath: function(territoryIndex) {
         return this.$store.state.game.gameboard.iconData[territoryIndex];
@@ -145,6 +154,7 @@
   .territory-portrait {
     display: flex;
     flex-direction: column;
+    width: min-content;
     align-items: center;
     background: #EBEAEE;
     border-radius: 15px;
@@ -184,4 +194,21 @@
     font-family: $roboto-font;
     font-size: 22px;
   }
+
+  @media screen and (max-width: 600px) {
+
+    .territory-portrait {
+      margin-bottom: 5px;
+      margin-top: 5px;
+    }
+
+    .territory-images {
+      display: flex;
+      flex-direction: column;
+      width: max-content;
+      justify-content: space-around;
+      align-content: center;
+    }
+  }
+
 </style>

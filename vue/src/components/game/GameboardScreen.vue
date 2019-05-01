@@ -64,10 +64,9 @@
     <defender-popup
         v-if="displayDefenderPopup">
     </defender-popup>
-    <!-- TODO Implement once movement state is implemented -->
-    <!--<movement-popup>-->
-        <!--v-if="displayMovementPopup"-->
-    <!--</movement-popup>-->
+    <movement-popup
+        v-if="displayMovementPopup">
+    </movement-popup>
     <div v-show="displayDiceRoll">
     <dice-roll-modal v-if="displayDiceRoll"></dice-roll-modal>
     </div>
@@ -99,7 +98,7 @@
   import DiceRollModal from './DiceRollModal'
   import Toolbar from './../Toolbar';
   import VueKonva from 'vue-konva';
-  //import MovementScreen from './MovementScreen';
+  import MovementScreen from './MovementScreen';
   // noinspection ES6UnusedImports
   import Vue from "vue";
   import {clamp, ColorLuminance, distance, colorSaturation} from './../../util'
@@ -107,7 +106,7 @@
   import {ADD_TROOPS} from  "../../store/action-types.js"
   import {SUBMIT_REINFORCEMENTS, UNSUBMIT_REINFORCEMENTS, START_RESPONSE_WAIT,
           STOP_RESPONSE_WAIT, SET_ERROR_MESSAGE, UPDATE_DEFEND_TERRITORY, UPDATE_ATTACK_TERRITORY,
-          UPDATE_DEFENDING_PLAYER_INDEX, UPDATE_ATTACKING_PLAYER_INDEX} from "../../store/mutation-types.js"
+          UPDATE_DEFENDING_PLAYER_INDEX, UPDATE_ATTACKING_PLAYER_INDEX, UPDATE_MOVE_ORIGIN, UPDATE_MOVE_TARGET} from "../../store/mutation-types.js"
   import Toasted from 'vue-toasted';
 
   // noinspection JSUnresolvedFunction
@@ -125,7 +124,7 @@
       'v-castle-icon': CastleIcon,
       'territory-assignment-modal': TerritoryAssignmentModal,
       'dice-roll-modal': DiceRollModal,
-      //'movement-popup': MovementScreen,
+      'movement-popup': MovementScreen,
     },
     computed: {
       attackerName: function() {
@@ -139,19 +138,18 @@
       displayDiceRoll: function() {
         const state = this.$store.state;
         const playerIndex =  this.$store.getters.getPlayerIndex;
-        const turnState = this.$store.getters.playerStates[playerIndex].turnState;
         return (state.game.diceRolls.length > 0 && (playerIndex == state.game.attackingPlayerIndex || playerIndex == state.game.defendingPlayerIndex));
       },
       displayResultToast: function() {
         const state = this.$store.state;
         const playerIndex =  this.$store.getters.getPlayerIndex;
-        const turnState = this.$store.getters.playerStates[playerIndex].turnState;
-        console.log(state.game.diceRolls.length > 0 && !(playerIndex == state.game.attackingPlayerIndex || playerIndex == state.game.defendingPlayerIndex));
+        //console.log(state.game.diceRolls.length > 0 && !(playerIndex == state.game.attackingPlayerIndex || playerIndex == state.game.defendingPlayerIndex));
         return (state.game.diceRolls.length > 0 && !(playerIndex == state.game.attackingPlayerIndex || playerIndex == state.game.defendingPlayerIndex));
       },
       getInstructions: function() {
         const turnIndex = this.$store.state.game.turnIndex;
         const playerObj = this.$store.state.game.playerStateList[turnIndex];
+        console.log(this.$store.state);
         if (turnIndex === -1) {
           return "";
         }
@@ -165,15 +163,20 @@
               "Click on a neutral/enemy territory, that is connected to the your attacking territory, to attack that land." +
               "Then decide how many armies to commit to your attack. You must always leave at least one army in your attacking territory!";
 
+        } else if (this.isInMoving) {
+            return "You are currently in the maneuvering  phase of your turn. " +
+                "Click on one of your territories (which has at least two armies on it) to choose where you are moving armies from." +
+                "Then click on a connected ally territory to move your armies to that territory" +
+                "Then select how many armies you wish to move, ending your turn."
         }
         return "";
       },
       displayAttackingPopup: function() {
         return (this.$store.state.game.attackingTerritory !== -1) && (this.$store.state.game.defendingTerritory !== -1) && this.isInAttacking;
       },
-      // displayMovementPopup: function() {
-      //   return (this.$store.state.game.movingTerritoryOrigin !== -1) && (this.$store.state.game.movingTerritoryGoal !== -1) && this.isInMoving;
-      // },
+      displayMovementPopup: function() {
+        return (this.$store.state.game.movingTerritoryOrigin !== -1) && (this.$store.state.game.movingTerritoryGoal !== -1) && this.isInMoving;
+      },
       displayDefenderPopup: function() {
         return this.isDefending;
       },
@@ -182,6 +185,8 @@
           return "Assign Army";
         } else if (this.isInAttacking) {
           return "End Attacking Turn";
+        } else if (this.isInMoving) {
+          return "End Moving Turn";
         } else {
           return "";
         }
@@ -204,7 +209,13 @@
         }
         return this.$store.state.current === this.$store.state.game.playerStateList[turnIndex].player.settings.name;
       },
-      // #TODO is in defending
+      isInMoving: function() {
+        const turnIndex = this.$store.state.game.turnIndex;
+        if (turnIndex === -1) {
+          return false;
+        }
+        return this.localTurn && this.$store.state.game.playerStateList[turnIndex].turnState.state === 'maneuver';
+      },
       isInReinforcement: function() {
          const turnIndex = this.$store.state.game.turnIndex;
          if (turnIndex === -1) {
@@ -245,7 +256,7 @@
       },
       highlightSelectable: function() {
         return (this.isInReinforcement && this.$store.state.game.placement.total < this.allocation)
-            || (this.isInAttacking);
+            || (this.isInAttacking) || (this.isInMoving);
       },
       turnEventEnabled: function() {
         if (this.isInReinforcement) {
@@ -305,11 +316,11 @@
         if (this.isInAttacking && this.$store.state.game.attackingTerritory !== -1) {
           selectable = this.getAdjacentEnemyTerritories; // highlights all enemy territory surrounding the attacking territory
         }
-        // else if (this.isInMoving && this.$store.state.game.originalTerritory !== -1) {
-        //   selectable = this.getTerritoryMoveLocations();  // highlights all territories that can be moved from one territory
-        // } else if (this.isInMoving && this.$store.state.game.originalTerritory === -1) {
-        //   selectable = this.moveSelectable; // highlights all allied territories that can move troops
-        // }
+        else if (this.isInMoving && this.$store.state.game.movingTerritoryOrigin !== -1) {
+          selectable = this.getTerritoryMoveLocations;  // highlights all territories that can be moved from one territory
+        } else if (this.isInMoving && this.$store.state.game.movingTerritoryOrigin === -1) {
+          selectable = this.moveSelectable; // highlights all allied territories that can move troops
+        }
         let highlightSelectable = this.highlightSelectable;
         const state = this.$store.state;
         return state.game.gameboard.pathData.map(function (item, index) {
@@ -356,37 +367,32 @@
           const attacker = this.$store.state.game.attackingTerritory;
           if (attacker !== -1) {
             const turnIndex = this.$store.state.game.turnIndex;
-            console.log(this.$store.state.game.gameboard);
-            console.log(attacker);
-            console.log(this.$store.state.game.gameboard.territories[attacker]);
             return this.$store.state.game.gameboard.territories[attacker].connections.filter(territory => this.$store.getters.boardStates[territory].owner !== turnIndex);
           }
         }
         return [];
       },
-      // TODO
-      // getTerritoryMoveLocations: function() {
-      //   var visited = new Set();
-      //   var que = [];
-      //
-      //   var startTerritoryIndex = this.$store.state.game.movingTerritoryOrigin;
-      //   var startTerritory = this.$store.state.game.gameboard.territories[startTerritoryIndex];
-      //   const turnIndex = this.$store.state.game.turnIndex;
-      //
-      //   que.push(startTerritory);
-      //   visited.add(startTerritoryIndex);
-      //
-      //   while (que.length !== 0) {
-      //     var dequed = que.shift();
-      //     console.log(dequed);
-      //     dequed.connections.filter(territory => !visited.has(territory) && this.$store.getters.boardStates[territory].owner === turnIndex).forEach(territory => {
-      //       visited.add(territory);
-      //     que.push(this.$store.state.game.gameboard.territories[territory]);
-      //   });
-      //   }
-      //   visited.delete(startTerritoryIndex);
-      //   return Array.from(visited);
-      // },
+      getTerritoryMoveLocations: function() {
+        var visited = new Set();
+        var que = [];
+
+        var startTerritoryIndex = this.$store.state.game.movingTerritoryOrigin;
+        var startTerritory = this.$store.state.game.gameboard.territories[startTerritoryIndex];
+        const turnIndex = this.$store.state.game.turnIndex;
+
+        que.push(startTerritory);
+        visited.add(startTerritoryIndex);
+
+        while (que.length !== 0) {
+          var dequed = que.shift();
+          dequed.connections.filter(territory => !visited.has(territory) && this.$store.getters.boardStates[territory].owner === turnIndex).forEach(territory => {
+            visited.add(territory);
+            que.push(this.$store.state.game.gameboard.territories[territory]);
+          });
+        }
+        visited.delete(startTerritoryIndex);
+        return Array.from(visited);
+      },
       waterConnectionConfigs: function () {
         const gameState = this.$store.state.game;
         return gameState.gameboard.waterConnections.map(function (item, index) {
@@ -433,10 +439,29 @@
       turnEvent: function() {
         if (this.isInReinforcement) {
           this.assignArmy();
+        } else if (this.isInAttacking) {
+          this.endAttacking();
         } else {
-          // do nothing
           this.endTurn();
         }
+      },
+      endAttacking: function() {
+        const store = this.$store;
+        const packet = {
+          _type: "controllers.RequestEndAttack",
+          gameId: store.state.gameId,
+          playerId: store.state.playerId,
+        };
+        this.$socket.sendObj(packet);
+        const thisObj = this;
+        store.commit(START_RESPONSE_WAIT, function(data) {
+          if ('response' in data) {
+            store.commit(STOP_RESPONSE_WAIT);
+            if (data.response === "Rejected") {
+              thisObj.responseFailed(data.message);
+            }
+          }
+        })
       },
       assignArmy: function() {
         const territories = this.$store.state.game.placement.territories;
@@ -461,7 +486,6 @@
         });
       },
       endTurn: function() {
-        //console.log('uwu');
         const store = this.$store;
         const packet = {
           _type: "controllers.RequestEndTurn",
@@ -646,13 +670,15 @@
         };
       },
       territoryClick: function (num) {
+        console.log(this.$store.state.game.movingTerritoryOrigin);
+        console.log(this.$store.state.game.movingTerritoryGoal);
         const turnIndex = this.$store.state.game.turnIndex;
         const owned = this.$store.getters.boardStates[num].owner === turnIndex;
         if (this.isInReinforcement) {
           if (this.$store.state.game.placement.total < this.allocation) {
             this.addTerritory(num);
           }
-        } else if (this.isInAttacking) { // TODO don't allow selection of territories with no surrounding enemies
+        } else if (this.isInAttacking) {
           if (owned && this.$store.getters.boardStates[num].amount > 1) {
             this.$store.commit(UPDATE_ATTACK_TERRITORY, num);
           } else if (!owned) {
@@ -663,41 +689,43 @@
             }
           }
         }
-        // else if (this.isInMovement) {
-        // TODO
-        //// Lets us selects the origin movement point and selects and verifies end points for movement turn
-        //   const numAlliedSurrounding = this.$store.state.game.gameboard.territories[num].connections.filter(t => this.$store.getters.boardStates[t].owner === turnIndex).length;
-        //   if (owned && numAlliedSurrounding > 0) {
-        //     if (this.$store.state.game.movingTerritoryOrigin === -1) {
-        //       this.$store.commit(UPDATE_MOVE_ORIGIN, num);
-        //     }
-        //     else {
-        //       var visited = new Set();
-        //       var que = [];
-        //
-        //       var startTerritoryIndex = this.$store.state.game.movingTerritoryOrigin;
-        //       var startTerritory = this.$store.state.game.gameboard.territories[startTerritoryIndex];
-        //       const turnIndex = this.$store.state.game.turnIndex;
-        //
-        //       que.push(startTerritory);
-        //       visited.add(startTerritoryIndex);
-        //
-        //       while (que.length !== 0) {
-        //         var dequed = que.shift();
-        //         if (dequed.territory === num) {
-        //           this.$store.commit(UPDATE_MOVE_TARGET, num);
-        //           return;
-        //         } else {
-        //           dequed.connections.filter(territory => !visited.has(territory) && this.$store.getters.boardStates[territory].owner === turnIndex).forEach(territory => {
-        //             visited.add(territory);
-        //             que.push(this.$store.state.game.gameboard.territories[territory]);
-        //           });
-        //         }
-        //       }
-        //       return;
-        //     }
-        //   }
-        // }
+        else if (this.isInMoving) {
+        // Lets us selects the origin movement point and selects and verifies end points for movement turn
+          const numAlliedSurrounding = this.$store.state.game.gameboard.territories[num].connections.filter(t => this.$store.getters.boardStates[t].owner === turnIndex).length;
+          if (owned) {
+            if (this.$store.state.game.movingTerritoryOrigin === -1) {
+              if (numAlliedSurrounding > 0) {
+                this.$store.commit(UPDATE_MOVE_ORIGIN, num);
+              }
+            }
+            else {
+              var visited = new Set();
+              var que = [];
+
+              var startTerritoryIndex = this.$store.state.game.movingTerritoryOrigin;
+              var startTerritory = this.$store.state.game.gameboard.territories[startTerritoryIndex];
+              const turnIndex = this.$store.state.game.turnIndex;
+
+              que.push(startTerritory);
+              visited.add(startTerritoryIndex);
+
+              while (que.length !== 0) {
+                var dequed = que.shift();
+                console.log(dequed);
+                if (dequed.connections.includes(num)) {
+                  this.$store.commit(UPDATE_MOVE_TARGET, num);
+                  return;
+                } else {
+                  dequed.connections.filter(territory => !visited.has(territory) && this.$store.getters.boardStates[territory].owner === turnIndex).forEach(territory => {
+                    visited.add(territory);
+                    que.push(this.$store.state.game.gameboard.territories[territory]);
+                  });
+                }
+              }
+              return;
+            }
+          }
+        }
       },
       addTerritory: function (num) {
         // noinspection JSIgnoredPromiseFromCall
