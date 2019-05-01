@@ -105,6 +105,7 @@
           STOP_RESPONSE_WAIT, UPDATE_DEFENDING_PLAYER_INDEX, UPDATE_ATTACKING_PLAYER_INDEX,
           SET_ERROR_MESSAGE, UPDATE_ATTACK_TERRITORY, UPDATE_DEFEND_TERRITORY, UPDATE_MOVE_ORIGIN, UPDATE_MOVE_TARGET} from "../../store/mutation-types.js"
   import {ADD_TROOPS} from "../../store/action-types";
+  import {CLEAR_PLACEMENT} from "../../store/mutation-types";
 
   // Register toast components
   Vue.use(Toasted);
@@ -507,6 +508,8 @@
             store.commit(UNSUBMIT_REINFORCEMENTS);
             if (data.response === "Rejected") {
               thisObj.responseFailed(data.message);
+            } else {
+              this.$store.commit(CLEAR_PLACEMENT);
             }
           }
         });
