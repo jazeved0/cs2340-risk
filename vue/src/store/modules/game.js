@@ -62,10 +62,10 @@ export default {
       state.defendingTerritory = territory;
     },
     [UPDATE_MOVE_TARGET](state, territory) {
-      state.movingTerritoryOrigin = territory;
+      state.movingTerritoryGoal = territory;
     },
     [UPDATE_MOVE_ORIGIN](state, territory) {
-      state.movingTerritoryGoal = territory;
+      state.movingTerritoryOrigin = territory;
     },
     [ON_UPDATE_PLAYER_STATE](state, data) {
       console.log(data);

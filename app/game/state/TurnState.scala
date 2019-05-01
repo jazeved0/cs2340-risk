@@ -1,11 +1,14 @@
 package game.state
 
+import common.Pure
 import game.state.TurnState.State
 
 object TurnState {
+
   object State {
     /**
       * Turns a State object singleton into its string mapping
+      *
       * @param arg The State object singleton to serialize
       * @return A unique lowercase string identifier for the state
       */
@@ -17,6 +20,7 @@ object TurnState {
       case Defense => "defense"
     })
   }
+
   /** Base trait for the turn state machine enumeration */
   sealed trait State
   /** Reinforcement turn phase, player picks troop locations */
@@ -35,9 +39,11 @@ object TurnState {
     * given their previous state
     * Note: it is assumed that the player associated with the
     * prev state has the current turn
+    *
     * @param prev previous State of the player
     * @return succeeding state of the player
     */
+  @Pure
   def nextState(prev: State): State = prev match {
     case Idle => Reinforcement
     case Reinforcement => Attack
@@ -46,25 +52,31 @@ object TurnState {
     case _ => Idle
   }
 
+  @Pure
   def nextDefendingState(prev: State): State = prev match {
     case Idle => Defense
     case Defense => Idle
     case _ => Idle
   }
-
 }
 
 /**
   * Turn state wrapper object holding both the state machine information
   * as well as any other serializable information
-  * @param state The state machine value
+  *
+  * @param state   The state machine value
   * @param payload An optional varargs of key -> value mappings
   */
 case class TurnState(state: State, payload: (String, Any)*) {
+  @Pure
   def advanceState(payload: (String, Any)*): TurnState =
-    TurnState(TurnState.nextState(this.state), payload:_*)
+    TurnState(TurnState.nextState(this.state), payload: _*)
+
+  @Pure
   def advanceDefenseState(payload: (String, Any)*): TurnState = {
     TurnState(TurnState.nextDefendingState(this.state), payload: _*)
   }
-  def clearPayload(): TurnState = TurnState(this.state)
+
+  @Pure
+  def clearPayload: TurnState = TurnState(this.state)
 }

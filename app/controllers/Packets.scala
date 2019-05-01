@@ -37,8 +37,10 @@ case class RequestPlaceReinforcements(gameId: String, playerId: String, assignme
   * `attack` contains 3 integers: the first territory index, the second territory index, and the amount of attacking
   * armies, in that order */
 case class RequestAttack(gameId: String, playerId: String, attack: Seq[Int]) extends InGamePacket
-/** Requests to end the current turn and validate army assignment and attack data */
-case class RequestEndTurn(gameId: String, playerId: String) extends InGamePacket
+/** Requests to end the current turn's attack phase */
+case class RequestEndAttack(gameId: String, playerId: String) extends InGamePacket
+/** Requests to place troops during the maneuver phase at the end of the turn */
+case class RequestDoManeuver(gameId: String, playerId: String, origin: Int, amount: Int, destination: Int) extends InGamePacket
 /** Serves to receive the chosen amount of defending troops from a player in the Defense phase */
 case class DefenseResponse(gameId: String, playerId: String, defenders: Int) extends InGamePacket
 
@@ -70,17 +72,14 @@ object UpdateBoardState {
   def apply(state: GameState): UpdateBoardState = {
     val playerToInt = state.turnOrder.map(actor => actor.player).zipWithIndex.toMap
     new UpdateBoardState(state.boardState.zipWithIndex
-      .filter(t => t._1.isDefined)
-      .map(
-          t => {
-            val owner = t._1.get.owner
-            val index = owner match {
-              case _: ConcretePlayer => playerToInt(owner)
-              case _: NeutralPlayer => -1
-            }
-            (t._2, (t._1.get.army.size, index))
+      .map {
+        case (territoryState, index) =>
+          val playerIndex = territoryState.owner match {
+            case p: ConcretePlayer => playerToInt(p)
+            case    NeutralPlayer  => -1
           }
-      )
+          (index, (territoryState.size, playerIndex))
+      }
       .toMap)
   }
 }
@@ -95,6 +94,13 @@ object RequestResponse extends Enumeration {
 class UnusedFormat[T <: InPacket] extends Reads[T] {
   override def reads(json: JsValue): JsResult[T] = {
     throw new NotImplementedError("Cannot deserialize internal messages")
+  }
+}
+
+/** Used to satisfy the compile-time macros; [unused] */
+class UndefinedWriter[T](typeName: String) extends Writes[T] {
+  override def writes(t: T): JsValue = {
+    throw new NotImplementedError(s"Cannot serialize $typeName's")
   }
 }
 
@@ -115,12 +121,11 @@ object JsonMarshallers {
   implicit val armyW: Writes[Army] = Json.writes[Army]
   implicit val playerW: Writes[Player] = Json.writes[Player]
   implicit val concretePlayer: Writes[ConcretePlayer] = Json.writes[ConcretePlayer]
-  implicit val neutralPlayer: Writes[NeutralPlayer] = Json.writes[NeutralPlayer]
+  implicit val neutralPlayer: Writes[NeutralPlayer.type] = new UndefinedWriter[NeutralPlayer.type]("NeutralPlayer")
   implicit val stateW: Writes[TurnState.State] = (s: TurnState.State) => JsString(TurnState.State.unapply(s).getOrElse(""))
   implicit val payloadW: Writes[Seq[(String, Any)]] = new PayloadWrites
   implicit val turnStateW: Writes[TurnState] = Json.writes[TurnState]
   implicit val playerStateW: Writes[PlayerState] = Json.writes[PlayerState]
-  implicit val ownedArmyW: Writes[OwnedArmy] = Json.writes[OwnedArmy]
   implicit val locationW: Writes[Location] = Json.writes[Location]
   implicit val territoryW: Writes[Territory] = Json.writes[Territory]
   implicit val connectionW: Writes[Connection] = Json.writes[Connection]
@@ -133,7 +138,8 @@ object JsonMarshallers {
   implicit val pingResponse: Reads[PingResponse] = Json.reads[PingResponse]
   implicit val requestPlaceReinforcements: Reads[RequestPlaceReinforcements] = Json.reads[RequestPlaceReinforcements]
   implicit val requestAttack: Reads[RequestAttack] = Json.reads[RequestAttack]
-  implicit val requestEndTurn: Reads[RequestEndTurn] = Json.reads[RequestEndTurn]
+  implicit val requestEndTurn: Reads[RequestEndAttack] = Json.reads[RequestEndAttack]
+  implicit val requestDoManeuver: Reads[RequestDoManeuver] = Json.reads[RequestDoManeuver]
   implicit val defenseResponse: Reads[DefenseResponse] = Json.reads[DefenseResponse]
 
   // Unused Deserializers; necessary for macros to work

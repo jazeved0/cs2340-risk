@@ -3,7 +3,7 @@
         <b-modal class="flex justify-content-center ml-auto mr-auto" :visible="true" no-close-on-esc no-close-on-backdrop hide-header-close ok-only
              @ok="resetAttack">
             <p>
-                The attacker attacked with {{ this.$store.state.game.attackers }} armies, and the defender chose the defend with {{ this.$store.state.game.defenders }}
+                The attacker attacked with {{ this.$store.state.game.attackers }} armies, and the defender chose to defend with {{ this.$store.state.game.defenders }}
                 armies. The results are:
             </p>
             <div id="overallContainer">
@@ -84,7 +84,7 @@
         align-items: center;
         align-content: stretch;
     }
-/* 
+/*
     #overallContainer {
         display: flex;
         flex-direction: column;

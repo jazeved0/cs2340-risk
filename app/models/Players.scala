@@ -13,10 +13,17 @@ object Player extends UniqueIdProvider[WrappedString] {
     Util.randomString(len, Util.Base64Chars.toList.map(i => i.toChar))
   override protected def isIdChar(c: Char): Boolean = Util.Base64Chars.contains(c)
 
+  // Factory methods
   def apply(name: String, color: Color): Player =
     ConcretePlayer(Some(PlayerSettings(name, Resources.Colors.indexOf(color))))
-  def apply(playerSettings: Option[PlayerSettings]): Player = ConcretePlayer(playerSettings)
-  def apply(): Player = NeutralPlayer()
+
+  def apply(settings: PlayerSettings): Player =
+    ConcretePlayer(Some(settings))
+
+  def apply(playerSettings: Option[PlayerSettings]): Player =
+    ConcretePlayer(playerSettings)
+
+  def apply(): Player = NeutralPlayer
 }
 
 /**
@@ -28,16 +35,16 @@ case class ConcretePlayer(override val settings: Option[PlayerSettings]) extends
     * isn't available */
   override def equals(a: Any): Boolean = a match {
     // compares other settings option and this's settings option
-    case other: ConcretePlayer => other.settings.exists(settings.contains)
+    case ConcretePlayer(Some(s)) => settings.contains(s)
     case _ => false
   }
   override def hashCode(): Int = ConcretePlayer.unapply(this).##
 }
 
-case class NeutralPlayer(override val settings: Option[PlayerSettings] = Some(PlayerSettings("Neutral", -1))) extends Player(settings) {
+case object NeutralPlayer extends Player(Some(PlayerSettings("_neutral", Int.MinValue))) {
   override def equals(a: Any): Boolean = a match {
-    case _: NeutralPlayer => true
-    case _ => false
+    case p: Player => p.settings.contains(this.settings.get)
+    case _         => false
   }
-  override def hashCode(): Int = NeutralPlayer.unapply(this).##
+  override def hashCode(): Int = settings.hashCode
 }
