@@ -5,17 +5,20 @@
     <tool-bar>
       <!-- Title -->
       <div slot="left-element">
-        <h1 style="color: white">RISK</h1>
+        <h1 class="title-text">Risk</h1>
       </div>
       <!-- Center text -->
       <div slot="middle-element" class="turn-text text-center">
-        <p class="banner-text font-weight-bold">{{ getBannerText }}</p>
+        <p class="banner-text">
+          <fa-icon class="color" icon="circle" v-bind:style="{ color: bannerColor }"></fa-icon>
+          <span v-html="bannerContent"></span>
+        </p>
       </div>
       <!-- Turn event container (only show if local turn) -->
       <div slot="right-element" v-if="localTurn">
         <!-- Turn Event button -->
-        <div class="button">
-          <b-button class="button-title btn btn-primary text-center my-2 my-sm-0 ml-2 mr-2 white dark_accent"
+        <div class="button mb-2 mt-1 my-md-0">
+          <b-button class="button-title btn btn-primary text-center m-0 my-md-1 mx-md-2 white dark_accent"
                     v-on:click="turnEvent"
                     :disabled="!turnEventEnabled">
             <div style="min-width: 80px; min-height: 34px;">
@@ -220,14 +223,25 @@
       },
 
       // Gets top text
-      getBannerText () {
+      bannerContent () {
         return this.consumeTurnIndex((turnIndex, playerState) => {
-          let suffix = '';
-          if (this.isInReinforcement) suffix = '; ' + (this.allocation - this.$store.state.game.placement.total) + ' troops left';
           // noinspection JSUnresolvedVariable
-          return playerState.player.settings.name
-            + " is in their " + playerState.turnState.state + " turn" + suffix;
+          const nameVerb = this.localTurn
+            ? `<b>You</b> are in your `
+            : `<b>` + playerState.player.settings.name + `</b> is in their `;
+          const turn = `<em>` + playerState.turnState.state + `</em> turn`;
+          const suffix = this.isInReinforcement
+            ? `; <i>` + (this.allocation - this.$store.state.game.placement.total) + ` troops left</i>`
+            : '';
+          return nameVerb + turn + suffix;
         }, "");
+      },
+
+      // Color of banner icon at the top of the screen
+      bannerColor () {
+        return this.consumeTurnIndex((turnIndex) => {
+          return this.$store.state.settings.settings.colors[turnIndex];
+        }, "white");
       },
 
       // Gets the label for the turn event button
@@ -611,21 +625,18 @@
   }
 
   .button-title {
-    padding: 7px;
     color: $light-shades;
     font-family: $roboto-font;
-    font-size: 20px;
+    padding: 0.2em 7px;
+    font-size: 18px;
   }
 
-  @media screen and (max-width: 600px) {
-    .banner-text {
-      font-family: $roboto-font;
-      font-size: 17px;
-    }
-
-    .button-title {
-      font-size: 17px;
-    }
+  .title-text {
+    color: $light-shades;
+    font-family: $roboto-slab-font;
+    font-weight: 400;
+    margin-bottom: 0;
+    font-size: 2rem;
   }
 
   .players {
@@ -636,10 +647,22 @@
   .turn-alert {
     width: 80%;
     position: absolute;
-    top: 9%;
     left: 50%;
     transform: translate(-50%,0);
     z-index: 1000;
+    top: 80px;
+    padding: 1.4rem 3rem 1.4rem 1.9rem;
+    max-width: 1200px;
+  }
+
+  .turn-alert p {
+    margin-bottom: 0;
+  }
+
+  .alert-info {
+    color: #43365d;
+    background-color: #e8daef;
+    border-color: #c0bad1;
   }
 
   .territories {
@@ -657,6 +680,46 @@
     color: $light-shades;
     font-family: $roboto-font;
     font-size: 24px;
-    padding-top: 15px;
+    font-weight: 300;
+  }
+
+  p.banner-text {
+    font-size: 20px;
+    background-color: rgba($light-shades, 0.1);
+    padding: 0.3em 1em;
+    border-radius: 100px;
+    margin-bottom: 8px;
+    margin-top: 8px;
+  }
+
+  p.banner-text b, p.banner-text em, p.banner-text i {
+    font-weight: 600;
+  }
+
+  p.banner-text em {
+    color: #d4d1ee;
+    font-style: normal;
+  }
+
+  p.banner-text i {
+    color: #d9c594;
+    font-style: normal;
+  }
+
+  p.banner-text .color {
+    transform: scale(0.7, 0.7);
+    margin-right: 0.5em;
+  }
+
+  @media screen and (max-width: 600px) {
+    p.banner-text {
+      font-family: $roboto-font;
+      font-size: 17px;
+      line-height: 24px;
+    }
+
+    .button-title {
+      font-size: 17px;
+    }
   }
 </style>

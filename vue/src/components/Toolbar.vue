@@ -3,11 +3,11 @@
     <nav class="navbar navbar-fixed-bottom navbar-dark bg-dark">
       <div class="d-flex flex-auto justify-content-between flexbox align-items-center">
         <div>
-          <div class="d-flex flex-auto flex-row justify-content-start flexbox align-items-center ">
+          <div class="d-none d-lg-flex flex-auto flex-row justify-content-start flexbox align-items-center">
             <div>
               <div id="repo-logo" class="d-inline">
                 <a class="navbar-brand pr-2" href="https://github.gatech.edu/achafos3/CS2340Sp19Team10" name="github" target="_blank" rel="noopener">
-                  <fa-icon :icon="['fab', 'github']" size="lg" class="repoImg pl-2"></fa-icon>
+                  <fa-icon :icon="['fab', 'github']" size="lg" class="repoImg"></fa-icon>
                 </a>
               </div>
             </div>
@@ -37,6 +37,17 @@
   .repoImg {
     position: relative;
     top: 1px;
+    padding-left: 0.6rem;
+    font-size: 40px;
+    color: #F5F2F2;
+    opacity: 0.88;
+    transform: scale(1.23, 1.23);
+  }
+
+  nav {
+    padding: .4rem 1rem !important;
+    box-shadow: 0 0 72px rgba(0, 0, 0, .5);
+    z-index: 999;
   }
 
   .flexbox {

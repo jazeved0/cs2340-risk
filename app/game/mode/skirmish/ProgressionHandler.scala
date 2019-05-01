@@ -255,6 +255,7 @@ object ProgressionHandler {
   @Pure
   def requestEndAttack(implicit context: GameContext, sender: PlayerWithActor): GameContext =
     context
+      .clearPayloads
       .advanceTurnState
       .thenBroadcastBoardState
       .thenBroadcastPlayerState
