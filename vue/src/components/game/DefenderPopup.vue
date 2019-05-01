@@ -1,46 +1,46 @@
+<!--suppress CheckEmptyScriptTag -->
 <template>
     <div>
         <b-modal
             class="flex justify-content-center ml-auto mr-auto"
             size="lg"
-            title="Defend Turn Control" v-bind:visible="true"
+            :title="title" v-bind:visible="true"
             no-close-on-esc no-close-on-backdrop hide-header-close>
-            <div class="territory-images ml-auto mr-auto">
-                <div class="territory-portrait">
-                    <svg width="150" height="150" viewBox="-4 -4 108 108">
+            <div class="territory-display d-flex flex-column flex-md-row mb-3">
+                <div class="border text-center">
+                    <svg class="d-none d-md-inline" width="150" height="150" viewBox="-4 -4 108 108">
                         <path v-bind:d="attackerPath" v-bind:fill="attackerColor"></path>
                     </svg>
-                    <p2 class="territory-text"> Territory {{ getAttackingTerritoryName }}</p2>
-                    <p2 class="region-text"> Region {{ getAttackingRegionName }}</p2>
-                    <p2 class="army-text"> {{ getAttackingArmies }} Armies </p2>
+                    <h2>Territory {{ getAttackingTerritoryName }}</h2>
+                    <h3>Region {{ getAttackingRegionName }}</h3>
+                    <p> {{ getAttackingArmies }} Armies </p>
                 </div>
-                <div class="ml-5 mr-5 mt-auto mb-auto territory-text-container">
-                    <div>
-                        <p3 class="territory-text text-center">{{AttackerPlayerName}}</p3>
-                    </div>
-                    <div>
-                        <p3 class="territory-text text-center">Is Attacking</p3>
-                    </div>
-                    <div>
-                        <p3 class="territory-text text-center">You!</p3>
-                    </div>
+                <div class="middle-section">
+                    <svg class="d-none d-md-block" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg"
+                        x="0px" y="0px" viewBox="0 0 32 32" style="enable-background:new 0 0 32 32;" xml:space="preserve">
+                      <line class="st0" x1="0.6" y1="16" x2="30.6" y2="16"/>
+                      <polygon class="st1" points="28.1,19.1 27.6,18.5 30.3,16 27.6,13.5 28.1,12.9 31.4,16"/>
+                    </svg>
+                    <p class="d-md-none d-lg-block">is attacking</p>
                 </div>
-                <div class="territory-portrait">
-                    <svg width="150" height="150" viewBox="-4 -4 108 108">
+                <div class="border text-center">
+                    <svg class="d-none d-md-inline" width="150" height="150" viewBox="-4 -4 108 108">
                         <path v-bind:d="defenderPath" v-bind:fill="defenderColor"></path>
                     </svg>
-                    <p2 class="territory-text"> Territory {{ getDefendingTerritoryName }}</p2>
-                    <p2 class="region-text"> Region {{ getDefendingRegionName }}</p2>
-                    <p2 class="army-text"> {{ getDefendingArmies }} Armies </p2>
+                    <h2>Territory {{ getDefendingTerritoryName }}</h2>
+                    <h3>Region {{ getDefendingRegionName }}</h3>
+                    <p> {{ getDefendingArmies }} Armies </p>
                 </div>
             </div>
-            <p class="army-text mt-4">Defend with: </p>
-            <div class="flex-buttons">
-                <b-button-group>
-                    <b-button class="mr-4 mr-4" variant="primary" v-on:click="armySelected(1)">One Army</b-button>
-                    <b-button v-if="getDefendingArmies > 1" variant="primary" class="mr-4 mr-4" v-on:click="armySelected(2)">
-                        Two Armies
-                    </b-button>
+            <div class="d-flex flex-row">
+                <span class="mr-3" style="margin-top: 6px;">Attack with:</span>
+                <b-button-group class="btn-group-toggle" v-if="getAttackingArmies > 1" data-toggle="buttons">
+                    <label class="btn btn-secondary" v-on:click="armySelected(1)">
+                        <input type="radio" name="attackingUnits" id="one" autocomplete="off"> One Army
+                    </label>
+                    <label class="btn btn-secondary" v-on:click="armySelected(2)">
+                        <input type="radio" name="attackingUnits" id="two" autocomplete="off"> Two Armies
+                    </label>
                 </b-button-group>
             </div>
             <div slot="modal-footer" class="w-100">
@@ -60,7 +60,6 @@
 <script>
     import {UPDATE_DEFEND_TERRITORY, UPDATE_ATTACK_TERRITORY} from "../../store/mutation-types.js"
     import {UPDATE_DEFENDERS} from "../../store/mutation-types";
-
     export default {
         computed: {
             attackingTerritory() {
@@ -106,18 +105,24 @@
                 const territoryArmies = this.getBoardState;
                 return territoryArmies[this.defendingTerritory].amount;
             },
+            title () {
+              return this.AttackerPlayerName + ' is attacking you!';
+            },
             AttackerPlayerName: function() {
                 const current = this.$store.state.game.turnIndex;
                 const playerObj = this.$store.state.game.playerStateList[current];
                 return playerObj.player.settings.name;
             },
             DefenderPlayerName: function() {
-                const indx = this.defendingTerritory;
-                const playerIndex = this.$store.getters.boardStates[indx].owner;
-                return playerIndex < 0 ? "Neutral" :
-                    this.$store.state.game.playerStateList[playerIndex].player.settings.name;
+                const index = this.defendingTerritory;
+                const playerIndex = this.$store.getters.boardStates[index].owner;
+                // noinspection JSConstructorReturnsPrimitive
+                return playerIndex < 0
+                    ? "Neutral"
+                    : this.$store.state.game.playerStateList[playerIndex].player.settings.name;
             },
         },
+
         methods: {
             resetAttackingTerritories: function() {
                 this.$store.commit(UPDATE_ATTACK_TERRITORY, -1);
@@ -151,8 +156,10 @@
                 } else return 'lightgray'
             }
         },
+
         name: "DefenderPopup",
-        data() {
+
+        data () {
             return {
                 disableDefendButton: true,
                 defendNumber: 0
@@ -164,77 +171,79 @@
 <style lang="scss">
     @import '../../assets/stylesheets/include';
 
-    .territory-portrait {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        background: #EBEAEE;
-        border-radius: 15px;
-        padding: 15px;
+    div.territory-display .border {
+        background-color: rgba($dark-shades, 0.05);
+        border-radius: 12px;
     }
 
-    .territory-text-container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        background: #EBEAEE;
-        border-radius: 15px;
-        padding: 15px;
+    div.territory-display > div:not(.middle-section) {
+        flex-grow: 1;
+        padding: 16px;
     }
 
-    .territory-images {
-        display: flex;
-        flex-direction: row;
-        width: max-content;
-        justify-content: space-around;
-        align-content: center;
+    div.territory-display > div:not(.middle-section) svg * {
+        stroke: gray;
+        stroke-width: 1;
     }
 
-    .territory-text {
-        font-family: $roboto-font;
-        text-align: center;
+    div.territory-display h2 {
+        font-family: $roboto-slab-font;
+        color: #222222;
         font-size: 24px;
-        font-weight: bold;
+        margin-bottom: -2px;
     }
 
-    .region-text {
+    div.territory-display h3 {
         font-family: $roboto-font;
-        text-align: center;
-        font-size: 18px;
-        letter-spacing: 3px;
-        color: #BBBBBB;
-    }
-
-    .army-text {
-        font-family: $roboto-font;
-        text-align: center;
+        color: #222222;
+        opacity: 0.6;
         font-size: 20px;
+        margin-bottom: -2px;
+        letter-spacing: 5px;
     }
 
-    .army-text {
-        font-family: $roboto-font;
-        font-size: 22px;
+    div.territory-display p {
+        margin-bottom: 0;
     }
 
-    .flex-buttons {
-        display: flex;
-        align-items: center;
-        justify-content: center;
+    div.territory-display div.middle-section {
+        max-width: 200px;
+        color: #751b1b;
+        font-weight: 500;
+        padding-left: 24px;
+        padding-right: 24px;
+        align-self: center;
     }
 
-    @media screen and (max-width: 600px) {
+    div.territory-display div.middle-section p {
+        margin-top: -38px;
+    }
 
-        .territory-portrait {
-            margin: 0 auto;
-            justify-content: center;
+    div.territory-display div.middle-section svg {
+        min-width: 50px;
+        height: auto;
+    }
+
+    div.territory-display div.middle-section svg .st0 {
+        fill: none;
+        stroke: #751b1b;
+        stroke-width: 0.75;
+        stroke-miterlimit: 10;
+    }
+
+    div.territory-display div.middle-section svg .st1 {
+        fill: #751b1b;
+    }
+
+    @media(max-width: 767.95px) {
+        div.territory-display div.middle-section p {
+            margin-top: 0;
+            padding-top: 8px;
+            padding-bottom: 8px;
         }
 
-        .territory-images {
-            display: flex;
-            flex-direction: column;
-            width: max-content;
-            justify-content: space-around;
-            align-content: center;
+        div.territory-display > div:not(.middle-section) {
+            padding: 8px;
         }
     }
 

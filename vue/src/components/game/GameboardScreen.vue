@@ -240,7 +240,7 @@
       // Color of banner icon at the top of the screen
       bannerColor () {
         return this.consumeTurnIndex((turnIndex) => {
-          return this.$store.state.settings.settings.colors[turnIndex];
+          return this.$store.getters.playerStates[turnIndex].color;
         }, "white");
       },
 
