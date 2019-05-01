@@ -13,7 +13,7 @@
           <p2 class="region-text"> Region {{ getOriginRegionName }}</p2>
           <p2 class="army-text"> {{ getOriginArmies }} Armies </p2>
         </div>
-        <div class="ml-5 mr-5 mt-auto mb-auto territory-portrait">
+        <div class="ml-5 mr-5 mt-auto mb-auto territory-text-container">
           <div>
             <p3 class="territory-text text-center">Moving armies to</p3>
           </div>
@@ -161,6 +161,15 @@
     padding: 15px;
   }
 
+  .territory-text-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #EBEAEE;
+    border-radius: 15px;
+    padding: 15px;
+  }
+
   .territory-images {
     display: flex;
     flex-direction: row;
@@ -198,8 +207,8 @@
   @media screen and (max-width: 600px) {
 
     .territory-portrait {
-      margin-bottom: 5px;
-      margin-top: 5px;
+      margin: 0 auto;
+      justify-content: center;
     }
 
     .territory-images {
