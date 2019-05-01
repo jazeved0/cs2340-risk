@@ -1,35 +1,26 @@
 @(message: String)(status: String)
-@base("Risk: The Game of Global Domination", "<link rel=\"stylesheet\" media=\"screen\" href=\"/static/stylesheets/error.css\">") {
-  <div class="footer-content-wrapper">
-    <header>
-      <nav class="navbar fixed-top navbar-dark bg-dark">
-        <div>
-          <a class="navbar-brand" href="https://github.gatech.edu/achafos3/CS2340Sp19Team10" target="_blank" rel="noopener">
-            <i class="fab fa-github repoImg pl-2"></i>
-          </a>
-          <p class="nav-title">Error</p>
-        </div>
-      </nav>
-    </header>
-
-    <main>
-      <div class="light-background-container">
-        <div class="light-background error-container d-flex flex-column align-items-center" style="overflow: auto">
-          <div class="d-flex flex-row">
-            <i class="fas fa-exclamation-triangle error-icon d-none d-sm-block"></i>
-            <div class="mx-3">
-              <h1>An error occurred</h1>
-              <p>@message</p>
-              <div class="status-wrapper">
-                <p class="status-code">Status code @{status.toString}</p>
-              </div>
-              <a class="btn btn-primary mt-1" href="/"><i class="fas fa-arrow-left mr-2"></i>Return</a>
-            </div>
+<!-- Call base template -->
+@base("CS 2340 Risk | Error " + status.substring(0, status.indexOf(' '))) {
+  <!-- Head scripts/css -->
+  <link rel="stylesheet" media="screen" href="/static/stylesheets/error.css">
+} {
+  <!-- Header content -->
+  <p class="nav-title">Error</p>
+} {
+  <!-- Content -->
+  <div class="light-background-container">
+    <div class="light-background error-container d-flex flex-column align-items-center" style="overflow: auto">
+      <div class="d-flex flex-row">
+        <i class="fas fa-exclamation-triangle error-icon d-none d-sm-block"></i>
+        <div class="mx-3">
+          <h1>An error occurred</h1>
+          <p>@message</p>
+          <div class="status-wrapper">
+            <p class="status-code">Status code @{status.toString}</p>
           </div>
+          <a class="btn btn-primary mt-1" href="/"><i class="fas fa-arrow-left mr-2"></i>Return</a>
         </div>
       </div>
-    </main>
-
-    @footer()
+    </div>
   </div>
-}
+}()

@@ -1,5 +1,5 @@
 export const NETWORK_CTX = 'gameboardNetwork';
-export const GUI_CTX = 'gameboardScreen';
+export const GUI_CTX     = 'gameboardScreen';
 
 // Async invocation 'lock' to ensure gameboard is initialized only after:
 //    1. the GUI component has been loaded
@@ -7,7 +7,7 @@ export const GUI_CTX = 'gameboardScreen';
 export const initializeGameboardScreen = (function () {
   let lockState = {
     [NETWORK_CTX]: false,
-    [GUI_CTX]: false
+    [GUI_CTX]:     false
   };
   let executed = false;
   let initializeGameboard = () => {};

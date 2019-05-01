@@ -74,6 +74,8 @@
 
   .slot-wrapper .text-wrapper .content .army-text {
     opacity: 0.5;
+    margin-top: -1px;
+    font-size: 17px;
   }
 
   .slot-wrapper .text-wrapper .content .player-color {

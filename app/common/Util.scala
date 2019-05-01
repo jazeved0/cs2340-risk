@@ -2,8 +2,9 @@ package common
 
 import akka.parboiled2.util.Base64
 
+import scala.collection.immutable.Queue
 import scala.collection.mutable
-import scala.collection.mutable.ListBuffer
+import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 import scala.util.Random
 
 /**
@@ -72,6 +73,16 @@ object Util {
   def remove[A, B >: A](elem: B, list: Seq[A]): Seq[A] = list diff List(elem)
 
   /**
+    * Removes an element from an immutable IndexedSeq
+    * @param elem The element to remove
+    * @param list The original list
+    * @tparam A The type of elements in the list
+    * @tparam B The type of element to remove (may be a subtype due to polymorphism)
+    * @return A new list without the target item
+    */
+  def remove[A, B >: A](elem: B, list: IndexedSeq[A]): IndexedSeq[A] = list diff Vector(elem)
+
+  /**
     * Factory method for a mutable ListBuffer given an initial collection
     * @param traversableOnce The source collection
     * @tparam T The type of element to contain in the collection
@@ -89,4 +100,44 @@ object Util {
     */
   def buffer[T](traversableOnce: TraversableOnce[T]): mutable.Buffer[T] =
     mutable.Buffer[T]() ++ traversableOnce
+
+  /**
+    * Factory method for a mutable ArrayBuffer given an initial collection
+    * @param traversableOnce The source collection
+    * @tparam T The type of element to contain in the collection
+    * @return A new collection instance
+    */
+  def arrayBuffer[T](traversableOnce: TraversableOnce[T]): ArrayBuffer[T] =
+    mutable.ArrayBuffer[T]() ++ traversableOnce
+
+  /**
+    * Performs a breadth first search on the graph specified by the start node
+    * and the node -> edge mapping function
+    *
+    * @param start    The node to start at
+    * @param getEdges A node -> edge list mapping function that defines the graph
+    * @tparam Node    The type of each Node
+    * @return A stream providing the traversal
+    */
+  def bfs[Node](start: Node, getEdges: Node => Queue[Node]): Stream[Node] = {
+    def rBfs(edges: Queue[Node]): Stream[Node] = edges match {
+      case node +: tail => node #:: rBfs(tail ++ getEdges(node))
+      case _            => Stream.Empty
+    }
+    start #:: rBfs(getEdges(start))
+  }
+
+  /**
+    * Generates a random list of integers within a specified Range object,
+    * then sorts those integers from greatest to least
+    * Integers are generated between `start`, and `end`, exclusive!
+    * @param len length of the generated list
+    * @param start starting value
+    * @param end the ending value for the range
+    * @return the sorted list as described above
+    */
+  def sortedRandomList(len: Int, start: Int, end: Int): Seq[Int] = {
+    (for (_ <- 1 to len) yield start + scala.util.Random.nextInt(end - start)).sortWith(_ > _)
+  }
+
 }

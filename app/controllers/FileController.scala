@@ -1,11 +1,9 @@
 package controllers
 
 import java.io.File
-
 import common.Resources
 import common.Resources.StatusCodes
 import play.api.mvc.{Action, AnyContent, MessagesBaseController, MessagesControllerComponents}
-
 import scala.concurrent.ExecutionContext
 
 /**
@@ -23,22 +21,41 @@ class FileController(val controllerComponents: MessagesControllerComponents)
     * @return A modified filepath wrapped in a RelativeFile object
     */
   def formatFilepath(root: String)(implicit base: String): RelativeFile =
-    RelativeFile(root + (base.indexOf('/') match {
-      case -1 => base
-      case i => base.substring(i)
-    }))
+    RelativeFile(replaceRelativePath(root))
+
+  /**
+    * Replaces the root of a relative filepath with the new root, or replaces
+    * the first folder it finds if no oldRoot is specified
+    * @param newRoot the new root of the relative path
+    * @param oldRoot the old root of the relative path, or "*" to match any single folder
+    * @param path the path to process
+    * @return the processed path
+    */
+  def replaceRelativePath(newRoot: String, oldRoot: String = "*")
+                    (implicit path: String): String =
+    newRoot + (oldRoot match {
+      // Remove first directory regardless of what it is
+      case "*" => path.indexOf('/') match {
+        case -1 => path
+        case i => path.substring(i)
+      }
+      // Remove old root
+      case _ => path.replace(oldRoot, "")
+    })
+
 
   /**
     * Builds a path for the docs file
-    * @param root The base folder to replace the old one with ("docs")
+    * @param root The base folder to replace the old one with (Resources.DocsPath)
     * @param base The original string to process
     * @return A heavily modified filepath wrapped in a RelativeFile object,
     *         or a UrlRedirect if a redirect is necessary
     */
   def formatDocsFilepath(root: String)(implicit base: String): InitialFileResponse = {
-    val substr = formatFilepath("").path
-    if (substr == "docs") {
-      UrlRedirect("docs/")
+    val substr = replaceRelativePath("", Resources.DocsPath.init)
+    // Redirect '/api' URLs to '/api/'
+    if (substr == "/api") {
+      UrlRedirect(s"/${Resources.DocsPath}api/")
     } else {
       RelativeFile(root + (if (substr.indexOf('.') == -1) {
         substr + (if (substr.last == '/') "index.html" else ".html")
@@ -63,55 +80,33 @@ class FileController(val controllerComponents: MessagesControllerComponents)
   case class ResolvedFile(obj: File) extends FileResponse
 
   /**
-    *
-    * @param path
-    * @return
+    * Constructs a NotFound Error object for the path with a 404 status
+    * @param path The path that was not found
+    * @return An error object
     */
   def notFound(implicit path: String): Error =
     Error(s"Could not find $path", StatusCodes.NOT_FOUND)
 
-  /**
-    *
-    * @param path
-    * @return
-    */
   def specialDirectory(implicit path: String): InitialFileResponse =
     findByKey(Resources.DirectorySpecialMappings, path.startsWith) match {
       case Some(mapping) => formatFilepath(mapping)
       case None => notFound
     }
 
-  /**
-    *
-    * @param path
-    * @return
-    */
   def specialFile(implicit path: String): InitialFileResponse =
     findByKey(Resources.FileSpecialMappings, path == _) match {
       case Some(mapping) => RelativeFile(mapping)
       case None => notFound
     }
 
-  /**
-    *
-    * @param path
-    * @return
-    */
   def handleDocs(path: String): InitialFileResponse =
-    if (Resources.DocsEnabled) {
-      formatDocsFilepath(Resources.DocsRoot)(path)
+    if (Resources.DocsEnabled || !path.startsWith("docs/api")) {
+      formatDocsFilepath(Resources.DocsRoot.init)(path)
     } else {
-      Error("Docs are not enabled", StatusCodes.MOVED_PERMANENTLY)
+      Error("API docs are not enabled (try building for production)",
+        StatusCodes.MOVED_PERMANENTLY)
     }
 
-  /**
-    *
-    * @param map
-    * @param pred
-    * @tparam K
-    * @tparam V
-    * @return
-    */
   def findByKey[K, V](map: Map[K, V], pred: K => Boolean): Option[V] = {
     map.keySet.find(pred) match {
       case Some(k) => Some(map(k))
@@ -129,7 +124,7 @@ class FileController(val controllerComponents: MessagesControllerComponents)
         specialDirectory(p)
       case p if Resources.FileSpecialMappings.keySet.contains(path) =>
         specialFile(p)
-      case p if p.startsWith("docs") =>
+      case p if p.startsWith(Resources.DocsPath.init) =>
         handleDocs(p)
       case p if Resources.DirectorySpecialMappings.contains(Wildcard) =>
         RelativeFile(s"${Resources.DirectorySpecialMappings(Wildcard)}/$p")

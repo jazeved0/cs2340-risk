@@ -57,7 +57,7 @@
 }
 
 /* Form label font settings */
-.form-label-container p {
+.form-label-container p, .form-label-container label {
   font-size: 24px;
   font-family: Roboto, sans-serif;
   color: #362A4D;
@@ -132,7 +132,7 @@
 }
 
 /* Modify styling of app field */
-#search_field {
+#lobby-field {
   text-transform: uppercase;
   font-weight: 500;
   background-color: #FFFFFF1A;
@@ -176,10 +176,4 @@
 
 .form-fix dl dd.info, .form-fix dl dt label {
   display: none
-}
-
-/* transition jitter fix */
-.repoImg {
-  position: relative;
-  top: 1px;
 }

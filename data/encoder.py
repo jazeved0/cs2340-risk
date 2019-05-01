@@ -8,25 +8,41 @@ from svgpathtools import parse_path
 from svgpathtools.path import translate, scale
 from scour.scour import cleanPath, sanitizeOptions
 from xml.dom.minidom import parse, Node
+import sys
 
-# Ingests raw svg data and converts it to json for injection on the back and
-# front ends. To ensure successful parses, the svg must be formatted in a
-# specific way:
-#
-#   - For each territory, there must be:
-#       1. a <path> or <polygon> defining the shape
-#       2. a <text> with the 0-based numeric ID as its content
-#       3. a <circle> with its center being the vertex
-#       4. the above four shapes in a single group (<g>) tag
-#
-#   - For the edges, there must be a group with one or more <line>
-#
-#   - For the water connections, there can be an optional group of <line> or
-#     <polyline> tags (*with their stroke width greater than the edges*)
+__author__      = "Joseph Azevedo"
 
-INGEST_PATH = 'source/'
+"""
+encoder.py
+----------
+Ingests raw svg data and converts it to json for injection on the back and
+front ends. To ensure successful parses, the svg must be formatted in a
+specific way:
+
+  - For each territory, there must be:
+      1. a <path> or <polygon> defining the shape
+      2. a <text> with the 0-based numeric ID as its content
+      3. a <circle> with its center being the vertex
+      4. the above four shapes in a single group (<g>) tag
+
+  - For the edges, there must be a group with one or more <line>
+
+  - For the water connections, there can be an optional group of <line> or
+    <polyline> tags (*with their stroke width greater than the edges*)
+"""
+
+HELP = """
+encoder.py
+
+Usage:
+  encoder.py <source_dir> <destination_dir> [options]
+    
+Options:
+  -h --help    Show this help description"""
+
+INGEST_PATH = sys.argv[1]
 INGEST_EXTENSION = '.svg'
-OUTPUT_PATH = 'maps/'
+OUTPUT_PATH = sys.argv[2]
 OUTPUT_EXTENSION = '.json'
 TOLERANCE = 15
 STYLE_REGEX = '^[.](\\S+){.+stroke-width:([0-9.])+;.+}$'
@@ -47,6 +63,11 @@ SIZE_ACCURACY = 2
 
 
 def main():
+    if '--help' in sys.argv or '-h' in sys.argv:
+        # Display help and stop
+        print(HELP)
+        quit()
+
     ingest_files = [os.path.join(INGEST_PATH, f) for f in os.listdir(INGEST_PATH)
                     if not (os.path.isdir(os.path.join(INGEST_PATH, f)))]
 

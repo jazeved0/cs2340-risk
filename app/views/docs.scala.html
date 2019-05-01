@@ -1,0 +1,824 @@
+@import views.DocsFormat.terminal
+@import views.DocsFormat.link
+@import views.DocsFormat.hLink
+@import views.DocsFormat.note
+@import views.DocsFormat.logs
+@import views.DocsFormat.code
+
+@()
+<!-- Call base template -->
+@base("CS 2340 Risk | Design Docs", """data-spy="scroll" data-target="#toc" data-offset="80"""") {
+  <!-- Head scripts/css -->
+  <link rel="stylesheet" media="screen" href="/static/stylesheets/docs.css">
+  <link rel="stylesheet" href="/static/vendor/atom-one-dark.css">
+  <link rel="stylesheet" href="/static/vendor/bootstrap-toc.min.css">
+  <link rel="stylesheet" href="/static/vendor/ekko-lightbox.css">
+}() {
+  <!-- Content -->
+  <div class="light-background-container content-wrapper">
+    <div class="container py-5">
+      <div class="row flex-row-reverse">
+        <div class="col-md-2 d-none d-md-block">
+          <!-- Rendered out -->
+          <nav id="toc" data-toggle="toc" class="sticky-top">
+            <ul class="nav navbar-nav">
+              <li>
+                <a class="nav-link" href="#overview">Overview</a>
+                <ul class="nav navbar-nav">
+                  <li><a class="nav-link" href="#network-model">Network Model</a></li>
+                  <li><a class="nav-link" href="#game-flow">Game Flow</a></li>
+                </ul>
+              </li>
+              <li>
+                <a class="nav-link" href="#backend">Backend</a>
+                <ul class="nav navbar-nav">
+                  <li>
+                    <ul class="nav navbar-nav">
+                      <li><a class="nav-link" href="#scalastyle-notes">Scalastyle Notes</a></li>
+                    </ul>
+                  </li>
+                  <li><a class="nav-link" href="#caching">Caching</a></li>
+                  <li><a class="nav-link" href="#resource-injection">Resource Injection</a></li>
+                  <li><a class="nav-link" href="#web-socket">WebSocket</a></li>
+                  <li>
+                    <ul class="nav navbar-nav">
+                      <li><a class="nav-link" href="#packet-serialization-deserialization">Packet Serialization/<wbr>Deserialization</a></li>
+                      <li><a class="nav-link" href="#flow-graph">Flow Graph</a></li>
+                    </ul>
+                  </li>
+                  <li><a class="nav-link" href="#functional-gamestate">Functional Gamestate</a></li>
+                  <li>
+                    <ul class="nav navbar-nav">
+                      <li><a class="nav-link" href="#game-mode">Game Mode</a></li>
+                      <li><a class="nav-link" href="#game-context">Game Context</a></li>
+                    </ul>
+                  </li>
+                  <li><a class="nav-link" href="#map-ingestion">Map Ingestion</a></li>
+                </ul>
+              </li>
+              <li>
+                <a class="nav-link" href="#frontend">Frontend</a>
+                <ul class="nav navbar-nav">
+                  <li><a class="nav-link" href="#additional-libraries">Additional Libraries</a></li>
+                  <li><a class="nav-link" href="#theme">Theme</a></li>
+                  <li><a class="nav-link" href="#responsiveness">Responsiveness</a></li>
+                  <li><a class="nav-link" href="#structure">Structure</a></li>
+                  <li><a class="nav-link" href="#lobby-screen-vue">LobbyScreen.vue</a></li>
+                  <li><a class="nav-link" href="#gameboard-screen-vue">GameboardScreen.vue</a></li>
+                </ul>
+              </li>
+              <li>
+                <a class="nav-link" href="#deployment">Deployment</a>
+                <ul class="nav navbar-nav">
+                  <li><a class="nav-link" href="#dockerfile">Dockerfile</a></li>
+                  <li><a class="nav-link" href="#build-pipeline">Build Pipeline</a></li>
+                  <li><a class="nav-link" href="#ssl-termination">SSL Termination</a></li>
+                </ul>
+              </li>
+            </ul>
+          </nav>
+        </div>
+        <div class="col-md-10">
+          <a id="return-home" href="/" class="strong"><i class="fas fa-chevron-left mr-2"></i>Return Home</a>
+          <h1>Design Docs</h1>
+
+          <h2 id="overview">Overview</h2>
+          <a class="link-color" href="/docs/rules.pdf">Rules</a>
+          <p>
+            CS2340 Risk is a Scala web application composed of a Akka WebSocket backend and a Vue.js frontend.
+          </p>
+
+          <h3 id="game-flow">Game Flow</h3>
+          <p>
+            The actual gameplay of the Risk game is derived from the Game of Thrones edition of Risk&mdash;specifically
+            their 'Skirmish' mode (see rules above). The following is a rough outline of the flow of the game from start
+            to finish:
+          </p>
+          <ol>
+            <li>
+              <p>
+                At the start of the game, players are evenly assigned each territory in the game, receiving 2 army tokens
+                on each. Remaining territories are given to the last players in the turn order, starting from the last one.
+              </p>
+            </li>
+            <li>
+              <p>
+                Turns are decided randomly, and players take their turns following that order for the rest of the game. In
+                each turn, players have three different phases:
+              </p>
+              <ol>
+                <li>
+                  <p>
+                    <b>Reinforcement</b>: In this phase, players receive additional troops depending on how many territories
+                    they occupy (boosted with castles) and are allowed to place them however they wish.
+                  </p>
+                </li>
+                <li>
+                  <p>
+                    <b>Attack</b>: In this phase, players are allowed to initiate attacks on neighboring enemy territories,
+                    choosing to commit 1, 2 or 3 troops to the attack. The defending player is then notified and can commit
+                    1 or 2 troops to their own defense. Attack results are determined by dice roll (see rules), and if the
+                    attacker wins the territory, they move one of their own units into the newly conquered territory.
+                  </p>
+                </li>
+                <li>
+                  <p>
+                    <b>Maneuver</b>: In the final phase of their turn, players can move troops from one territory they own
+                    to any other, provided that they are connected through territories that the player also owns. They can
+                    do this only once and must leave at least one unit remaining on the original territory.
+                  </p>
+                </li>
+              </ol>
+            </li>
+            <li>
+              <p>
+                <b>Winning</b>: In order to win, players must conquer the maximum number of territories before the turn
+                counter expires.
+              </p>
+            </li>
+          </ol>
+
+
+
+          <!-- Backend -->
+          <h2 id="backend">Backend</h2>
+          <a class="link-color" href="/docs/api/">Scaladocs</a>
+          <a class="link-color" href="/docs/backend.uml.pdf">UML Diagram (Old)</a>
+          <p>
+            The backend of CS 2340 Risk is built in Scala using the @link("https://www.playframework.com/", "Play Framework")
+            and its underlying @link("https://akka.io/", "Akka") web server. The backend serves two primary purposes: acting
+            as a webserver that serves static @link("https://github.com/playframework/twirl", "Twirl") pages/other files and
+            acting as a Websocket backend for the gameplay portion of the app. The packages are roughly divided into the following
+            categories:
+          </p>
+          <ul>
+            <li><code>actors</code>: Akka actor classes/wrapper classes</li>
+            <li><code>common</code>: Common utility code not related to any specific task</li>
+            <li><code>controllers</code>: Play controller code for general routes, websocket handling, and file routing</li>
+            <li><code>game</code>: Gameplay code and the related traits/classes</li>
+            <li><code>game.mode</code>: Gameplay code that processes gamestate and updates it accordingly</li>
+            <li><code>game.mode.skirmish</code>: Contains main gamemode strategy classes as well as related extension classes and sub-objects</li>
+            <li><code>game.state</code>: Data wrapper objects used to hold state (all immutable)</li>
+            <li><code>models</code>: Miscellaneous data transfer objects</li>
+            <li><code>views</code>: Twirl templates &amp; related formatting code</li>
+          </ul>
+
+
+
+          <!-- Scalastyle notes -->
+          @note {
+            <h4 id="scalastyle-notes" class="margin">Scalastyle Notes</h4>
+            <p>
+              The following @link("http://www.scalastyle.org/", "Scalastyle") warnings are due to deliberate design patterns:
+            </p>
+            <div class="terminal-header"><code>FastIntSet.scala</code>
+              @hLink("https://github.gatech.edu/achafos3/CS2340Sp19Team10/blob/indev/app/common/FastIntSet.scala"){
+                View on Github<i class="fas fa-chevron-right ml-2"></i>
+              }("strong sub-link github-link")
+            </div>
+            @logs("""
+              [warn] FastIntSet.scala:18:15: Method name does not match the regular expression '^[a-z][A-Za-z0-9]*$'
+              [warn] FastIntSet.scala:23:15: Method name does not match the regular expression '^[a-z][A-Za-z0-9]*$'""")
+            <span class="code-break"></span>
+            @code("""
+              class FastIntSet(private val source: Set[Int]) extends Set[Int] {
+                ...
+                override def +(elem: Int): Set[Int]
+                override def -(elem: Int): Set[Int]
+              }&lbrk;
+              // These methods are required for implementing the Set[T] trait from the Scala collections API""", "scala")
+            <div class="terminal-header"><code>Army.scala</code>
+              @hLink("https://github.gatech.edu/achafos3/CS2340Sp19Team10/blob/indev/app/models/Army.scala"){
+                View on Github<i class="fas fa-chevron-right ml-2"></i>
+              }("strong sub-link github-link")
+            </div>
+            @logs("""
+              [warn] \app\models\Army.scala:14:6: Method name does not match the regular expression '^[a-z][A-Za-z0-9]*$'""")
+            <span class="code-break"></span>
+            @code("""
+              case class Army(size: Int) {
+                def +(amount: Int): Army = Army(size + amount)
+              }&lbrk;
+              // These methods allow for natural syntax when incrementing/decrementing troop amounts, as Army/OwnedArmy
+              // are primarily number wrapper DTOs""", "scala")
+          }(wrapper = false)
+
+
+
+          <!-- Caching -->
+          <h3 id="caching">Caching</h3>
+          <p>
+            To speed up the <b>TTFB</b> (time to first byte) for pages that are completely static yet still are rendered on the
+            server (such as this docs page or @link("/", "landing page")), the rendered results of the page were cached using
+            @link("https://github.com/ben-manes/caffeine", "Caffeine"), a high performance Java caching library with
+            @link("https://www.playframework.com/documentation/2.7.x/ScalaCache", "Play framework integration"). The usage is
+            as follows (from <code>MainController.scala</code>), which shows how the Twirl rendering code is placed inside the
+            parameter of the <code>cached</code> method, allowing the same static content to be served multiple time without
+            rerendering:
+          </p>
+          @code("""
+            def docs: EssentialAction = cached("docsPage") {
+              Action.apply {
+                implicit request =>
+                  // send docs page
+                  Ok(views.html.docs())
+              }
+            }""", "scala")
+
+
+
+          <!-- Resource Injection -->
+          <h3 id="resource-injection">Resource Injection</h3>
+          <p>
+            In order to remove magic constants from the codebase, any configuration settings or numeric rules were placed in
+            a separate configuration file that gets parsed every time the application starts. This way, making modifications
+            is much easier and the codebase is less brittle in general. The configuration file itself is in
+            @link("https://github.com/lightbend/config/blob/master/HOCON.md", "HOCON syntax"), and uses Play's HOCON parsing
+            classes to load every value into a Singleton object called <code>Resources</code>. When a config-loaded value is
+            used, the singleton object can just be referenced, like in the snippet below (from <code>InitializationHandler.scala</code>):
+          </p>
+          @code("""
+            object InitializationHandler {
+              lazy val perTerritory: Int = Resources.SkirmishInitialArmy
+              ...""", "scala")
+          @note {
+            A potential area of improvement would be to refactor this part of the codebase to use Dependency Injection through
+            @link("https://github.com/google/guice", "Google Guice") , but doing so would involve complex instantiation
+            (Constructor-based DI gets much more complicated when Scala Singletons and Akka Actors get involved).
+          }()
+
+
+
+          <!-- Web Socket -->
+          <h3 id="web-socket">WebSocket</h3>
+          <p>
+            For its primary backend, the game application uses @link("https://en.wikipedia.org/wiki/WebSocket", "WebSocket"),
+            a network communication technology that upgrades an HTTP connection to a low latency full-duplex communication
+            channel over a single TCP port. This means that client actions and server updates could be exchanged at any time,
+            far preferable to long polling HTTP techniques like @link("https://en.wikipedia.org/wiki/Comet_(programming)", "Comet").
+          </p>
+
+
+
+          <!-- Packet Serialization/Deserialization -->
+          <h4 id="packet-serialization-deserialization">Packet Serialization/<wbr>Deserialization</h4>
+          <p>
+            For the actual implementation of the WebSocket connection, Akka, the underlying HTTP server bundled with Play, was
+            used heavily to develop a <code>Flow</code> of messages going in and out of the server. This has the benefit that
+            incoming and outgoing packets can automatically be serialized/deserialized, allowing for much faster iteration and
+            more flexibility when it came to the network model. To do this, the Akka flow API needs dedicated <code>Reads[T]</code>
+            and <code>Writes[T]</code> objects for each type of object that many come from/go to the network, which all need to be
+            imported into the implicit scope wherever the websocket API is used. Luckily, Play/Akka comes with compile-time macros
+            that automatically create <code>Reads</code>/<code>Writes</code> objects for case classes, which are used extensively
+            in <code>Packets.scala</code> to provide the automatic marshalling for all packets to/from JSON:
+          </p>
+          @hLink("https://github.gatech.edu/achafos3/CS2340Sp19Team10/blob/master/app/controllers/Packets.scala"){
+            View on Github<i class="fas fa-chevron-right ml-2"></i>
+          }("strong github-link mb-3 d-block")
+          @code("""
+            object JsonMarshallers {
+              // Data object marshallers
+              implicit val playerSettingsR: Reads[PlayerSettings] = Json.reads[PlayerSettings]
+              implicit val playerSettingsW: Writes[PlayerSettings] = Json.writes[PlayerSettings]&lbrk;
+              // Deserializers
+              implicit val requestPlayerJoin: Reads[RequestPlayerJoin] = Json.reads[RequestPlayerJoin]
+              implicit val requestStartGame: Reads[RequestStartGame] = Json.reads[RequestStartGame]&lbrk;
+              // Trait marshallers
+              implicit val inPacket: Reads[InPacket] = Json.reads[InPacket]
+              implicit val outPacket: Writes[OutPacket] = Json.writes[OutPacket]
+            }""", "scala")
+
+
+
+          <!-- Flow Graph -->
+          <h4 id="flow-graph">Flow Graph</h4>
+          <p class="mb-2">
+            The process of deserializing, processing, replying to, and serializing network packets was handled by the
+            @link("https://doc.akka.io/docs/akka/2.5.3/scala/stream/stream-flows-and-basics.html", "Akka Streams API"), which
+            uses a variety of Akka DSL components to construct the flow graph and connect it to the websocket connection.
+            The chart below shows the path of network packets as they come into the web socket: getting deserialized, routed by
+            game ID to a <code>Game</code> actor, and processed before reply packets get sent out to the network.
+          </p>
+          @hLink("https://github.gatech.edu/achafos3/CS2340Sp19Team10/blob/master/app/controllers/WebSocketController.scala"){
+            View on Github<i class="fas fa-chevron-right ml-2"></i>
+          }("strong github-link mb-3 d-block")
+          <div class="text-center">
+            <a href="/static/images/docs/packetflow.png" data-toggle="lightbox">
+              <img src="/static/images/docs/packetflow.svg" class="rounded mt-2" alt="deployment diagram" style="max-height: 240px;">
+            </a>
+          </div>
+
+
+
+          <!-- Functional Gamestate -->
+          <h3 id="functional-gamestate">Functional Gamestate</h3>
+          <p>
+            To handle gamestate, the backend codebase leverages Scala's strong functional features such as pattern matching,
+            recursion, and case classes (product ADTs) along with immutable data structures. Doing this allows the codebase
+            to be much more modular, testable, and bug-resistant. Within the gamestate-handling component of the backend,
+            the primary two classes are <code>GameMode</code> and <code>GameContext</code>, which are responsible for processing
+            and wrapping game state, respectively.
+          </p>
+
+
+
+          <!-- Game Mode -->
+          <h4 id="game-mode">Game Mode</h4>
+          <p>
+            When it comes to processing game state, the way that the game progresses depends on the current rule set, so the
+            behavior responsible for progressing state and receiving packets was separated from the code that wraps the state.
+            This reflects the <b>Strategy</b> design pattern that allows the act of transforming game state in response to
+            incoming network packets to be abstracted away into an interface: left up to implementations to use. The default
+            implementation that is used (as discussed above) is called the <code>SkirmishGameMode</code>, which implements
+            the Skirmish rule set from Game of Thrones Risk.
+          </p>
+          <p>
+            The trait itself defines four abstract methods, each of which are designed to utilize the Open-Closed principle to
+            give client implementations full control over the progression of the game:
+          </p>
+          @code("""
+            trait GameMode {
+              def createGameState(turnOrder: IndexedSeq[PlayerWithActor]): GameState
+              def hookInitializeGame(implicit context: GameContext): GameContext
+              def hookPacket(packet: InGamePacket)(implicit context: GameContext): GameContext
+              def hookPlayerDisconnect(actor: PlayerWithActor)(implicit context: GameContext): GameContext
+            }""", "scala")
+
+
+
+          <!-- Game Context -->
+          <h4 id="game-context">Game Context</h4>
+          <div class="leading-terminal">
+            @code("""
+                case class GameContext(state: GameState, private val packetOrder: List[PacketContext])""", "scala")
+          </div>
+          <p>
+            The game context type is the center of game state handling: it's made up of a <code>GameState</code> instance and
+            a packet queue represents a single, immutable state within processing game state, which allows for a few key design patterns:
+          </p>
+          <ul>
+            <li>
+              <p>
+                <code>GameContext</code> uses <b>Pure</b> functions to handle packet sending until they are all batch-sent at once,
+                enqueueing successive packet sends in a list of <code>PacketContext</code> objects (which contain Broadcast/Send,
+                target, and data information).
+              </p>
+            </li>
+            <li>
+              <p>
+                The game context type allows for a <b>processing pipeline pattern</b>, where pure methods are called on the object itself
+                (or its extension types&mdash;more on that later) that return new instances of game context objects. This means that all
+                of the objects involved are immutable, relying on <b>copying</b> objects with updated properties instead of mutating
+                them directly. Doing it this way comes with all of the benefits of immutable state over mutable state, such as more
+                readable code and referential transparency.
+              </p>
+              @code("""
+              def requestPlaceReinforcements(assignments: Seq[(Int, Int)])
+                                            (implicit context: GameContext, sender: PlayerWithActor): GameContext = {
+                context
+                  .map(gs => gs.copy(
+                    boardState   = boardBuffer.toIndexedSeq,
+                    playerStates = playerStates
+                  ))
+                  .advanceTurnState
+                  .thenBroadcastBoardState
+                  .thenBroadcastPlayerState
+              }""", "scala")
+            </li>
+            <li>
+              <p>
+                In order to fully take advantage of the game context pattern, a powerful feature of Scala called extension types can
+                be used, where another class "adds methods" to an existing one through implicit conversion. This feature was taken
+                advantage of to provide Skirmish-specific behavior to the <code>GameContext</code> type, residing in the extension
+                type <code>SkirmishGameContext</code>.
+              </p>
+              @code("""
+                object SkirmishGameContext {
+                  implicit def extendContext(context: GameContext): SkirmishGameContext =
+                    new SkirmishGameContext(context)
+                }&lbrk;
+                class SkirmishGameContext(context: GameContext) {
+                  def advanceTurnState: GameContext
+                  def advanceAttackTurnState(defender: Player, payload: (String, Any)*): GameContext
+                  def thenBroadcastBoardState: GameContext
+                  def thenBroadcastPlayerState: GameContext
+                  def clearPayloads: GameContext
+                }""")
+            </li>
+          </ul>
+
+
+
+          <!-- Map ingestion -->
+          <h3 id="map-ingestion">Map Ingestion</h3>
+          <p>
+            In order to develop complex, tweakable maps with minimal hard-coding, a transcoding pipeline was built in Python
+            that allows for specially-formatted SVG maps to be converted into usable JSON data. This JSON can then be easily
+            imported/parsed by the backend and set over the network to the frontend. The script itself iterates over all the
+            <code>.svg</code> files in the directory, attempting to parse them into map <code>.json</code> files.
+          </p>
+          <p>
+            A key use of the ingestion script is to generate minified SVG paths for each territory, allowing maps to have the
+            file size possible before they're sent over the network. Additionally, each territory also gets another SVG path
+            attribute called <code>"iconData"</code> which defines a centered and scaled path that fits in a <b>100 by 100</b>
+            viewbox. This is used on the frontend to display individual territories separately from the others, such as in the
+            attack confirmation dialog or the territory assignment screen.
+          </p>
+          <div class="row-container map-container mb-3">
+            <div class="p-3">
+              <div class="position-relative full-size">
+                <img src="/static/images/docs/map.svg" class="rounded" alt="deployment diagram" data-toggle="lightbox" data-remote="/static/images/docs/map.jpg">
+              </div>
+            </div>
+            <div class="no-shadow">
+              @code("""
+                {
+                  "nodes": [
+                    {
+                      "node": 0,
+                      "center": {
+                        "x": "77.1",
+                        "y": "54.7"
+                      },
+                      "data": "m50 73.7h18.1l9...",
+                      "iconData": "m21 65h18l9..."
+                    },
+                    {
+                      "node": 1,
+                      "center": {
+                        "x": "171.8",
+                        "y": "60.5"
+                      },
+                      "data": "m137.8 72.7 9...",
+                      "iconData": "m22 59 6.5...",
+                      "castle": [
+                        "179.9",
+                        "71.6"
+                      ]
+                    },
+                    ...
+                  ]
+                }""", "json")
+            </div>
+          </div>
+
+
+
+          <!-- Dependencies -->
+          <h4 id="dependencies">Dependencies</h4>
+          <ul>
+            <li>
+              <a href="https://github.com/scour-project/scour" rel="noopener" target="_blank">Scour</a> &ndash;
+              SVG Optimization / Cleaning library
+            </li>
+            <li>
+              <a href="https://github.com/mathandy/svgpathtools" rel="noopener" target="_blank">svgpathtools</a> &ndash;
+              A collection of tools for manipulating and analyzing SVG Path objects and Bezier curves
+            </li>
+          </ul>
+          <p class="mb-2 pt-1"><em>Reference for ingestion script:</em></p>
+          @hLink("https://github.gatech.edu/achafos3/CS2340Sp19Team10/blob/indev/data/encoder.py"){
+            View on Github<i class="fas fa-chevron-right ml-2 pt-2 mb-0"></i>
+          }("strong sub-link")
+          @terminal("""
+              &prmt; py encoder.py&lbrk;
+              Usage:
+                encoder.py &lt;source_dir&gt; &lt;destination_dir&gt; [options]&lbrk;
+              Options:
+                --help -h    Show this help description&lbrk;
+              Example run:
+                &prmt; py encoder.py source/ maps/
+                Parsing source/skirmish.svg
+                    - Successfully parsed 48 out of 48 territories
+                    - Successfully parsed 12 castles
+                    - Successfully parsed 97 out of 97 edges
+                    - Successfully parsed 8 out of 8 water connections
+                    - Successfully parsed map bounds [873.5 x 704.2]
+                    - Successfully parsed 9 regions from territory data
+                --------------------------------------------------------
+                Writing output to maps/skirmish.json""",
+            "sql")
+
+
+
+          <!-- Frontend -->
+          <h2 id="frontend">Frontend</h2>
+          <p>
+            The frontend of CS 2340 Risk was built using @link("https://vuejs.org/", "Vue.js"), a JavaScript
+            framework specializing in making Single Page Applications (SPAs). In addition to the base Vue library, the core
+            of the frontend utilizes a small handful of other open source libraries:
+          </p>
+          <ul class="thumbnail-list">
+            <li>
+              <img src="/static/images/docs/vuex.svg" alt="Vuex logo"/>
+              <div>
+                <h4 id="vuex">Vuex</h4>
+                <h5><a href="https://vuex.vuejs.org/" rel="noopener" target="_blank">Centralized State Management &raquo;</a></h5>
+                <p>
+                  In this app, Vuex is used extensively as the central location of various state information involving the frontend,
+                  such as the current player, the other players in the same game, and the state of the board. Vuex uses a commit
+                  system for pushing state changes that allows Vue's reactive binding system to cache values and update them
+                  only as necessary.
+                </p>
+              </div>
+            </li>
+            <li>
+              <img src="/static/images/docs/konva.svg" alt="Konva logo"/>
+              <div>
+                <h4 id="konva">Konva</h4>
+                <h5><a href="https://konvajs.org/" rel="noopener" target="_blank">HTML Canvas API &raquo;</a></h5>
+                <p>
+                  Konva is a library for using the @link("https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API", "native HTML Canvas API"),
+                  providing many utilities like transitioning, layer management, and event handling. Specifically, the Vue
+                  bindings for this library are used, called @link("https://github.com/konvajs/vue-konva", "Vue Konva"), which
+                  fuses the strengths of vanilla Konva with Vue's reactive data binding. This allowed the gameboard's display
+                  to be bound directly to the Vuex state, updating only as necessary.
+                </p>
+            </div>
+            </li>
+            <li>
+              <img src="/static/images/docs/bootstrap.png" alt="Bootstrap logo"/>
+              <div>
+                <h4 id="bootstrap">Bootstrap</h4>
+                <h5><a href="https://getbootstrap.com/" rel="noopener" target="_blank">Responsive CSS/JS Framework &raquo;</a></h5>
+                <p>
+                  Bootstrap provides numerous useful CSS classes and javascript utilities, and is used throughout the entirety
+                  of CS 2340 Risk (both in the static site and in the SPA). In the Vue SPA, specialized Vue bindings for Bootstrap,
+                  called @link("https://bootstrap-vue.js.org/", "Bootstrap Vue"), were used, which enables the use of Bootstrap
+                  controls such as Alerts and Modals in a much more idiomatic way using reactive bindings.
+                </p>
+              </div>
+            </li>
+          </ul>
+
+
+
+          <!-- Additional libraries -->
+          <h3 id="additional-libraries">Additional Libraries</h3>
+          <ul>
+            <li>
+              <a href="https://fontawesome.com/" rel="noopener" target="_blank">FontAwesome</a> &ndash;
+              Free SVG/webfont icon library used throughout the app
+            </li>
+            <li>
+              <a href="https://github.com/nathantsoi/vue-native-websocket" rel="noopener" target="_blank">Vue Native Websocket</a> &ndash;
+              Vue bindings for the @link("https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API", "native WebSocket API")
+            </li>
+            <li >
+              <a href="https://popper.js.org/" rel="noopener" target="_blank">Popper.js</a> &ndash;
+              JavaScript library that renders tooltips on HTML elements
+            </li>
+          </ul>
+
+
+
+          <!-- Theme -->
+          <h3 id="theme">Theme</h3>
+          <p>
+            During the initial stages of planning, a color scheme/visual theme was settled on, which is used throughout the entirety
+            of the frontend of the application:
+          </p>
+          <div class="row-container color-display">
+            <div><div class="color-block"       style="background-color: #F5F2F2"><span>#F5F2F2</span></div><h4>Light Shades      </h4></div>
+            <div><div class="color-block"       style="background-color: #D9B34F"><span>#D9B34F</span></div><h4>Light Accent      </h4></div>
+            <div><div class="color-block light" style="background-color: #9793C7"><span>#9793C7</span></div><h4>Main Brand Color  </h4></div>
+            <div><div class="color-block light" style="background-color: #5B78BB"><span>#5B78BB</span></div><h4>Dark Accent       </h4></div>
+            <div><div class="color-block light" style="background-color: #362A4D"><span>#362A4D</span></div><h4>Dark Shades       </h4></div>
+          </div>
+          <div class="fonts">
+            <div>
+              <span class="font-name" style="font-family: Roboto Slab, serif;">Roboto Slab</span>
+              <span class="font-description">Emphasis</span>
+            </div>
+            <div>
+              <span class="font-name" style="font-family: Roboto, sans-serif;">Roboto</span>
+              <span class="font-description">Body/Headings</span>
+            </div>
+          </div>
+
+
+
+          <!-- Responsiveness -->
+          <h3 id="responsiveness">Responsiveness</h3>
+          <p>
+            As a part of the project's guidelines, every page in the app's frontend is fully responsive and scales depending on
+            the device width. This was made possible using Bootstrap's CSS classes as well as additional <code>@@media</code> CSS
+            queries.
+          </p>
+          <p>
+            <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#mobile-demos"
+            aria-expanded="false" aria-controls="mobile-demos">
+              <i class="fas fa-chevron-down mr-2"></i>Preview Mobile
+            </button>
+          </p>
+          <div class="collapse" id="mobile-demos">
+            <div class="row-container phone-demo-container">
+              <div>
+                <div class="phone-demo"><img src="/static/images/docs/lander-mobile.png"></div>
+                <figcaption class="figure-caption">The landing page, as it appears on a mobile browser.</figcaption>
+              </div>
+              <div>
+                <div class="phone-demo"><img src="/static/images/docs/lobby-mobile.png"></div>
+                <figcaption class="figure-caption">The lobby screen, as it appears on a mobile browser.</figcaption>
+              </div>
+            </div>
+          </div>
+
+
+
+          <!-- Structure -->
+          <h3 id="structure">Structure</h3>
+          <p>
+            The initial pages of the web application, such as the @link("/", "landing page"), @link("/notfound", "error page"),
+            and the documentation page, are all rendered on the backend using Scala Play's @link("https://github.com/playframework/twirl",
+            "Twirl templating engine"). Besides those, the remainder of the application resides on a single page built using
+            Vue, which, much like the backend's <code>Game</code> actor, has two primary states: lobby and in-game.
+          </p>
+
+
+
+          <!-- Lobby state -->
+          <div class="mb-2">
+            <h3 style="display:inline;" id="lobby-screen-vue"><code>LobbyScreen.vue</code></h3>
+            <span style="display:inline;">
+              @hLink("https://github.gatech.edu/achafos3/CS2340Sp19Team10/blob/master/vue/src/components/lobby/LobbyScreen.vue"){
+                View on Github<i class="fas fa-chevron-right ml-2"></i>
+              }("strong sub-link github-link")</span>
+          </div>
+          <figure class="figure full-screenshot">
+            <a href="/static/images/docs/lobby-screen.jpg" data-toggle="lightbox">
+              <img src="/static/images/docs/lobby-screen.jpg" class="figure-img img-fluid rounded" alt="Lobby screen screenshot">
+            </a>
+            <figcaption class="figure-caption">The lobby screen, as it appears on the live app.</figcaption>
+          </figure>
+          <p>
+            In the lobby screen, the client establishes a websocket connection with the server, and receives packets pertaining
+            to updates to the lobby (player leave/join). The host has the option to start the game once enough players have joined,
+            at which point the server backend will undergo a state change and process initial game conditions. Once the new game
+            state has been determined, the server will notify all connected (and properly joined) players in the lobby that it
+            is starting. At this point, the Vue SPA will asynchronously load the <code>GameboardScreen</code> component before
+            displaying it.
+          </p>
+          @note {
+            Loading the gameboard screen this way allows for the JavaScript bundler tool, @link("https://webpack.js.org/", "Webpack"),
+            to generate module bundles for the lobby and gameboard screens separately, saving on initial load time.
+          }()
+
+
+
+          <!-- In-game state -->
+          <div class="mb-2">
+            <h3 style="display:inline;" id="gameboard-screen-vue"><code>GameboardScreen.vue</code></h3>
+            <span style="display:inline;">@hLink("https://github.gatech.edu/achafos3/CS2340Sp19Team10/blob/master/vue/src/components/game/GameboardScreen.vue"){
+              View on Github<i class="fas fa-chevron-right ml-2"></i>
+            }("strong sub-link github-link")</span>
+          </div>
+          <figure class="figure full-screenshot">
+            <a href="/static/images/docs/gameboard-screen.jpg" data-toggle="lightbox">
+              <img src="/static/images/docs/gameboard-screen.jpg" class="figure-img img-fluid rounded" alt="Gameboard screen screenshot">
+            </a>
+            <figcaption class="figure-caption">The gameboard screen, as it appears on the live app.</figcaption>
+          </figure>
+          <p>
+            The gameboard scren consists of a few key components:
+          </p>
+          <ul>
+            <li><strong>Gameboard Map</strong> &ndash; Powered by a Konva canvas, the interactive gameboard map shows the
+              current state of the game board, and allows users to pan and scale their view of the map. It also
+              displays army tokens on their respective territories, as well as the location of special territories with castles.</li>
+            <li><strong>Toolbar</strong> &ndash; The toolbar shows the current overall state of the game, as well as any
+              relevant controls (depending on the player's turn state).</li>
+            <li><strong>Player List</strong> &ndash; The player list shows all connected players, as well as their color
+              &amp; their total troops. It also highlights the player whose turn it is.</li>
+          </ul>
+
+
+
+          <!-- Deployment -->
+          <h2 id="deployment">Deployment</h2>
+          <div class="text-center">
+            <img src="/static/images/docs/deployment.svg" class="rounded mb-4 mt-2" alt="deployment diagram" style="max-height: 120px;">
+          </div>
+          <p>
+            CS 2340 Risk is deployed within a Docker container on a bare metal server running
+            @link("https://www.ubuntu.com/server", "Ubuntu Server"). The container itself is based on the
+            @link("https://hub.docker.com/_/openjdk", "openjdk:8-jre-alpine") image, which runs a Java 8
+            JRE on an @link("https://alpinelinux.org/", "Alpine Linux OS"). The entire application is packaged in a single
+            docker image hosted on DockerHub, which can be deployed by running the following commands:
+          </p>
+          @terminal("""
+            &prmt; docker pull jazevedo6/cs2340-risk:latest
+            &prmt; docker run -d --name risk-main jazevedo6/cs2340-risk:latest""")
+          @hLink("https://hub.docker.com/r/jazevedo6/cs2340-risk") {
+            DockerHub Repo
+          }("link-color")
+          <p>
+            By default, the application exposes port <strong>80</strong> for HTTP, with direct HTTPS connections disabled in production.
+          </p>
+
+
+
+          <!-- Dockerfile -->
+          <h3 id="dockerfile">Dockerfile</h3>
+          @hLink("https://github.gatech.edu/achafos3/CS2340Sp19Team10/blob/indev/deploy/Dockerfile"){
+            View on Github<i class="fas fa-chevron-right ml-2"></i>
+          }("strong sub-link")
+          @code("""
+            FROM openjdk:8-jre-alpine
+            COPY svc /svc
+            EXPOSE 80
+            # Add bash interpreter to alpine linux
+            RUN apk add --no-cache bash
+            CMD /svc/bootstrap""", "dockerfile")
+
+
+
+          <!-- Build Pipeline -->
+          <h3 id="build-pipeline">Build Pipeline</h3>
+          <p>
+            The application is built using a series of Windows batch scripts designed to streamline compiling, packaging, and deploying
+            on a handful of platforms. In the past, the deployment scripts have been configured to build and deploy
+            docker containers to @link("https://www.openshift.com/products/online/", "OpenShift Online") and
+            @link("https://docs.microsoft.com/en-us/azure/aks/", "Microsoft Azure"), both within orchestration environments
+            (@link("https://www.openshift.com/", "OpenShift") & @link("https://kubernetes.io/", "Kubernetes")). At the moment, the build
+            script is configured to package the application within a singular docker container for use on bare metal deployments
+            (such as its current deployment configuration).
+          </p>
+          <p>
+            All build scripts reside in the <code>deploy/scripts/</code> project directory, with the exception of the main build script,
+            <code>deploy/deploy.bat</code>. At a high level, the main script performs the following operations:
+          </p>
+          <ol>
+            <li><p>Builds the Vue.js front-end by calling <code>npm runScript buildProd</code></p></li>
+            <li><p>Builds the Play backend by calling <code>sbt dist</code></p></li>
+            <li><p>Includes additional files in the binary (such as <code>docs/</code> and <code>data/</code>)</p></li>
+            <li><p>Builds a Docker image according to the Dockerfile in <code>deploy/</code></p></li>
+            <li><p>Tags and pushes the Docker image to a specified repository (currently, the one on DockerHub)</p></li>
+          </ol>
+          <p class="mb-2 pt-1"><em>Reference for main build script:</em></p>
+          @hLink("https://github.gatech.edu/achafos3/CS2340Sp19Team10/blob/indev/deploy/deploy.bat"){
+            View on Github<i class="fas fa-chevron-right ml-2 pt-2 mb-0"></i>
+          }("strong sub-link")
+          @terminal("""
+              &wrmt; deploy.bat&lbrk;
+              Usage:
+                deploy.bat [options]
+              Options:
+                --nobuild       Skips the binary build step
+                --nopackage     Skips the docker image/WAR image build step
+                --nopush        Skips tagging and pushing the built docker image
+                --notransform   Skips transforming docs upon image build
+                --dockerlogin   Calls docker login before pushing the image; helpful for the first run of the command
+                --login         Logs into Azure/AKS services
+                --deploy        Deploys the updated image to Kubernetes, switching between tags to force updates""",
+            "sql")
+
+
+
+          <!-- SSL Termination -->
+          <h3 id="ssl-termination">SSL Termination</h3>
+          <p>
+            In order to support HTTPS connections (and to enforce their usage), an @link("https://www.nginx.com/", "Nginx")
+            server was used as a reverse proxy frontend, providing SSL termination to the Play backend. The
+            @link("https://cloud.google.com/community/tutorials/nginx-reverse-proxy-docker",
+              "Google Cloud Platform documentation on the subject") was used as a guide to setting it up. The exact commands
+            used to start the Nginx server, its accompanying @link("https://letsencrypt.org/", "LetsEncrypt") companion
+            (providing SSL certs), and the application image itself are listed below:
+            @note {
+              The <code>:alpine</code> tag is used for the Nginx proxy server to provide
+              @link("https://github.com/jwilder/nginx-proxy#jwildernginx-proxyalpine", "full support for HTTP/2")
+            }()
+            @terminal("""
+              &prmt; cd
+              &prmt; mkdir certs
+              &prmt; docker run -d -p 80:80 -p 443:443 \
+                  --name nginx-proxy \
+                  -v $HOME/certs:/etc/nginx/certs:ro \
+                  -v /etc/nginx/vhost.d \
+                  -v /usr/share/nginx/html \
+                  -v /var/run/docker.sock:/tmp/docker.sock:ro \
+                  -e 'HTTPS_METHOD=redirect' \
+                  --label com.github.jrcs.letsencrypt_nginx_proxy_companion.nginx_proxy=true \
+                  jwilder/nginx-proxy:alpine&lbrk;
+              &prmt; docker run -d \
+                  --name nginx-letsencrypt \
+                  --volumes-from nginx-proxy \
+                  -v $HOME/certs:/etc/nginx/certs:rw \
+                  -v /var/run/docker.sock:/var/run/docker.sock:ro \
+                  jrcs/letsencrypt-nginx-proxy-companion&lbrk;
+              &prmt; docker run -d \
+                  --name risk-main \
+                  -e 'LETSENCRYPT_EMAIL=&lt;email@address.com&gt;' \
+                  -e 'LETSENCRYPT_HOST=riskgame.ga' \
+                  -e 'VIRTUAL_HOST=riskgame.ga' jazevedo6/cs2340-risk:latest""")
+        </div>
+      </div>
+    </div>
+  </div>
+} {
+  <!-- Footer scripts/css -->
+  <script type="text/javascript" src="/static/vendor/anchor.min.js"></script>
+  <script type="text/javascript" src="/static/vendor/highlight.pack.js"></script>
+  <script type="text/javascript" src="/static/vendor/ekko-lightbox.min.js"></script>
+  <script type="text/javascript" src="/static/javascripts/docs.js"></script>
+}

@@ -1,5 +1,9 @@
 package models
 
+object Army {
+  val Empty = Army(0)
+}
+
 /**
   * Army DTO
   * @param size The size of the army (number of stacking army tokens)
@@ -11,5 +15,5 @@ case class Army(size: Int) {
     * @return A new Army object
     */
   // noinspection ScalaStyle
-  def +=(amount: Int): Army = Army(size + amount)
+  def +(amount: Int): Army = Army(size + amount)
 }

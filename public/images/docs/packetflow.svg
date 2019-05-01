@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg enable-background="new 0 0 2789.9 520.1" version="1.1" viewBox="0 0 2789.9 520.1" xml:space="preserve" xmlns="http://www.w3.org/2000/svg">
+<style type="text/css">
+	.st0{fill:#EFEFEF;stroke:#282828;stroke-width:2.5;stroke-miterlimit:10;}
+	.st1{fill:#DBDBDB;stroke:#282828;stroke-width:2.5;stroke-miterlimit:10;}
+	.st4{font-family:'Roboto'; font-style:'italic';}
+	.st5{font-size:32px;}
+	.st6{fill:none;stroke:#333333;stroke-width:3;stroke-miterlimit:10;}
+	.st7{fill:#333333;}
+	.st8{font-size:37px;}
+	.st9{fill:none;stroke:#333333;stroke-width:4;stroke-linecap:square;stroke-miterlimit:10;}
+	.st10{fill:none;stroke:#333333;stroke-width:4;stroke-linecap:square;stroke-miterlimit:10;stroke-dasharray:12,12;}
+	.st12{enable-background:new;}
+	.st13{font-family:'Roboto';}
+	.st14{font-size:44px;}
+	.st16{fill:#828282;}
+	.st17{font-size:56px;}
+	.st18{font-family:'Consolas';}
+	.st20{font-size:29px;}
+	.st23{opacity:0.65;fill:#333333;enable-background:new;}
+	.st25{opacity:0.65;}
+	.st28{font-size:42px;}
+</style>
+	<path class="st0" d="m951.3 165.1h-457.3c-6.4 0-11.6-5.2-11.6-11.6v-140.9c0-6.4 5.2-11.6 11.6-11.6h457.3c6.4 0 11.6 5.2 11.6 11.6v140.9c0 6.4-5.2 11.6-11.6 11.6z"/>
+	<circle class="st0" cx="1100.5" cy="182.4" r="61.4"/>
+	<path class="st0" d="m951.3 373h-468.9v-164h468.9c6.4 0 11.6 5.2 11.6 11.6v140.9c0 6.3-5.2 11.5-11.6 11.5z"/>
+	<path class="st1" d="m450.9 209h31.6v164h-31.6c-6.7 0-12.1-5.4-12.1-12.1v-139.8c0-6.7 5.4-12.1 12.1-12.1z"/>
+	<path class="st0" d="m2259.3 227.8h-446.5c-10.9 0-19.7-8.8-19.7-19.7v-168.4c0-10.9 8.8-19.7 19.7-19.7h446.5c10.9 0 19.7 8.8 19.7 19.7v168.4c0 10.9-8.8 19.7-19.7 19.7z"/>
+	<path class="st0" d="m1666.3 302h-414.8c-6.4 0-11.6-5.2-11.6-11.6v-218.3c0-6.4 5.2-11.6 11.6-11.6h414.8c6.4 0 11.6 5.2 11.6 11.6v218.3c0 6.5-5.2 11.6-11.6 11.6z"/>
+	<text transform="translate(274.59 310.91)"><tspan class="st4 st5" x="0" y="0">Automatic</tspan><tspan class="st4 st5" x="-62.7" y="34">Deserialization</tspan></text>
+			<line class="st6" x1="184.4" x2="416" y1="254.5" y2="254.5"/>
+				<path class="st7" d="m434.1 254.5c-8.5 3.2-19.1 8.6-25.6 14.3l5.2-14.3-5.2-14.3c6.5 5.7 17 11.1 25.6 14.3z"/>
+	<text transform="translate(308.91 109.16)"><tspan class="st4 st8" x="0" y="0">Establish</tspan><tspan class="st4 st8" x="-32" y="37.4">WebSocket</tspan></text>
+			<line class="st6" x1="184.4" x2="464.3" y1="48.6" y2="48.6"/>
+				<path class="st7" d="m482.4 48.6c-8.5 3.2-19.1 8.6-25.6 14.3l5.2-14.3-5.2-14.3c6.6 5.8 17.1 11.2 25.6 14.3z"/>
+			<line class="st9" x1="184.4" x2="184.4" y1="426.3" y2="420.3"/>
+			<line class="st10" x1="184.4" x2="184.4" y1="408.5" y2="60.5"/>
+			<line class="st9" x1="184.4" x2="184.4" y1="54.6" y2="48.6"/>
+			<line class="st6" x1="962.9" x2="1031.5" y1="80.2" y2="144.4"/>
+				<path class="st7" d="m1044.7 156.7c-8.4-3.5-19.8-6.8-28.5-7.1l13.5-6.9 6-13.9c0.9 8.7 5 19.8 9 27.9z"/>
+			<line class="st6" x1="962.9" x2="1034" y1="289.1" y2="225.3"/>
+				<path class="st7" d="m1047.5 213.2c-4.2 8-8.5 19.1-9.6 27.7l-5.7-14.1-13.4-7.2c8.7 0 20.2-3.1 28.7-6.4z"/>
+			<line class="st6" x1="1161.9" x2="1223.1" y1="182.4" y2="180.9"/>
+				<path class="st7" d="m1241.2 180.4c-8.4 3.4-18.9 9-25.3 14.9l4.8-14.4-5.5-14.1c6.7 5.5 17.4 10.7 26 13.6z"/>
+			<line class="st6" x1="1676.6" x2="1774.9" y1="125.9" y2="127.1"/>
+				<path class="st7" d="m1793 127.3c-8.6 3.1-19.2 8.3-25.8 13.9l5.3-14.2-5-14.3c6.5 5.8 17.1 11.4 25.5 14.6z"/>
+			<line class="st9" x1="2611.4" x2="2611.4" y1="449.5" y2="443.5"/>
+			<line class="st10" x1="2611.4" x2="2611.4" y1="431.4" y2="196"/>
+			<line class="st9" x1="2611.4" x2="2611.4" y1="190" y2="184"/>
+	<text class="st12" transform="translate(2531.8 124.59)"><tspan class="st7 st13 st14" x="0" y="0">To Akka</tspan><tspan class="st7 st13 st14" x="-30.9" y="40.7">WebSocket</tspan></text>
+	<text class="st12" transform="translate(81.596 468.74)"><tspan class="st7 st13 st14" x="0" y="0">From Akka</tspan><tspan class="st7 st13 st14" x="-5" y="39.7">WebSocket</tspan></text>
+	<path class="st16" d="m2788.7 133.2l-23.3 23.3c-1.6 1.6-4.2 1.6-5.8 0l-3.9-3.9c-1.6-1.6-1.6-4.2 0-5.8l16.5-16.5-16.5-16.5c-1.6-1.6-1.6-4.2 0-5.8l3.9-3.9c1.6-1.6 4.2-1.6 5.8 0l23.3 23.3c1.7 1.6 1.7 4.2 0 5.8z"/>
+	<path class="st16" d="m34.2 471.7l-23.3 23.3c-1.6 1.6-4.2 1.6-5.8 0l-3.9-3.9c-1.6-1.6-1.6-4.2 0-5.8l16.5-16.5-16.5-16.6c-1.6-1.6-1.6-4.2 0-5.8l3.9-3.9c1.6-1.6 4.2-1.6 5.8 0l23.3 23.3c1.6 1.6 1.6 4.2 0 5.9z"/>
+		<text class="st7 st13 st17" transform="translate(592.18 80.229)">Connect</text>
+		<text class="st7 st18 st8" transform="translate(592.18 123.67)">(PlayerConnect)</text>
+		<text class="st7 st13 st17" transform="translate(511.86 288.11)">From Network</text>
+		<text class="st7 st18 st8" transform="translate(511.86 331.55)">(* extends InPacket)</text>
+	<text class="st12" transform="translate(1059.5 180.41)"><tspan class="st7 st13 st20" x="0" y="0">Merge</tspan><tspan class="st7 st13 st20" x="6.6" y="30.1">Node</tspan></text>
+		<text class="st7 st13 st17" transform="translate(1831 135.63)">GameSupervisor</text>
+		<text class="st7 st18 st14" transform="translate(1909.9 185.12)">.receive()</text>
+		<text class="st7 st4 st14" transform="translate(1963.3 84.944)">«Actor»</text>
+		<text class="st7 st13 st17" transform="translate(1296.6 145.98)">Actor Sink</text>
+	<text class="st23 st18 st5" transform="translate(1304.3 254.8)">(PlayerDisconnect)</text>
+	<g class="st25">
+		<text class="st7 st13 st8" transform="translate(1275.6 215.57)">OnCompleteMessage</text>
+	</g>
+			<path class="st7" d="m1635.4 139.8c-2.1-0.2-4.1-1-5.6-2.2-1.4-1.1-3.3-1.1-4.7 0-3.7 3-10.4 3-14.1-0.1-1.3-1.1-3.2-0.9-4.5 0.2-3.7 2.9-10.4 2.9-14.1-0.2-1.3-1.1-3.2-0.9-4.6 0.2-1.5 1.2-3.5 2-5.6 2.2-0.8 0.1-1.3 0.8-1.3 1.5v3.1c0 0.9 0.7 1.6 1.6 1.6 2.8-0.2 5.4-1.1 7.7-2.5 5.5 3.4 13.3 3.3 18.6 0 5.5 3.4 13.3 3.3 18.6 0 2.3 1.4 4.9 2.3 7.7 2.5 0.9 0.1 1.6-0.7 1.6-1.6v-3.1c0-0.8-0.5-1.6-1.3-1.6zm0-14c-2.1-0.2-4.1-1-5.6-2.2-1.4-1.1-3.3-1.1-4.7 0-3.7 3-10.4 3-14.1-0.1-1.3-1.1-3.2-0.9-4.5 0.2-3.7 2.9-10.4 2.9-14.1-0.2-1.3-1.1-3.2-0.9-4.6 0.2-1.5 1.2-3.5 2-5.6 2.2-0.8 0.1-1.3 0.8-1.3 1.5v3.1c0 0.9 0.7 1.6 1.6 1.6 2.8-0.2 5.4-1.1 7.7-2.5 5.5 3.4 13.3 3.3 18.6 0 5.5 3.4 13.3 3.3 18.6 0 2.3 1.4 4.9 2.3 7.7 2.5 0.9 0.1 1.6-0.7 1.6-1.6v-3.1c0-0.8-0.5-1.5-1.3-1.6zm-27.8-8.3c0.6 0.6 1.7 0.6 2.3 0l9.4-9.3c1-1 0.3-2.7-1.1-2.7h-6.3v-7.8c0-0.9-0.7-1.6-1.6-1.6h-3.1c-0.9 0-1.6 0.7-1.6 1.6v7.8h-6.3c-1.4 0-2.1 1.7-1.1 2.7l9.4 9.3z"/>
+		<path class="st7" d="m564 74.4c-1.8-0.2-3.6-0.9-4.9-1.9-1.2-0.9-2.9-1-4.1 0-3.2 2.6-9.1 2.6-12.4-0.1-1.1-1-2.8-0.8-4 0.2-3.2 2.6-9.1 2.5-12.3-0.1-1.1-1-2.8-0.8-4 0.2-1.3 1-3.1 1.7-4.9 1.9-0.7 0.1-1.2 0.7-1.2 1.3v2.7c0 0.8 0.6 1.4 1.4 1.4 2.4-0.2 4.8-1 6.7-2.2 4.8 2.9 11.6 2.9 16.3 0 4.8 2.9 11.6 2.9 16.3 0 2 1.2 4.3 2 6.7 2.2 0.8 0.1 1.4-0.6 1.4-1.4v-2.7c0.2-0.8-0.3-1.4-1-1.5zm0-12.2c-1.8-0.2-3.6-0.9-4.9-1.9-1.2-0.9-2.9-1-4.1 0-3.2 2.6-9.1 2.6-12.4-0.1-1.1-1-2.8-0.8-4 0.2-3.2 2.6-9.1 2.5-12.3-0.1-1.1-1-2.8-0.8-4 0.2-1.3 1-3.1 1.7-4.9 1.9-0.7 0.1-1.2 0.7-1.2 1.3v2.7c0 0.8 0.6 1.4 1.4 1.4 2.4-0.2 4.8-1 6.7-2.2 4.8 2.9 11.6 2.9 16.3 0 4.8 2.9 11.6 2.9 16.3 0 2 1.2 4.3 2 6.7 2.2 0.8 0.1 1.4-0.6 1.4-1.4v-2.7c0.2-0.8-0.3-1.4-1-1.5zm-31.5-14.9h5.5v6.7c0 0.7 0.6 1.4 1.4 1.4h2.7c0.7 0 1.4-0.6 1.4-1.4v-6.8h5.5c1.2 0 1.8-1.5 1-2.3l-8.2-8.1c-0.6-0.6-1.5-0.6-2 0l-8.2 8.1c-0.9 0.9-0.3 2.4 0.9 2.4z"/>
+			<polyline class="st6" points="2020.6 227.8 2020.6 310.8 2074.9 310.8"/>
+				<path class="st7" d="m2093 310.8c-8.5 3.2-19.1 8.6-25.6 14.3l5.2-14.3-5.2-14.3c6.5 5.8 17.1 11.2 25.6 14.3z"/>
+	<path class="st0" d="m2445.6 509.6h-332.8c-10.9 0-19.7-8.8-19.7-19.7v-80.8c0-10.9 8.8-19.7 19.7-19.7h332.8c10.9 0 19.7 8.8 19.7 19.7v80.8c0 10.9-8.8 19.7-19.7 19.7z"/>
+			<text class="st7 st18 st28" transform="translate(2134.3 481.39)">Game</text>
+		<text class="st7 st18 st5" transform="translate(2234.8 481.39)">.receive()</text>
+		<text class="st7 st4 st5" transform="translate(2123.5 440.69)">«Actor»</text>
+			<polyline class="st6" points="2020.6 310.8 2020.6 449.5 2074.9 449.5"/>
+				<path class="st7" d="m2093 449.5c-8.5 3.2-19.1 8.6-25.6 14.3l5.2-14.3-5.2-14.3c6.5 5.7 17.1 11.1 25.6 14.3z"/>
+		<text class="st7 st13 st28" transform="translate(1910.8 285.52)">by ID</text>
+			<line class="st6" x1="2593.1" x2="2465.3" y1="449.5" y2="449.5"/>
+				<path class="st7" d="m2611.4 449.5c-8.6-3.2-19.3-8.6-25.9-14.4l5.2 14.4-5.2 14.4c6.6-5.8 17.3-11.2 25.9-14.4z"/>
+			<line class="st6" x1="2593.3" x2="2465.3" y1="310.8" y2="310.8"/>
+				<path class="st7" d="m2611.4 310.8c-8.5-3.2-19.1-8.6-25.6-14.3l5.2 14.3-5.2 14.3c6.5-5.7 17.1-11.1 25.6-14.3z"/>
+	<path class="st0" d="m2445.6 371h-332.8c-10.9 0-19.7-8.8-19.7-19.7v-80.8c0-10.9 8.8-19.7 19.7-19.7h332.8c10.9 0 19.7 8.8 19.7 19.7v80.8c0 10.8-8.8 19.7-19.7 19.7z"/>
+			<text class="st7 st18 st28" transform="translate(2134.3 342.74)">Game</text>
+		<text class="st7 st18 st5" transform="translate(2234.8 342.74)">.receive()</text>
+		<text class="st7 st4 st5" transform="translate(2123.5 302.04)">«Actor»</text>
+		<text class="st7 st13 st28" transform="translate(2481.8 289.38)">reply</text>
+</svg>

@@ -4,14 +4,14 @@
 @helper.form(postUrl, 'id -> "username-form", 'class -> "form-inline") {
   <div class="row mb-1 mb-sm-3">
     <div class="col-12 col-sm-3 d-flex form-label-container">
-      <p id="host_name">Username:</p>
+      <label id="host_name" for="username_field">Username:</label>
     </div>
     <div class="col-12 col-sm-9 d-flex form-fix">
       @helper.inputText(Resources.UserForm("name"),
         'id -> "username_field",
         'class -> "form-control md form-control-lg flex-fill mr-3 mb-0",
         'type -> "search", 'maxlength -> Resources.MaxNameLength.toString, 'placeholder -> "",
-        'autocapitalize -> "off", 'spellcheck -> "false")
+        'autocapitalize -> "off", 'spellcheck -> "false", Symbol("aria-labelledby") -> "host_name")
       <button id="username_button" class="btn btn-primary btn-lg white dark_accent ml-3 ml-sm-0" disabled><span class="d-inline">Start<span class="d-none d-sm-inline"> Lobby</span></span></button>
     </div>
   </div>

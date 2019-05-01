@@ -2,12 +2,13 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
 import {ON_SEND_GAMEBOARD, ON_UPDATE_PLAYER_STATE, ON_UPDATE_BOARD_STATE,
-        INCREMENT_TROOP, SUBMIT_REINFORCEMENTS, UNSUBMIT_REINFORCEMENTS, UPDATE_ATTACK_TERRITORY,
-        UPDATE_DEFEND_TERRITORY, RESET_ATTACK} from '.././mutation-types';
+        INCREMENT_TROOP, SUBMIT_REINFORCEMENTS, UNSUBMIT_REINFORCEMENTS,
+        UPDATE_ATTACK_TERRITORY, UPDATE_DEFEND_TERRITORY, RESET_ATTACK,
+        UPDATE_MOVE_ORIGIN, UPDATE_MOVE_TARGET, CLEAR_PLACEMENT} from '.././mutation-types';
  import {ADD_TROOPS} from '.././action-types';
 import {initializeGameboardScreen, NETWORK_CTX} from "./game/InitializeGameboardScreen";
 import {seqStringToArray, specialSeqToArray} from '../.././util.js'
-import {UPDATE_ATTACKERS, UPDATE_DEFENDERS} from "../mutation-types";
+import {UPDATE_ATTACKERS, UPDATE_DEFENDERS, UPDATE_DEFENDING_PLAYER_INDEX, UPDATE_ATTACKING_PLAYER_INDEX} from "../mutation-types";
 
 Vue.use(Vuex);
 
@@ -16,8 +17,13 @@ export default {
     playerStateList: [],
     boardStateList: [],
     turnIndex: -1,
+    totalTurns: 0,
     attackingTerritory: -1,
     defendingTerritory: -1,
+    movingTerritoryOrigin: -1,
+    movingTerritoryGoal: -1,
+    defendingPlayerIndex: -1,
+    attackingPlayerIndex: -1,
     attackers: 0,
     defenders: 0,
     diceRolls: [],
@@ -45,14 +51,25 @@ export default {
     tryInitializeGameboardScreen: initializeGameboardScreen
   },
   mutations: {
+    [UPDATE_ATTACKING_PLAYER_INDEX](state, newAttackingPlayerIndex) {
+      state.attackingPlayerIndex = newAttackingPlayerIndex;
+    },
+    [UPDATE_DEFENDING_PLAYER_INDEX](state, newDefendingPlayerIndex) {
+      state.defendingPlayerIndex = newDefendingPlayerIndex;
+    },
     [UPDATE_ATTACK_TERRITORY](state, territory) {
       state.attackingTerritory = territory;
     },
     [UPDATE_DEFEND_TERRITORY](state, territory) {
       state.defendingTerritory = territory;
     },
+    [UPDATE_MOVE_TARGET](state, territory) {
+      state.movingTerritoryGoal = territory;
+    },
+    [UPDATE_MOVE_ORIGIN](state, territory) {
+      state.movingTerritoryOrigin = territory;
+    },
     [ON_UPDATE_PLAYER_STATE](state, data) {
-      console.log(data);
       if ('seq' in data) {
         state.playerStateList = data.seq;
         let attackFound = false;
@@ -63,10 +80,8 @@ export default {
             let turnState = state.playerStateList[i].turnState;
             if ('payload' in turnState) {
               if ('attack' in turnState.payload) {
-                console.log(turnState.payload.attack);
                 attackFound = true;
                 let attack = seqStringToArray(turnState.payload.attack);
-                console.log(attack);
                 state.attackingTerritory = attack[0];
                 state.defendingTerritory = attack[1];
                 state.attackers = attack[2];
@@ -98,6 +113,9 @@ export default {
 
       }
       if ('turn' in data) {
+        if (state.turnIndex !== data.turn) {
+          state.totalTurns++;
+        }
         state.turnIndex = data.turn // index of current turn
       }
     },
@@ -113,7 +131,6 @@ export default {
         // noinspection JSUnresolvedVariable
         state.gameboard.iconData = data.gameboard.nodes.map((n) => n.iconPath);
         state.gameboard.centers = data.gameboard.nodes.map((n) => n.center);
-        state.gameboard.castles = data.gameboard.nodes.filter((n) => 'castle' in n.dto).map((n) => n.dto.castle)
       }
       initializeGameboardScreen(NETWORK_CTX);
     },
@@ -133,6 +150,10 @@ export default {
         state.placement.territories[key] = 1;
       }
       ++state.placement.total;
+    },
+    [CLEAR_PLACEMENT](state) {
+      state.placement.territories = {};
+      state.placement.total = 0;
     },
     [SUBMIT_REINFORCEMENTS](state) {
       state.placement.submitted = true;
@@ -158,13 +179,14 @@ export default {
   getters: {
     playerStates(state, getters, rootState) {
       const resolveMapping = (playerState, index) => {
-        if ('player' in playerState) {
+        if ('player' in playerState && 'turnState' in playerState) {
           return {
             name: playerState.player.settings.name,
             color: '#' + rootState.settings.settings.colors[playerState.player.settings.ordinal],
             armies: playerState.units.size,
             turnOrder: index,
-            currentTurn: playerState.player.settings.ordinal === 0
+            currentTurn: playerState.player.settings.ordinal === 0,
+            turnState: playerState.turnState.state
           };
         } else return {};
       };

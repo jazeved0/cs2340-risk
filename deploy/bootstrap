@@ -3,4 +3,4 @@
 SECRET='I1p5THxAQ>tMc:bJ18TdxXqnn0i>__Xu=K7V=_37Bs^RFppNR>?m[F`m6V5L1FYK'
 
 cd svc
-./bin/start -Dhttps.port=9443 -Dplay.http.secret.key=$SECRET
+./bin/start -Dhttp.port=80 -Dplay.http.secret.key=$SECRET

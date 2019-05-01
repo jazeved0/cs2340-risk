@@ -23,7 +23,7 @@
 					const size = ('size' in this.data) ? this.data.size : 0;
           const radius = size < 5 ? 5: (size > 9 ? 12 : 10);
           const bgOffset = 3;
-          const bgFill = 'rgba(245, 242, 242, 0.3)';
+          const bgFill = 'rgba(245, 242, 242, 0.55)';
           const textFill = 'rgb(245, 242, 242)';
           return {
             x: position.a,

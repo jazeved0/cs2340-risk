@@ -49,6 +49,7 @@ object Resources {
     val SpaEntryPoint = "app.controllers.spaEntryPoint"
     val DocsEnabled = "app.controllers.docsEnabled"
     val DocsRoot = "app.controllers.docsRoot"
+    val DocsPath = "app.controllers.docsPath"
     val InitialFormPostUrl = "app.controllers.initialFormPostUrl"
 
     val AskTimeout = "app.actors.askTimeout"
@@ -89,6 +90,7 @@ object Resources {
   var SpaEntryPoint: String = _
   var DocsEnabled: Boolean = _
   var DocsRoot: String = _
+  var DocsPath: String = _
   var InitialFormPostUrl: Call = _
   var DocsIconPath: String = _
 
@@ -145,6 +147,7 @@ object Resources {
       Resources.PublicConfigPath = config.get[String](Resources.ConfigKeys.PublicConfigPath)
       Resources.SpaEntryPoint = config.get[String](Resources.ConfigKeys.SpaEntryPoint)
       Resources.DocsRoot = config.get[String](Resources.ConfigKeys.DocsRoot)
+      Resources.DocsPath = config.get[String](Resources.ConfigKeys.DocsPath)
       Resources.DocsEnabled = config.get[Boolean](Resources.ConfigKeys.DocsEnabled)
       Resources.InitialFormPostUrl = Call("POST", config.get[String](Resources.ConfigKeys.InitialFormPostUrl))
 
