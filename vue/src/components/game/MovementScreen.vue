@@ -1,48 +1,52 @@
+<!--suppress CheckEmptyScriptTag -->
 <template>
   <div>
     <b-modal class="flex justify-content-center ml-auto mr-auto" size="lg" ok-title="Complete Movement Action" title="Movement Turn Control" v-bind:visible="true"
              v-bind:ok-disabled="disableMovement"
              @ok="sendMovePacket" @cancel="resetMovingTerritories"
              no-close-on-esc no-close-on-backdrop hide-header-close>
-      <div class="territory-images ml-auto mr-auto">
-        <div class="territory-portrait">
-          <svg width="150" height="150" viewBox="-4 -4 108 108">
+
+      <div class="territory-display d-flex flex-column flex-md-row mb-3">
+        <div class="border text-center">
+          <svg class="d-none d-md-inline" width="150" height="150" viewBox="-4 -4 108 108">
             <path v-bind:d="originPath" v-bind:fill="originColor"></path>
           </svg>
-          <p2 class="territory-text"> Territory {{ getOriginTerritoryName }}</p2>
-          <p2 class="region-text"> Region {{ getOriginRegionName }}</p2>
-          <p2 class="army-text"> {{ getOriginArmies }} Armies </p2>
+          <h2>Territory {{ getOriginTerritoryName }}</h2>
+          <h3>Region {{ getOriginRegionName }}</h3>
+          <p> {{ getOriginArmies }} Armies </p>
         </div>
-        <div class="ml-5 mr-5 mt-auto mb-auto territory-text-container">
-          <div>
-            <p3 class="territory-text text-center">Moving armies to</p3>
-          </div>
+        <div class="middle-section">
+          <svg class="d-none d-md-block" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+              x="0px" y="0px" viewBox="0 0 32 32" style="enable-background:new 0 0 32 32;" xml:space="preserve">
+              <line class="st0" x1="0.6" y1="16" x2="30.6" y2="16"/>
+            <polygon class="st1" points="28.1,19.1 27.6,18.5 30.3,16 27.6,13.5 28.1,12.9 31.4,16"/>
+            </svg>
+          <p class="d-md-none d-lg-block">moving armies to</p>
         </div>
-        <div class="territory-portrait">
-          <svg width="150" height="150" viewBox="-4 -4 108 108">
+        <div class="border text-center">
+          <svg class="d-none d-md-inline" width="150" height="150" viewBox="-4 -4 108 108">
             <path v-bind:d="goalPath" v-bind:fill="goalColor"></path>
           </svg>
-          <p2 class="territory-text"> Territory {{ getGoalTerritoryName }}</p2>
-          <p2 class="region-text"> Region {{ getGoalRegionName }}</p2>
-          <p2 class="army-text"> {{ getGoalArmies }} Armies </p2>
+          <h2>Territory {{ getGoalTerritoryName }}</h2>
+          <h3>Region {{ getGoalRegionName }}</h3>
+          <p> {{ getGoalArmies }} Armies </p>
         </div>
       </div>
-      <p class="mt-2">Enter the amount of armies you wish to move: </p>
       <div class="mb-3 mt-2">
         <b-form-group
             id="army-input"
             label="Enter the amount of troops you wish to move: "
-            label-for="input-1">
+            label-for="armyCount">
           <b-form-input
-              id="input-1"
+              id="armyCount"
               v-model="armyNumber"
-              type="armyCount"
+              type="text"
               required
               placeholder="Enter a Number">
           </b-form-input>
         </b-form-group>
       </div>
-      <p>Note: You must leave at least one army behind. </p>
+      <p class="font-italic">Note: You must leave at least one army behind. </p>
     </b-modal>
   </div>
 </template>
@@ -127,9 +131,8 @@
           amount: parseInt(this.armyNumber),
           destination: this.goalTerritory
         };
-        console.log(packet);
         this.$socket.sendObj(packet);
-        this.resetMovingTerritories;
+        this.resetMovingTerritories();
       },
       getPath: function(territoryIndex) {
         return this.$store.state.game.gameboard.iconData[territoryIndex];
@@ -150,6 +153,82 @@
 
 <style lang="scss">
   @import '../../assets/stylesheets/include';
+
+  div.territory-display .border {
+    background-color: rgba($dark-shades, 0.05);
+    border-radius: 12px;
+  }
+
+  div.territory-display > div:not(.middle-section) {
+    flex-grow: 1;
+    padding: 16px;
+  }
+
+  div.territory-display > div:not(.middle-section) svg * {
+    stroke: gray;
+    stroke-width: 1;
+  }
+
+  div.territory-display h2 {
+    font-family: $roboto-slab-font;
+    color: #222222;
+    font-size: 24px;
+    margin-bottom: -2px;
+  }
+
+  div.territory-display h3 {
+    font-family: $roboto-font;
+    color: #222222;
+    opacity: 0.6;
+    font-size: 20px;
+    margin-bottom: -2px;
+    letter-spacing: 5px;
+  }
+
+  div.territory-display p {
+    margin-bottom: 0;
+  }
+
+  div.territory-display div.middle-section {
+    max-width: 200px;
+    color: #2e2e75;
+    font-weight: 500;
+    padding-left: 24px;
+    padding-right: 24px;
+    align-self: center;
+  }
+
+  div.territory-display div.middle-section p {
+    margin-top: -38px;
+  }
+
+  div.territory-display div.middle-section svg {
+    min-width: 50px;
+    height: auto;
+  }
+
+  div.territory-display div.middle-section svg .st0 {
+    fill: none;
+    stroke: #2e2e75;
+    stroke-width: 0.75;
+    stroke-miterlimit: 10;
+  }
+
+  div.territory-display div.middle-section svg .st1 {
+    fill: #2e2e75;
+  }
+
+  @media(max-width: 767.95px) {
+    div.territory-display div.middle-section p {
+      margin-top: 0;
+      padding-top: 8px;
+      padding-bottom: 8px;
+    }
+
+    div.territory-display > div:not(.middle-section) {
+      padding: 8px;
+    }
+  }
 
   .territory-portrait {
     display: flex;
