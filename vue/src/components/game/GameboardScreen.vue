@@ -219,7 +219,7 @@
 
       // Whether to display the end game modal dialog
       displayEndScreenModal () {
-        return this.$store.state.game.totalTurns / this.$store.state.playersList.length >= 10;
+        return this.$store.state.game.totalTurns / this.$store.state.playersList.length >= 3;
       },
 
       // Gets top text
@@ -269,7 +269,10 @@
 
           // For all else, keep enabled
           // TODO is this right?
-        } else return true;
+        } else if (this.isInMoving) {
+          return false; // #TODO make it so we can not move
+        }
+        return true;
       },
 
       // Whether the turn event button should show a loading bar
