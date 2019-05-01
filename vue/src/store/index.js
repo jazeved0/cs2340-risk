@@ -45,7 +45,8 @@ export default new Vuex.Store({
       },
       gameplay: {
         minPlayers: 0,
-        maxPlayers: 0
+        maxPlayers: 0,
+        turnLimit: 0
       }
     }
   },

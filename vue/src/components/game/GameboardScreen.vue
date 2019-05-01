@@ -14,10 +14,17 @@
           <span v-html="bannerContent"></span>
         </p>
       </div>
-      <!-- Turn event container (only show if local turn) -->
-      <div slot="right-element" v-if="localTurn">
-        <!-- Turn Event button -->
-        <div class="button mb-2 mt-1 my-md-0">
+      <div slot="right-element" class="d-flex flex-row align-content-center align-items-center">
+        <!-- Turn state counter -->
+        <div class="turnStateWrapper text-white">
+          <p class="mb-0">
+            <fa-icon icon="history" class="mr-3"></fa-icon>
+            <span class="font-weight-bold">{{ this.$store.state.game.totalTurns / this.$store.state.playersList.length }}</span>
+            <span> / </span>
+            <span class="font-weight-bold">{{ this.$store.state.settings.gameplay.turnLimit }}</span></p>
+        </div>
+        <!-- Turn Event button (only show if local turn) -->
+        <div class="button mb-2 mt-1 my-md-0" v-if="localTurn">
           <b-button class="button-title btn btn-primary text-center m-0 my-md-1 mx-md-2 white dark_accent"
                     v-on:click="turnEvent"
                     :disabled="!turnEventEnabled">
@@ -220,7 +227,8 @@
 
       // Whether to display the end game modal dialog
       displayEndScreenModal () {
-        return this.$store.state.game.totalTurns / this.$store.state.playersList.length >= 3;
+        return this.$store.state.game.totalTurns / this.$store.state.playersList.length
+          >= this.$store.state.settings.gameplay.turnLimit;
       },
 
       // Gets top text
@@ -268,12 +276,13 @@
           return this.allocation === this.$store.state.game.placement.total
             && !this.$store.state.game.placement.submitted;
 
-          // For all else, keep enabled
-          // TODO is this right?
+        } else if (this.isInAttacking) {
+          return true;
+
         } else if (this.isInMoving) {
-          return false; // #TODO make it so we can not move
+          return false;
         }
-        return true;
+        return false;
       },
 
       // Whether the turn event button should show a loading bar
@@ -713,6 +722,11 @@
   p.banner-text .color {
     transform: scale(0.7, 0.7);
     margin-right: 0.5em;
+  }
+
+  div.turnStateWrapper {
+    font-size: 20px;
+    margin-right: 20px;
   }
 
   @media screen and (max-width: 600px) {

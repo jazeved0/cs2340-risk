@@ -42,10 +42,11 @@ import { faCrown } from '@fortawesome/free-solid-svg-icons'
 import { faChevronUp } from '@fortawesome/free-solid-svg-icons'
 import { faChevronDown } from '@fortawesome/free-solid-svg-icons'
 import { faChevronRight } from '@fortawesome/free-solid-svg-icons'
+import { faHistory } from '@fortawesome/free-solid-svg-icons'
 
 library.add(faGithub, faCopy, faCircle,
   faCrown, faChevronUp, faChevronDown,
-  faChevronRight);
+  faChevronRight, faHistory);
 Vue.component('fa-icon', FontAwesomeIcon);
 
 import './assets/stylesheets/app.scss'
