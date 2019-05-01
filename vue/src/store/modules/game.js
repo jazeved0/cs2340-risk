@@ -112,8 +112,10 @@ export default {
 
       }
       if ('turn' in data) {
+        if (state.turnIndex !== data.turn) {
+          state.totalTurns++;
+        }
         state.turnIndex = data.turn // index of current turn
-        state.totalTurns++;
       }
     },
     [ON_SEND_GAMEBOARD](state, data) {
