@@ -9,28 +9,28 @@
           <svg width="150" height="150" viewBox="-4 -4 108 108">
             <path v-bind:d="attackerPath" v-bind:fill="attackerColor"></path>
           </svg>
-          <p2 class="territory-text"> Territory {{ getAttackingTerritoryName }}</p2>
-          <p2 class="region-text"> Region {{ getAttackingRegionName }}</p2>
-          <p2 class="army-text"> {{ getAttackingArmies }} Armies </p2>
+          <p class="territory-text"> Territory {{ getAttackingTerritoryName }}</p>
+          <p class="region-text"> Region {{ getAttackingRegionName }}</p>
+          <p class="army-text"> {{ getAttackingArmies }} Armies </p>
         </div>
         <div class="ml-5 mr-5 mt-auto mb-auto territory-portrait">
           <div>
-            <p3 class="territory-text text-center">{{AttackerPlayerName}}</p3>
+            <p class="territory-text text-center">{{AttackerPlayerName}}</p>
           </div>
           <div>
-            <p3 class="territory-text text-center">Is Attacking</p3>
+            <p class="territory-text text-center">Is Attacking</p>
           </div>
           <div>
-            <p3 class="territory-text text-center">{{DefenderPlayerName}}</p3>
+            <p class="territory-text text-center">{{DefenderPlayerName}}</p>
           </div>
         </div>
         <div class="territory-portrait">
           <svg width="150" height="150" viewBox="-4 -4 108 108">
             <path v-bind:d="defenderPath" v-bind:fill="defenderColor"></path>
           </svg>
-          <p2 class="territory-text"> Territory {{ getDefendingTerritoryName }}</p2>
-          <p2 class="region-text"> Region {{ getDefendingRegionName }}</p2>
-          <p2 class="army-text"> {{ getDefendingArmies }} Armies </p2>
+          <p class="territory-text"> Territory {{ getDefendingTerritoryName }}</p>
+          <p class="region-text"> Region {{ getDefendingRegionName }}</p>
+          <p class="army-text"> {{ getDefendingArmies }} Armies </p>
         </div>
       </div>
       <p class="army-text mt-4">Attack with: </p>
@@ -47,7 +47,6 @@
 
 <script>
   import {UPDATE_DEFEND_TERRITORY, UPDATE_ATTACK_TERRITORY} from "../../store/mutation-types.js"
-  import DiceRollModal from "./DiceRollModal"
   import {UPDATE_ATTACKERS} from "../../store/mutation-types";
   export default {
     data: function() {

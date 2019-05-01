@@ -68,7 +68,6 @@ export default {
       state.movingTerritoryGoal = territory;
     },
     [ON_UPDATE_PLAYER_STATE](state, data) {
-      console.log(data);
       if ('seq' in data) {
         state.playerStateList = data.seq;
         let attackFound = false;
@@ -79,10 +78,8 @@ export default {
             let turnState = state.playerStateList[i].turnState;
             if ('payload' in turnState) {
               if ('attack' in turnState.payload) {
-                console.log(turnState.payload.attack);
                 attackFound = true;
                 let attack = seqStringToArray(turnState.payload.attack);
-                console.log(attack);
                 state.attackingTerritory = attack[0];
                 state.defendingTerritory = attack[1];
                 state.attackers = attack[2];
@@ -129,7 +126,6 @@ export default {
         // noinspection JSUnresolvedVariable
         state.gameboard.iconData = data.gameboard.nodes.map((n) => n.iconPath);
         state.gameboard.centers = data.gameboard.nodes.map((n) => n.center);
-        state.gameboard.castles = data.gameboard.nodes.filter((n) => 'castle' in n.dto).map((n) => n.dto.castle)
       }
       initializeGameboardScreen(NETWORK_CTX);
     },

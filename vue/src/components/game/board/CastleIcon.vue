@@ -4,16 +4,16 @@
 
 <script>
     const width = window.innerWidth;
-    const height = window.innerHeight; 
+    const height = window.innerHeight;
+    const image = new Image();
+    const imgWidth = 28;
+    const imgHeight = 28;
+    image.src = '../static/images/corrected.png';
     export default {
         props: {
             data: Object
         },
         data() {
-            const imgWidth = 28;
-            const imgHeight = 28;
-            const img = new Image();
-            img.src = '../static/images/corrected.png'
             
             const state = this.$store.state;
             const position = ('position' in this.data
@@ -28,7 +28,7 @@
                 config: {
                     x: position.a - (imgWidth / 4),
                     y: position.b - (imgHeight / 4),
-                    image: img,
+                    image: image,
                     width: imgWidth,
                     height: imgHeight,
                     listening: false

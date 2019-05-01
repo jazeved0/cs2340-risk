@@ -176,10 +176,6 @@ object ProgressionHandler {
     }
 
     val logger = Logger(this.getClass).logger
-    logger.error("" + attackers)
-    logger.error("" + defenders)
-    logger.error(diceMatchUps.toString)
-    logger.error("" + diceMatchUps.size)
     val defendersDestroyed = diceMatchUps.size - attackersDestroyed
 
     AttackResult(attackerResult ++ defenderResult, attackersDestroyed, defendersDestroyed)

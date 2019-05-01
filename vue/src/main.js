@@ -10,6 +10,7 @@ import BModal from 'bootstrap-vue/es/components/modal/modal'
 import BModalDirective from 'bootstrap-vue/es/directives/modal/modal'
 import BAlert from 'bootstrap-vue/es/components/alert/alert'
 import BButton from 'bootstrap-vue/es/components/button/button'
+import BButtonGroup from 'bootstrap-vue/es/components/button-group/button-group'
 import BSpinner from 'bootstrap-vue/es/components/spinner/spinner'
 import BFormInput from 'bootstrap-vue/es/components/form-input/form-input'
 import BToast from 'bootstrap-vue/es/components/toast/toast'
@@ -18,6 +19,7 @@ Vue.component('b-modal', BModal);
 Vue.directive('b-modal', BModalDirective);
 Vue.component('b-alert', BAlert);
 Vue.component('b-button', BButton);
+Vue.component('b-button-group', BButtonGroup);
 Vue.component('b-spinner', BSpinner);
 Vue.component('b-form-input', BFormInput);
 Vue.component('b-toast', BToast);

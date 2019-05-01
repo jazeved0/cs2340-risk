@@ -19,7 +19,7 @@ export const pascalToUnderscore = (s) =>
     return "_" + y.toLowerCase();
   }).replace(/^_/, "");
 
-export const ColorLuminance = (hex, lum) => {
+export const colorLuminance = (hex, lum) => {
   // validate hex string
   hex = String(hex).replace(/[^0-9a-f]/gi, '');
   if (hex.length < 6) {
@@ -60,14 +60,14 @@ const hsvToRgb = (color) => {
       g: Math.round(g * 255),
       b: Math.round(b * 255)
   };
-}
+};
 
 //hsv to rgb function
 const rgbToHsv = (color) => {
   let r = color.r;
   let g = color.g;
   let b = color.b;
-  var max = Math.max(r, g, b), min = Math.min(r, g, b),
+  let max = Math.max(r, g, b), min = Math.min(r, g, b),
       d = max - min,
       h,
       s = (max === 0 ? 0 : d / max),
@@ -85,25 +85,30 @@ const rgbToHsv = (color) => {
       s: s,
       v: v
   };
-}
+};
 
 const componentToHex = (c) => {
-  var hex = c.toString(16);
-  return hex.length == 1 ? "0" + hex : hex;
-}
+  let hex = c.toString(16);
+  return hex.length === 1 ? "0" + hex : hex;
+};
 
 const rgbToHex = (color) => {
   return "#" + componentToHex(color.r) + componentToHex(color.g) + componentToHex(color.b);
-}
+};
 
 const hexToRgb = (hex) => {
-  var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  let result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
   return result ? {
     r: parseInt(result[1], 16),
     g: parseInt(result[2], 16),
     b: parseInt(result[3], 16)
   } : null;
-}
+};
+
+export const alphaBlended = (hex, alpha) => {
+  const rgb = hexToRgb(hex);
+  return "rgba(" + rgb.r + "," + rgb.g + "," + rgb.b + "," + alpha + ")";
+};
 
 export const colorSaturation = (hex, sat) => {
   let rgb = hexToRgb(hex);
@@ -115,7 +120,7 @@ export const colorSaturation = (hex, sat) => {
   rgb = hsvToRgb(hsv);
   hex = rgbToHex(rgb);
   return hex;
-}
+};
 
 export const distance = (p1, p2) => {
   return Math.sqrt(Math.pow((p2.x - p1.x), 2) + Math.pow((p2.y - p1.y), 2));
@@ -135,3 +140,9 @@ export const specialSeqToArray = (string) => {
   return matches.length > 3 ? [matches[1].split(', ').map(function(item){return parseInt(item, 10);}),
     parseInt(matches[2], 10), parseInt(matches[3], 10)] : [];
 };
+
+export const exists = (object) => !(typeof object === 'undefined' || object === null);
+
+/* eslint-disable no-console */
+export const logError = (message) => console.log("[Error] " + message);
+/* eslint-enable no-console */

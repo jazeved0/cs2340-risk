@@ -20,9 +20,6 @@
 
 <script>
   export default {
-    props: {
-      overdraw: Number
-    },
     computed: {
       localTurn: function () {
         return (name) => {
