@@ -124,7 +124,7 @@
           gameId: this.$store.state.gameId,
           playerId: this.$store.state.playerId,
           origin: this.originTerritory,
-          amount: this.armyNumber,
+          amount: parseInt(this.armyNumber),
           destination: this.goalTerritory
         };
         console.log(packet);

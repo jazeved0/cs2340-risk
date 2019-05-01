@@ -256,7 +256,7 @@
           return "End Moving Turn";
 
         } else {
-          return "";
+          return "End Turn";
         }
       },
 
@@ -458,10 +458,8 @@
       turnEvent () {
         if (this.isInReinforcement) {
           this.assignArmy();
-
         } else if (this.isInAttacking) {
           this.endAttacking();
-
         } else {
           this.endTurn();
         }
