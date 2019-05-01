@@ -16,6 +16,7 @@ export default {
     playerStateList: [],
     boardStateList: [],
     turnIndex: -1,
+    totalTurns: 0,
     attackingTerritory: -1,
     defendingTerritory: -1,
     movingTerritoryOrigin: -1,
@@ -112,6 +113,7 @@ export default {
       }
       if ('turn' in data) {
         state.turnIndex = data.turn // index of current turn
+        state.totalTurns++;
       }
     },
     [ON_SEND_GAMEBOARD](state, data) {

@@ -219,7 +219,7 @@
 
       // Whether to display the end game modal dialog
       displayEndScreenModal () {
-        return false; // TODO implement
+        return this.$store.state.game.totalTurns / this.$store.state.playersList.length >= 10;
       },
 
       // Gets top text
