@@ -38,7 +38,7 @@
                     <label class="btn btn-secondary" v-on:click="armySelected(1)">
                         <input type="radio" name="attackingUnits" id="one" autocomplete="off"> One Army
                     </label>
-                    <label class="btn btn-secondary" v-on:click="armySelected(2)">
+                    <label v-if="hasTwoArmies" class="btn btn-secondary" v-on:click="armySelected(2)">
                         <input type="radio" name="attackingUnits" id="two" autocomplete="off"> Two Armies
                     </label>
                 </b-button-group>
@@ -62,6 +62,14 @@
     import {UPDATE_DEFENDERS} from "../../store/mutation-types";
     export default {
         computed: {
+            hasTwoArmies: function() {
+                const store = this.$store;
+                const boardStates = store.getters.boardStates;
+                const defending = boardStates.filter(bs => bs["territory"] === this.defendingTerritory);
+                if (defending.length > 0) {
+                    return defending[0]["amount"] >= 2;
+                }
+            },
             attackingTerritory() {
                 return this.$store.state.game.attackingTerritory;
             },
