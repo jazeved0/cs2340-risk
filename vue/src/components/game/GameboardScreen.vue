@@ -85,6 +85,7 @@
       <h2 class="turn-alert-text">It's Your Turn!</h2>
       <p> {{ getInstructions }}</p>
     </b-alert>
+    <end-screen-modal></end-screen-modal>
   </div>
 </template>
 
@@ -99,6 +100,7 @@
   import DiceRollModal from './DiceRollModal'
   import Toolbar from './../Toolbar';
   import VueKonva from 'vue-konva';
+  import EndScreen from './EndScreen';
   //import MovementScreen from './MovementScreen';
   // noinspection ES6UnusedImports
   import Vue from "vue";
@@ -125,6 +127,7 @@
       'v-castle-icon': CastleIcon,
       'territory-assignment-modal': TerritoryAssignmentModal,
       'dice-roll-modal': DiceRollModal,
+      'end-screen-modal': EndScreen
       //'movement-popup': MovementScreen,
     },
     computed: {
