@@ -509,7 +509,7 @@
             if (data.response === "Rejected") {
               thisObj.responseFailed(data.message);
             } else {
-              this.$store.commit(CLEAR_PLACEMENT);
+              store.commit(CLEAR_PLACEMENT);
             }
           }
         });
