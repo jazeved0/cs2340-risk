@@ -147,9 +147,9 @@
       color () {
         const color = this.baseColor;
         const saturOffset = 2.5;
-        const luminOffset = 0.15;
-        if (this.mouseOver && this.isHighlighted) return colorLuminance(colorSaturation(color, saturOffset), luminOffset);
-        else if (this.isHighlighted) return colorSaturation(color, saturOffset);
+        const luminOffset = -0.15;
+        if (this.mouseOver && this.isHighlighted) return colorSaturation(color, saturOffset);
+        else if (this.isHighlighted) return colorLuminance(colorSaturation(color, saturOffset), luminOffset);
         else if (this.mouseOver) return colorLuminance(color, luminOffset);
         else return '#' + color;
       },

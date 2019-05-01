@@ -14,7 +14,7 @@
                     <p2 class="region-text"> Region {{ getAttackingRegionName }}</p2>
                     <p2 class="army-text"> {{ getAttackingArmies }} Armies </p2>
                 </div>
-                <div class="ml-5 mr-5 mt-auto mb-auto territory-portrait">
+                <div class="ml-5 mr-5 mt-auto mb-auto territory-text-container">
                     <div>
                         <p3 class="territory-text text-center">{{AttackerPlayerName}}</p3>
                     </div>
@@ -173,6 +173,15 @@
         padding: 15px;
     }
 
+    .territory-text-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background: #EBEAEE;
+        border-radius: 15px;
+        padding: 15px;
+    }
+
     .territory-images {
         display: flex;
         flex-direction: row;
@@ -212,4 +221,21 @@
         align-items: center;
         justify-content: center;
     }
+
+    @media screen and (max-width: 600px) {
+
+        .territory-portrait {
+            margin: 0 auto;
+            justify-content: center;
+        }
+
+        .territory-images {
+            display: flex;
+            flex-direction: column;
+            width: max-content;
+            justify-content: space-around;
+            align-content: center;
+        }
+    }
+
 </style>

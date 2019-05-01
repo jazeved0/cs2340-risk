@@ -14,6 +14,7 @@ import BButtonGroup from 'bootstrap-vue/es/components/button-group/button-group'
 import BSpinner from 'bootstrap-vue/es/components/spinner/spinner'
 import BFormInput from 'bootstrap-vue/es/components/form-input/form-input'
 import BToast from 'bootstrap-vue/es/components/toast/toast'
+import BTable from 'bootstrap-vue/es/components/table/table'
 
 Vue.component('b-modal', BModal);
 Vue.directive('b-modal', BModalDirective);
@@ -23,6 +24,7 @@ Vue.component('b-button-group', BButtonGroup);
 Vue.component('b-spinner', BSpinner);
 Vue.component('b-form-input', BFormInput);
 Vue.component('b-toast', BToast);
+Vue.component('b-table', BTable);
 
 // *********************
 // Fontawesome Vue imports
