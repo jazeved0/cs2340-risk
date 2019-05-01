@@ -32,21 +32,20 @@ class SkirmishGameContext(context: GameContext) {
     val next    = context.state.nextPlayer
     context.state.stateOf(current.player) match {
       case Some(currentState) =>
-        currentState.turnState.advanceState() match {
-          // Advance the current one to idle and then the next one to reinforcement
-          case TurnState(TurnState.Idle, _) =>
-            val nextState = PlayerStateHandler.reinforcement(next.player)(context)
-            this
-              .clearPayloads
-              .map(gs => gs.copy(
-                playerStates = gs.playerStates.map(advanceAndInitialize(current, next, nextState)),
-                turn = gs.nextTurn
-              ))
+        val advancedState = currentState.turnState.advanceState()
+        if (advancedState.state == TurnState.Idle) {
+          val nextState = PlayerStateHandler.reinforcement(next.player)(context)
+          this
+            .clearPayloads
+            .map(gs => gs.copy(
+              playerStates = gs.playerStates.map(advanceAndInitialize(current, next, nextState)),
+              turn = gs.nextTurn
+            ))
 
+        } else {
           // Advance the current one to whatever is next
-          case state =>
             context
-              .updatePlayerState(currentState.copy(turnState = state.clearPayload))
+              .updatePlayerState(currentState.copy(turnState = advancedState.clearPayload))
         }
 
       case None => context // pass
