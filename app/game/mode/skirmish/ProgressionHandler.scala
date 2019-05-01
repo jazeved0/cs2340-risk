@@ -100,6 +100,7 @@ object ProgressionHandler {
           .map(gs => gs.copy(
             currentAttack = Some(attack)
           ))
+          .clearPayloads
           .advanceAttackTurnState(defendingPlayer, "attack" -> attack.unapply)
           .thenBroadcastPlayerState
     }
@@ -134,6 +135,7 @@ object ProgressionHandler {
       .map(gs => gs.copy(
         currentAttack = None
       ))
+      .clearPayloads
       .advanceAttackTurnState(defendingPlayer,
         "attack" -> (attack.unapply ++ Seq(defenders)),
         "result" -> result.unapply)
