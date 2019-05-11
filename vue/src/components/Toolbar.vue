@@ -6,7 +6,7 @@
           <div class="d-none d-lg-flex flex-auto flex-row justify-content-start flexbox align-items-center">
             <div>
               <div id="repo-logo" class="d-inline">
-                <a class="navbar-brand pr-2" href="https://github.gatech.edu/achafos3/CS2340Sp19Team10" name="github" target="_blank" rel="noopener">
+                <a class="navbar-brand pr-2" href="https://github.com/jazevedo620/cs2340-risk" name="github" target="_blank" rel="noopener">
                   <fa-icon :icon="['fab', 'github']" size="lg" class="repoImg"></fa-icon>
                 </a>
               </div>
