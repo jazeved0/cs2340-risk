@@ -1,7 +1,7 @@
 #!/bin/bash
 
 cd
-sudo docker pull jazevedo6/risk-main:latest
+sudo docker pull jazevedo6/cs2340-risk:latest
 sudo docker run -d -p 80:80 -p 443:443 \
     --name nginx-proxy \
     -v $HOME/certs:/etc/nginx/certs:ro \
