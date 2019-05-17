@@ -49,7 +49,7 @@ codeField.on('input', function () {
 
 // Handle button press of the lobby field and redirect
 codeButton.on('click', function () {
-  window.location.href = "lobby/" + String($("#search_field").val()).toLowerCase();
+  window.location.href = "lobby/" + String($("#lobby-field").val()).toLowerCase();
   return false;
 });
 
