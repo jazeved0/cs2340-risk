@@ -1,12 +1,18 @@
 # CS 2340 Scala Project: Risk
 
-> Scala Play + Vue.js web application running multiplayer risk
+> SCS 2340 Risk is a Scala web app that exposes a WebSocket API, leveraging the Akka Actor system to manage state.
 
-[![Uptime Robot status](https://img.shields.io/uptimerobot/status/m782165527-5f127672eaae6df89c7b070a.svg?color=%235B78BB&style=for-the-badge)](https://stats.uptimerobot.com/OZ659UjoL) [![Version](https://img.shields.io/badge/version-M4-blue.svg?color=%235B78BB&style=for-the-badge)](https://github.com/jazevedo620/cs2340-risk/releases/tag/M4) [![City](https://img.shields.io/badge/city-england-blue.svg?color=%235B78BB&style=for-the-badge)](https://www.youtube.com/watch?v=hSlb1ezRqfA)
+[![Uptime Robot status](https://img.shields.io/uptimerobot/status/m782165527-5f127672eaae6df89c7b070a.svg?color=%235B78BB&style=for-the-badge)](https://stats.uptimerobot.com/OZ659UjoL) [![Version](https://img.shields.io/badge/version-M5-blue.svg?color=%235B78BB&style=for-the-badge)](https://github.com/jazevedo620/cs2340-risk/releases/tag/M5) [![Contributors](https://img.shields.io/github/contributors/jazevedo620/cs2340-risk.svg?color=%235B78BB&style=for-the-badge)](https://github.com/jazevedo620/cs2340-risk/graphs/contributors)
 
-[Hosted here](http://riskgame.ga/). Design documentation is WIP and will appear [here](http://riskgame.ga/docs).
+### [Live Version](http://riskgame.ga/)
 
-![game screen](https://i.imgur.com/rRD9CM2.png "Example game screen")
+At a high level, the frontend is built with Vue.js and HTML Canvases, while the backend is built with Scala Play and Akka. The project itself was produced for CS 2340 at Georgia Tech with Professor Christopher Simpkins ([class website](https://cs2340.gitlab.io/))
+
+### Design Docs
+
+Detailed documentation on the project and its components (including the frontend, backend, and deployment) is [available here](https://riskgame.ga/docs).
+
+![game screen](https://i.imgur.com/GaguGHa.png "Example game screen")
 
 ## Setup
 
@@ -14,7 +20,7 @@ To setup the Risk web application, both the front end, written in Vue, and the b
 
 ### Front End
 
-To compile the web application from its sources, make sure you have [Node.js](https://nodejs.org/en/) installed. Run the following commands in the `/vue` directory to install dependencies and then build the front-end codebase,:
+To compile the web application from its sources, make sure you have [Node.js](https://nodejs.org/en/) installed. Run the following commands in the `/vue` directory to install dependencies and then build the front-end codebase:
 
 ```bash
 npm install
@@ -48,25 +54,33 @@ sbt ~run
 
 ## Dependencies
 
-### Front-End
+### Frontend
 
 - [Konva](https://konvajs.org/) - Used for HTML canvas rendering
-- [Vue.js](https://vuejs.org/) - Front-end javascript framework
+- [Vue.js](https://vuejs.org/) - Progressive SPA framework for Javascript application
 - [Popper.js](https://popper.js.org/) - Javascript framework to create responsive tooltips
 - [BootstrapVue](https://bootstrap-vue.js.org/) - Bootstrap bindings for Vue to develop responsive web applications
 - [FontAwesome](https://fontawesome.com/) - Large selection of web icons
 
-### Back-End
+### Backend
 
-- [Play Framework](https://www.playframework.com/) - Scala back-end framework
+- [Play Framework](https://www.playframework.com/) - JVM web server framework
 - [Akka](https://akka.io/) - Scala network runtime/webserver
 - [Guice](https://github.com/google/guice) - JVM Dependency Injection library
 - [Caffeine](https://github.com/ben-manes/caffeine) - JVM Caching library
 
-## [Proof of Design Process (UML Diagram)](http://cs2340-risk.ga/docs/backend.uml.pdf)
+### Deployment
 
-## Credits
+- [Docker](https://www.docker.com/) - Container virtualization software
+- [Nginx proxy](https://github.com/jwilder/nginx-proxy) - Proxy container providing support for https on live
+- [Alpine Linux](https://hub.docker.com/_/alpine) - Container image used to package application
 
-- Jake Paul
-- Team 10
-- This README has been produced for thy viewing eyes by Andrew Chafos
+## Contributors
+
+Our team for CS 2340 consisted of the following members:
+
+- Joseph Azevedo ([jazevedo620](https://github.com/jazevedo620))
+- Andrew Chafos ([andrewjc2000](https://github.com/andrewjc2000))
+- Julian Gu ([julian-g99](https://github.com/julian-g99))
+- Thomas Lang ([bopas2](https://github.com/bopas2))
+- Patrick Liu ([PatrickLiu2000](https://github.com/PatrickLiu2000))
