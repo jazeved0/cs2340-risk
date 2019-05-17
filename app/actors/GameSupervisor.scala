@@ -51,7 +51,7 @@ object GameSupervisor {
   * Root actor of the actor system that holds reference to every game that
   * has been generated, responsible for handling internal messages about the
   * state of the Game actor subsystem as well as forwarding incoming
-  * network packets to the proper Game actor (resolved by game Id)
+  * network format to the proper Game actor (resolved by game Id)
   */
 class GameSupervisor extends Actor {
   /** Map of game Id -> indirect reference to Game actors */
@@ -82,7 +82,7 @@ class GameSupervisor extends Actor {
         sender() ! CanHost.InvalidId
       }
 
-    // Any deserialized network packets getting sent to the game
+    // Any deserialized network format getting sent to the game
     case inPacket: InPacket =>
       games.get(inPacket.gameId).foreach(_ ! inPacket)
 

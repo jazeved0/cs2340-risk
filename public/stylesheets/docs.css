@@ -347,9 +347,9 @@ div.phone-demo-container > div {
 }
 
 div.phone-demo-container div.phone-demo {
-  height: 732px;
-  overflow-y: scroll;
-  overflow-x: scroll;
+  max-height: 780px;
+  overflow-y: auto;
+  overflow-x: auto;
   margin-bottom: 0.5em;
 }
 

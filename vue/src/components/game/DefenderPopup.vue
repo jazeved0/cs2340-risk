@@ -68,7 +68,7 @@
                 const defending = boardStates.filter(bs => bs["territory"] === this.defendingTerritory);
                 if (defending.length > 0) {
                     return defending[0]["amount"] >= 2;
-                }
+                } else return false;
             },
             attackingTerritory() {
                 return this.$store.state.game.attackingTerritory;

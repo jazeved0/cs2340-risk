@@ -265,12 +265,12 @@
           <p>
             For the actual implementation of the WebSocket connection, Akka, the underlying HTTP server bundled with Play, was
             used heavily to develop a <code>Flow</code> of messages going in and out of the server. This has the benefit that
-            incoming and outgoing packets can automatically be serialized/deserialized, allowing for much faster iteration and
+            incoming and outgoing format can automatically be serialized/deserialized, allowing for much faster iteration and
             more flexibility when it came to the network model. To do this, the Akka flow API needs dedicated <code>Reads[T]</code>
             and <code>Writes[T]</code> objects for each type of object that many come from/go to the network, which all need to be
             imported into the implicit scope wherever the websocket API is used. Luckily, Play/Akka comes with compile-time macros
             that automatically create <code>Reads</code>/<code>Writes</code> objects for case classes, which are used extensively
-            in <code>Packets.scala</code> to provide the automatic marshalling for all packets to/from JSON:
+            in <code>Packets.scala</code> to provide the automatic marshalling for all format to/from JSON:
           </p>
           @hLink("https://github.com/jazevedo620/cs2340-risk/blob/master/app/controllers/Packets.scala"){
             View on Github<i class="fas fa-chevron-right ml-2"></i>
@@ -293,11 +293,11 @@
           <!-- Flow Graph -->
           <h4 id="flow-graph">Flow Graph</h4>
           <p class="mb-2">
-            The process of deserializing, processing, replying to, and serializing network packets was handled by the
+            The process of deserializing, processing, replying to, and serializing network format was handled by the
             @link("https://doc.akka.io/docs/akka/2.5.3/scala/stream/stream-flows-and-basics.html", "Akka Streams API"), which
             uses a variety of Akka DSL components to construct the flow graph and connect it to the websocket connection.
-            The chart below shows the path of network packets as they come into the web socket: getting deserialized, routed by
-            game ID to a <code>Game</code> actor, and processed before reply packets get sent out to the network.
+            The chart below shows the path of network format as they come into the web socket: getting deserialized, routed by
+            game ID to a <code>Game</code> actor, and processed before reply format get sent out to the network.
           </p>
           @hLink("https://github.com/jazevedo620/cs2340-risk/blob/master/app/controllers/WebSocketController.scala"){
             View on Github<i class="fas fa-chevron-right ml-2"></i>
@@ -326,9 +326,9 @@
           <h4 id="game-mode">Game Mode</h4>
           <p>
             When it comes to processing game state, the way that the game progresses depends on the current rule set, so the
-            behavior responsible for progressing state and receiving packets was separated from the code that wraps the state.
+            behavior responsible for progressing state and receiving format was separated from the code that wraps the state.
             This reflects the <b>Strategy</b> design pattern that allows the act of transforming game state in response to
-            incoming network packets to be abstracted away into an interface: left up to implementations to use. The default
+            incoming network format to be abstracted away into an interface: left up to implementations to use. The default
             implementation that is used (as discussed above) is called the <code>SkirmishGameMode</code>, which implements
             the Skirmish rule set from Game of Thrones Risk.
           </p>
@@ -427,7 +427,9 @@
           <div class="row-container map-container mb-3">
             <div class="p-3">
               <div class="position-relative full-size">
-                <img src="/static/images/docs/map.svg" class="rounded" alt="deployment diagram" data-toggle="lightbox" data-remote="/static/images/docs/map.jpg">
+                <a href="/static/images/docs/map.png" data-toggle="lightbox">
+                  <img src="/static/images/docs/map.svg" class="rounded" alt="deployment diagram" >
+                </a>
               </div>
             </div>
             <div class="no-shadow">
@@ -446,15 +448,15 @@
                     {
                       "node": 1,
                       "center": {
-                        "x": "171.8",
-                        "y": "60.5"
+                        "x": "153.4",
+                        "y": "50.2"
                       },
                       "data": "m137.8 72.7 9...",
                       "iconData": "m22 59 6.5...",
-                      "castle": [
-                        "179.9",
-                        "71.6"
-                      ]
+                      "castle": {
+                        "x": "175.6",
+                        "y": "63.3"
+                      }
                     },
                     ...
                   ]
@@ -614,12 +616,12 @@
           <div class="collapse" id="mobile-demos">
             <div class="row-container phone-demo-container">
               <div>
-                <div class="phone-demo"><img src="/static/images/docs/lander-mobile.png"></div>
-                <figcaption class="figure-caption">The landing page, as it appears on a mobile browser.</figcaption>
+                <div class="phone-demo"><img src="/static/images/docs/lobby-mobile.png"></div>
+                <figcaption class="figure-caption">The lobby screen, as it appears on a mobile browser (emulated).</figcaption>
               </div>
               <div>
-                <div class="phone-demo"><img src="/static/images/docs/lobby-mobile.png"></div>
-                <figcaption class="figure-caption">The lobby screen, as it appears on a mobile browser.</figcaption>
+                <div class="phone-demo"><img src="/static/images/docs/gameboard-screen-mobile.png"></div>
+                <figcaption class="figure-caption">The gameboard screen, as it appears on a mobile browser (emulated).</figcaption>
               </div>
             </div>
           </div>
@@ -646,13 +648,13 @@
               }("strong sub-link github-link")</span>
           </div>
           <figure class="figure full-screenshot">
-            <a href="/static/images/docs/lobby-screen.jpg" data-toggle="lightbox">
-              <img src="/static/images/docs/lobby-screen.jpg" class="figure-img img-fluid rounded" alt="Lobby screen screenshot">
+            <a href="/static/images/docs/lobby-screen.png" data-toggle="lightbox">
+              <img src="/static/images/docs/lobby-screen.png" class="figure-img img-fluid rounded" alt="Lobby screen screenshot">
             </a>
             <figcaption class="figure-caption">The lobby screen, as it appears on the live app.</figcaption>
           </figure>
           <p>
-            In the lobby screen, the client establishes a websocket connection with the server, and receives packets pertaining
+            In the lobby screen, the client establishes a websocket connection with the server, and receives format pertaining
             to updates to the lobby (player leave/join). The host has the option to start the game once enough players have joined,
             at which point the server backend will undergo a state change and process initial game conditions. Once the new game
             state has been determined, the server will notify all connected (and properly joined) players in the lobby that it
@@ -674,8 +676,8 @@
             }("strong sub-link github-link")</span>
           </div>
           <figure class="figure full-screenshot">
-            <a href="/static/images/docs/gameboard-screen.jpg" data-toggle="lightbox">
-              <img src="/static/images/docs/gameboard-screen.jpg" class="figure-img img-fluid rounded" alt="Gameboard screen screenshot">
+            <a href="/static/images/docs/gameboard-screen.png" data-toggle="lightbox">
+              <img src="/static/images/docs/gameboard-screen.png" class="figure-img img-fluid rounded" alt="Gameboard screen screenshot">
             </a>
             <figcaption class="figure-caption">The gameboard screen, as it appears on the live app.</figcaption>
           </figure>

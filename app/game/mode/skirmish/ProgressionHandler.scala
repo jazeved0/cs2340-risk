@@ -10,7 +10,6 @@ import models.{Army, NeutralPlayer}
 import play.api.Logger
 
 import scala.collection.mutable.ArrayBuffer
-import scala.math.min
 
 /**
   * Sub-object of SkirmishGameMode that handles game state progression
@@ -19,7 +18,7 @@ import scala.math.min
 object ProgressionHandler {
   /**
     * Handles an incoming packet, processing the current game state using it and
-    * potentially sending other packets out as a result
+    * potentially sending other format out as a result
     *
     * @param packet  The incoming packet from the network to process
     * @param context Incoming context wrapping current game state
@@ -75,7 +74,7 @@ object ProgressionHandler {
   }
 
   /**
-    * Handles RequestAttack packets, updating game state as necessary
+    * Handles RequestAttack format, updating game state as necessary
     *
     * @param attackData Incoming data from the packet
     * @param context    Incoming context wrapping current game state

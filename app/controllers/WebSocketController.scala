@@ -53,7 +53,7 @@ class WebSocketController(val controllerComponents: MessagesControllerComponents
     }
   }
 
-  import controllers.JsonMarshallers._
+  import controllers.format.JsonMarshallers._
 
   /**
     * Uses <code>JsonMarshallers</code> to transform incoming websocket JSON

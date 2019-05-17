@@ -6,7 +6,7 @@ import actors.Game.{CanBeHosted, CanBeJoined}
 import actors.GameSupervisor.{CanHost, CanJoin}
 import akka.actor.{Actor, ActorRef, Cancellable, PoisonPill, Props}
 import common.{Resources, UniqueIdProvider, UniqueValueManager, Util}
-import controllers._
+import controllers.{RequestResponse, _}
 import game.GameContext
 import game.mode.GameMode
 import game.state.GameState
@@ -105,8 +105,8 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
   }
 
   /**
-    * Receive incoming packets or incoming messages and turn them into internal state
-    * changes and/or outgoing packets/reply messages
+    * Receive incoming format or incoming messages and turn them into internal state
+    * changes and/or outgoing format/reply messages
     * @return a partial function defining the behavior upon message reception
     */
   override def receive: Receive = {
@@ -133,7 +133,7 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
   }
 
   /**
-    * Handle incoming packets in either state
+    * Handle incoming format in either state
     * @param globalPacket The packet object
     */
   def receiveGlobal(globalPacket: GlobalPacket): Unit = {
@@ -159,7 +159,7 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
   }
 
   /**
-    * Handle incoming packets in the lobby state (according to the state machine)
+    * Handle incoming format in the lobby state (according to the state machine)
     * @param lobbyPacket The packet object
     */
   def receiveLobby(lobbyPacket: LobbyPacket): Unit = {
@@ -177,7 +177,7 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
 
 
   /**
-    * Handle incoming packets during the InGame state (according to the state machine)
+    * Handle incoming format during the InGame state (according to the state machine)
     * @param inGamePacket The packet object
     */
   def receiveInGame(inGamePacket: InGamePacket): Unit = {
@@ -225,7 +225,7 @@ class Game(val gameMode: GameMode, val id: String, hostInfo: PlayerSettings)
     * If the host hasn't joined (and this is the host), then it initializes the
     * lobby and its host in addition to initializing the ping timeout watchdog
     * @param playerId The player Id of the connecting player
-    * @param actor The indirect actor reference used to later send them packets
+    * @param actor The indirect actor reference used to later send them format
     */
   def playerConnect(playerId: String, actor: ActorRef): Unit = {
     if (players.get(playerId).isEmpty && connected.get(playerId).isEmpty) {

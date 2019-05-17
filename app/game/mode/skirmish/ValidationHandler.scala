@@ -11,13 +11,13 @@ import game.state.{AttackState, TerritoryState}
 import scala.collection.immutable.Queue
 
 /**
-  * Sub-object of Progression Handler that processes incoming packets and
+  * Sub-object of Progression Handler that processes incoming format and
   * validates them depending on their content and the current game state
   */
 object ValidationHandler {
   /**
     * Applies the validation pipeline to the incoming packet, having the
-    * opportunity to send packets or mutate the game state in response
+    * opportunity to send format or mutate the game state in response
     *
     * @param packet  The incoming packet from the network to validate
     * @param context Incoming context wrapping current game state

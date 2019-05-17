@@ -37,7 +37,7 @@ object GameContext {
 
 /**
   * Wraps the return value for game state processing functions that allows for
-  * the latent sending of network packets following processing
+  * the latent sending of network format following processing
   *
   * @param state       The game state instance
   * @param packetOrder A list of packet contexts in reverse sending order
@@ -130,7 +130,7 @@ case class GameContext(state: GameState, private val packetOrder: List[PacketCon
   }
 
   /**
-    * Sends all packets in the current packet order, calling the given broadcast
+    * Sends all format in the current packet order, calling the given broadcast
     * functions as appropriate
     *
     * @param sendFunc      The function to called to send a directed packet
@@ -154,7 +154,7 @@ case class GameContext(state: GameState, private val packetOrder: List[PacketCon
       case _ => // do nothing
     }
 
-    // Process packets in order of addition
+    // Process format in order of addition
     sendNext(this.packetOrder.reverse)
   }
 

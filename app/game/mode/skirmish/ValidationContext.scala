@@ -92,7 +92,7 @@ case class ValidationContext(failed: Boolean, name: String = "",  message: Optio
     }
 
   /**
-    * Consumes the validation context object and turns it into outgoing packets
+    * Consumes the validation context object and turns it into outgoing format
     * as necessary
     *
     * @param mode    The consumption mode to use

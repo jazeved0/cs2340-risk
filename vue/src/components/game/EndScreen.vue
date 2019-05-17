@@ -24,22 +24,16 @@ export default {
     methods: {
         handleOk: function() {
             if (this.isHost) {
-                console.log("Is host. Route to lobby");
                 this.$socket.sendObj({
                     _type: "controllers.RequestStartGame",
                     gameId: this.$store.state.gameId,
                     playerId: this.$store.state.playerId
                 })
-            } else {
-                console.log("Is not host. Do nothing");
             }
         },
         handleCancel: function() {
             if (this.isHost) {
-                console.log("Is host. Route to Home");
                 window.location.href = '/';
-            } else {
-                console.log("Is not host. Do nothing");
             }
         },
     },
@@ -68,7 +62,6 @@ export default {
         score: function() {
             let result = [];
             let playerStates = this.$store.getters.playerStates;
-            console.log(this.$store.state.game.playerStateList);
             const boardStates = this.$store.getters.boardStates;
             playerStates.forEach(function(ps) {
                 let entry = {};
@@ -79,12 +72,9 @@ export default {
                     entry["Territories"] = count;
                 });
                 const index = ps["turnOrder"];
-                console.log("Player index is: " + index);
                 let count = 0;
                 boardStates.forEach(function(bs) {
-                    console.log(bs["owner"]);
                     if (bs["owner"] == index) {
-                        console.log('hello');
                         count++;
                     }
                 })

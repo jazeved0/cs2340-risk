@@ -10,8 +10,8 @@ import scala.util.Random
 
 /**
   * Base trait for implementing a game mode (defines ways of processing incoming
-  * packets and mutable state objects into internal mutations and outgoing
-  * messages/packets)
+  * format and mutable state objects into internal mutations and outgoing
+  * messages/format)
   *
   * Uses Strategy design pattern
   */
@@ -26,7 +26,7 @@ trait GameMode {
     *
     * @param joinOrder The join order from the Game actor
     * @return An outgoing context wrapping the updated game state as well as any
-    *         packets that will be sent as a result of initializing the game
+    *         format that will be sent as a result of initializing the game
     */
   @Impure.Nondeterministic
   def startGame(joinOrder: Seq[PlayerWithActor]): GameContext = {
@@ -39,7 +39,7 @@ trait GameMode {
       .thenBroadcast(SendGameboard(processedContext.state.gameboard))
       .thenBroadcast(UpdatePlayerState(processedContext.state))
       .thenBroadcast(UpdateBoardState(processedContext.state))
-      // Send all other packets spawned from the hook
+      // Send all other format spawned from the hook
       .thenSendAll(processedContext)
   }
 
@@ -70,7 +70,7 @@ trait GameMode {
     *
     * @param context Incoming context wrapping current game state
     * @return An outgoing context wrapping the updated game state as well as any
-    *         packets that will be sent as a result of handling the initialization
+    *         format that will be sent as a result of handling the initialization
     */
   @Pure
   def hookInitializeGame(implicit context: GameContext): GameContext = pass
@@ -81,7 +81,7 @@ trait GameMode {
     * @param packet  The packet instance (contains source player id)
     * @param context Incoming context wrapping current game state
     * @return An outgoing context wrapping the updated game state as well as any
-    *         packets that will be sent as a result of handling the packet
+    *         format that will be sent as a result of handling the packet
     */
   @Pure
   def hookPacket(packet: InGamePacket)
@@ -93,7 +93,7 @@ trait GameMode {
     * @param actor   The actor of the player that is leaving
     * @param context Incoming context wrapping current game state
     * @return An outgoing context wrapping the updated game state as well as any
-    *         packets that will be sent as a result of handling the disconnect
+    *         format that will be sent as a result of handling the disconnect
     */
   @Pure
   def hookPlayerDisconnect(actor: PlayerWithActor)
