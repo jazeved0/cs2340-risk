@@ -32,8 +32,8 @@ function validateUsernameField() {
 }
 
 // Handle input on game code field
-var codeField = $('#search_field');
-var codeButton = $('#search_button');
+var codeField = $('#lobby-field');
+var codeButton = $('#lobby-button');
 codeField.on('input', function () {
   var code = String(codeField.val());
   var isValidCode = code != null

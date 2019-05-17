@@ -35,15 +35,12 @@
       <div class="mb-3 mt-2">
         <b-form-group
             id="army-input"
-            label="Enter the amount of troops you wish to move: "
+            label="Select the amount of troops you wish to move: "
             label-for="armyCount">
-          <b-form-input
-              id="armyCount"
-              v-model="armyNumber"
-              type="text"
-              required
-              placeholder="Enter a Number">
-          </b-form-input>
+          <div class="d-flex mt-1">
+            <span class="d-block army-text">{{ armyNumber }}</span>
+            <b-form-input id="armyCount" v-model="armyNumber" type="range" min="0" :max="maxArmies"></b-form-input>
+          </div>
         </b-form-group>
       </div>
       <p class="font-italic">Note: You must leave at least one army behind. </p>
@@ -60,6 +57,9 @@
       }
     },
     computed: {
+      maxArmies() {
+        return this.getOriginArmies - 1;
+      },
       disableMovement() {
         if (!isNaN(this.armyNumber)) {
           return !((parseInt(this.armyNumber) > 0) && (parseInt(this.armyNumber) < this.getOriginArmies));
@@ -273,14 +273,13 @@
   }
 
   .army-text {
-    font-family: $roboto-font;
-    text-align: center;
-    font-size: 20px;
-  }
-
-  .army-text {
-    font-family: $roboto-font;
-    font-size: 22px;
+    margin-right: 12px;
+    border: solid 1px #a2a2a2;
+    padding: 2px 8px;
+    margin-top: -4px;
+    background-color: rgba(150, 150, 150, 0.1);
+    font-weight: 600;
+    border-radius: 4px;
   }
 
   @media screen and (max-width: 600px) {
