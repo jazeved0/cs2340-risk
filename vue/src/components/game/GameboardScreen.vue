@@ -19,7 +19,7 @@
         <div class="turnStateWrapper text-white">
           <p class="mb-0">
             <fa-icon icon="history" class="mr-3"></fa-icon>
-            <span class="font-weight-bold">{{ this.$store.state.game.totalTurns / this.$store.state.playersList.length }}</span>
+            <span class="font-weight-bold">{{ turnCounter }}</span>
             <span> / </span>
             <span class="font-weight-bold">{{ this.$store.state.settings.gameplay.turnLimit }}</span></p>
         </div>
@@ -204,6 +204,12 @@
         }
 
         return "";
+      },
+
+      // The turn counter number (out of total)
+      turnCounter () {
+        return Math.floor((this.$store.state.game.totalTurns
+                         / this.$store.state.playersList.length) + 1);
       },
 
       // Whether to display the attacker selection popup

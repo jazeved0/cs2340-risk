@@ -29,6 +29,6 @@
 	"gameplay": {
 		"minPlayers": 3,
 		"maxPlayers": 6,
-		"turnLimit": 4
+		"turnLimit": 16
 	}
 }

@@ -1,4 +1,4 @@
-name := """cs2340-team10-risk"""
+name := """cs2340-risk"""
 version := "1.0"
 maintainer := "cs2340-team10"
 
