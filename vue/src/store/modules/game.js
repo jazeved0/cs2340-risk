@@ -227,6 +227,14 @@ export default {
       };
       // apply mapping function and then filter by those that succeeded
       return state.gameboard.territories.map(resolveMapping).filter(obj => obj !== {});
+    },
+    winnerIndex(state, getters) {
+      const playerStates = getters.playerStates;
+      if (playerStates.length === 0) return -1;
+      else {
+        const max = playerStates.reduce((prev, current) => (prev.armies > current.armies) ? prev : current);
+        return playerStates.indexOf(max);
+      }
     }
   },
   actions: {

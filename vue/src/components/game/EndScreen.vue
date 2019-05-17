@@ -42,8 +42,11 @@ export default {
             return this.$store.state.isHost;
         },
         isWinner: function() {
-            //return this.$store.state.playerIndex == this.$store.state.game.winnerIndex;
-            return true;
+            return this.$store.getters.getPlayerIndex === this.$store.getters.winnerIndex;
+        },
+        winner: function() {
+            const winner = this.$store.getters.winnerIndex;
+            return winner === -1 ? "" : this.$store.state.game.playerStateList[winner].player.settings.name;
         },
         cancelTitle: function() {
             if (this.isHost) {
