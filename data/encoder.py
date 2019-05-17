@@ -224,7 +224,10 @@ def serialize_territory(territory):
     add = {}
     if territory[5] is not None:
         add = {
-            'castle': territory[5]
+            'castle':  {
+                'x': territory[5][0],
+                'y': territory[5][1]
+            }
         }
     return {**base, **add}
 

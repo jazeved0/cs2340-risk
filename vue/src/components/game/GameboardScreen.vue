@@ -208,7 +208,7 @@
 
       // The turn counter number (out of total)
       turnCounter () {
-        return Math.floor((this.$store.state.game.totalTurns
+        return Math.floor(((this.$store.state.game.totalTurns - 1)
                          / this.$store.state.playersList.length) + 1);
       },
 

@@ -121,16 +121,22 @@ export default {
     },
     [ON_SEND_GAMEBOARD](state, data) {
       if ('gameboard' in data) {
-        state.gameboard.nodeCount = data.gameboard.nodes.length;
-        state.gameboard.regions = data.gameboard.regions;
+        state.gameboard.nodeCount        = data.gameboard.nodes.length;
+        state.gameboard.regions          = data.gameboard.regions;
         state.gameboard.waterConnections = data.gameboard.waterConnections;
-        state.gameboard.size = data.gameboard.size;
-        // noinspection JSUnresolvedVariable
-        state.gameboard.territories = data.gameboard.nodes.map((n) => n.dto);
-        state.gameboard.pathData = data.gameboard.nodes.map((n) => n.path);
-        // noinspection JSUnresolvedVariable
-        state.gameboard.iconData = data.gameboard.nodes.map((n) => n.iconPath);
-        state.gameboard.centers = data.gameboard.nodes.map((n) => n.center);
+        state.gameboard.size             = data.gameboard.size;
+
+        state.gameboard.territories      = data.gameboard.nodes.map(n => n.dto);
+        state.gameboard.pathData         = data.gameboard.nodes.map(n => n.path);
+        state.gameboard.iconData         = data.gameboard.nodes.map(n => n.iconPath);
+        state.gameboard.centers          = data.gameboard.nodes.map(n => n.center);
+        state.gameboard.castles          = data.gameboard.nodes
+          .map   ((n, i) => { return {
+            elem:  n,
+            index: i
+          };})
+          .filter(n => 'castle' in n.elem.dto)
+          .map   (n => n.index);
       }
       initializeGameboardScreen(NETWORK_CTX);
     },

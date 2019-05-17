@@ -209,18 +209,17 @@ object Resources {
     */
   @throws[ConfigLoadException]
   def parseNode(config: Config, edges: Seq[(Int, Int)]): Node = {
-    val i = config.getInt("node")
-    val data = config.getString("data")
-    val iconData = config.getString("iconData")
-    val center = getLocation("center", ("x", "y"))(config)
-    val dto = Territory(edges
-      .filter(t => t._1 == i || t._2 == i)
-      .map(t => if (i == t._1) t._2 else t._1)
-      .toSet,
-      get("castle", (c, k) => {
-        Location.apply(toTuple2(c.getAnyRefList(k).asScala.toList.flatMap(toFloat)))
-      })(config))
-    Node(data, iconData, center, dto)
+    val i         = config.getInt("node")
+    val data      = config.getString("data")
+    val iconData  = config.getString("iconData")
+    val center    = getLocation("center", ("x", "y"))(config)
+    val castle    = get("castle", (conf, key) => getLocation(key, ("x", "y"))(conf))(config)
+    val connected = edges.flatMap {
+      case (a, b) if a == i => Some(b)
+      case (a, b) if b == i => Some(a)
+      case _                => None
+    }
+    Node(data, iconData, center, Territory(connected.toSet, castle))
   }
 
   /**

@@ -158,10 +158,7 @@
       castleData () {
         const store = this.$store;
         return store.getters.boardStates.filter(
-          ts => 'owner' in ts
-            && 'amount' in ts
-            && 'territory' in ts
-            && store.state.game.gameboard.castles.length > ts.territory
+          ts => store.state.game.gameboard.castles.includes(ts.territory)
         ).map(ter => {
           return {
             position: ter.territory

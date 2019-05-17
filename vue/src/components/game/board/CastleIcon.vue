@@ -3,6 +3,8 @@
 </template>
 
 <script>
+    import {exists} from "../../../util";
+
     const width = window.innerWidth;
     const height = window.innerHeight;
     const image = new Image();
@@ -14,12 +16,13 @@
             data: Object
         },
         data() {
-            
             const state = this.$store.state;
-            const position = ('position' in this.data
-                    && state.game.gameboard.castles.length > this.data.position)
-                    ? state.game.gameboard.castles[this.data.position]
-                    : { x: 0, y: 0 };
+            let position = null;
+            if ('position' in this.data) {
+              const castle = state.game.gameboard.territories[this.data.position].castle;
+              if (exists(castle)) position = castle;
+            }
+            if (position === null) position = { x: 0, y: 0 };
             return {
                 stageSize: {
                     width: width,
