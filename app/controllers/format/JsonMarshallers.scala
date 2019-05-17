@@ -17,8 +17,6 @@ object JsonMarshallers {
   implicit val armyW: Writes[Army] = Json.writes[Army]
   implicit val playerW: Writes[Player] = Json.writes[Player]
   implicit val neutralPlayer: Writes[NeutralPlayer.type] = new UndefinedWriter[NeutralPlayer.type]("NeutralPlayer")
-  // Needed to build-- remove if it causes problems
-  implicit val neutralPlayerFix: Writes[NeutralPlayer$] = new UndefinedWriter[NeutralPlayer$]("NeutralPlayer")
   implicit val concretePlayer: Writes[ConcretePlayer] = Json.writes[ConcretePlayer]
   implicit val stateW: Writes[TurnState.State] = (s: TurnState.State) => JsString(TurnState.State.unapply(s).getOrElse(""))
   implicit val payloadW: Writes[Seq[(String, Any)]] = new PayloadWrites
