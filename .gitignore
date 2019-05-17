@@ -11,3 +11,4 @@ vue/node_modules/
 venv
 vue/dist
 deploy/svc
+*.iml
