@@ -2,7 +2,7 @@
 
 [![Uptime Robot status](https://img.shields.io/uptimerobot/status/m782165527-5f127672eaae6df89c7b070a.svg?color=%235B78BB&style=for-the-badge)](https://stats.uptimerobot.com/OZ659UjoL) [![Version](https://img.shields.io/badge/version-M5-blue.svg?color=%235B78BB&style=for-the-badge)](https://github.com/jazevedo620/cs2340-risk/releases/tag/M5) [![Contributors](https://img.shields.io/github/contributors/jazevedo620/cs2340-risk.svg?color=%235B78BB&style=for-the-badge)](https://github.com/jazevedo620/cs2340-risk/graphs/contributors)
 
-> SCS 2340 Risk is a Scala web app that exposes a WebSocket API, leveraging the Akka Actor system to manage state.
+> CS 2340 Risk is a Scala web app that exposes a WebSocket API, leveraging the Akka Actor system to manage state.
 
 ### [Live Version](http://riskgame.ga/)
 
