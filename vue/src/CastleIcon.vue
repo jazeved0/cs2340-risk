@@ -3,12 +3,10 @@
 </template>
 
 <script>
-    const width = window.innerWidth;
-    const height = window.innerHeight;
     const image = new Image();
     const imgWidth = 28;
     const imgHeight = 28;
-    image.src = '../static/images/corrected.png';
+    image.src = '../../static/images/corrected.png';
     export default {
         props: {
             x: Number,

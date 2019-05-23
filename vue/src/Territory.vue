@@ -20,7 +20,7 @@
 
 <script>
   import {alphaBlended, colorLuminance,
-          colorSaturation, exists} from "../../../util";
+          colorSaturation, exists} from "./util";
   import Konva from 'konva'
 
   export default {
