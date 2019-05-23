@@ -21,11 +21,9 @@
       </v-layer>
       <v-layer>
         <v-castle-icon v-for="castle in castleData"
-            :data="castle"
-            :key="castle.num"></v-castle-icon>
+            v-bind="castle" :key="castle.num"></v-castle-icon>
         <v-army-shape v-for="army in armyData"
-            :data="army"
-            :key="army.num"></v-army-shape>
+            v-bind="army" :key="army.num"></v-army-shape>
       </v-layer>
     </v-stage>
   </div>
@@ -160,8 +158,10 @@
         return store.getters.boardStates.filter(
           ts => store.state.game.gameboard.castles.includes(ts.territory)
         ).map(ter => {
-          return {
-            position: ter.territory
+          const castle = store.state.game.gameboard.territories[ter.territory].castle;
+          if (exists(castle)) return {
+            x: castle.a,
+            y: castle.b
           }
         })
       },
@@ -178,23 +178,39 @@
           if (territoryState.owner < 0) {
             color = -1;
           } else if (territoryState.owner < store.state.game.playerStateList.length) {
-            color = store.state.game.playerStateList[territoryState.owner];
-          }
-          if (color !== - 1) {
-            if (color !== null && 'player' in color) {
-              color = color.player.settings.ordinal;
+            const playerState = store.state.game.playerStateList[territoryState.owner];
+            if (playerState !== null && 'player' in playerState) {
+              color = playerState.player.settings.ordinal;
             } else {
               color = 0;
             }
           }
+          const position = store.state.game.gameboard.centers[territoryState.territory];
           return {
             size: territoryState.amount,
-            color: color,
-            position: territoryState.territory,
+            color: color < 0 ? '#' + store.state.settings.settings.neutralColor
+                             : '#' + store.state.settings.settings.colors[color],
+            x: position.a,
+            y: position.b,
             num: territoryState.territory
           }
         });
-      }
+      },
+
+      // Gets the size of the gameboard from the store
+      gameboardSize () {
+        if (exists(this.$store.state.game.gameboard)) {
+          return this.$store.state.game.gameboard.size;
+        } else {
+          logError("Gameboard is undefined. Ignoring");
+          return { a: 0, b: 0 };
+        }
+      },
+
+      // Gets the effective player card component width
+      playerInfoWidth () {
+        return 320;
+      },
     },
 
     methods: {
@@ -207,15 +223,13 @@
         const bounds = this.stageDimensions;
         let totalW = bounds.w;
         let totalH = bounds.h;
-        const state = this.$store.state;
+        const playerInfoHeight = 200;
         if ('playerInfo' in this.$refs) {
-          const maxPlayerInfoWidth = (state.game.playerInfoCard.w *
-            state.playersList.length);
-          if (maxPlayerInfoWidth > (bounds.w * 0.7)) {
-            totalH -= state.game.playerInfoCard.h;
+          if (this.playerInfoWidth > (bounds.w * 0.7)) {
+            totalH -= playerInfoHeight;
           }
         }
-        const size = this.$store.state.game.gameboard.size;
+        const size = this.gameboardSize;
         // make initial map take up 3/4 of smaller dimension
         const margin = Math.min(totalW, totalH) / 8;
         const kw = (totalW - 2 * margin) / size.a;
@@ -252,10 +266,10 @@
 
       // Calculates the position bounds according to the current scale & dimensions
       calculatePositionBounds () {
-        if (exists(this.stageObj) && exists(this.$store.state.game.gameboard)) {
+        if (exists(this.stageObj)) {
           const scale  = this.stageObj.scale();
           const bounds = this.stageDimensions;
-          const size   = this.$store.state.game.gameboard.size;
+          const size   = this.gameboardSize;
           return {
             x: this.axisBounds(size.a * scale.x, bounds.w),
             y: this.axisBounds(size.b * scale.y, bounds.h)
