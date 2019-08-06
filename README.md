@@ -4,17 +4,17 @@
 
 > CS 2340 Risk is a Scala web app that exposes a WebSocket API, leveraging the Akka Actor system to manage state.
 
-### [Live Version](http://riskgame.ga/)
+## 🔌 [Live Version](http://riskgame.ga/)
 
 At a high level, the frontend is built with Vue.js and HTML Canvases, while the backend is built with Scala Play and Akka. The project itself was produced for CS 2340 at Georgia Tech with Professor Christopher Simpkins ([class website](https://cs2340.gitlab.io/))
 
-### Design Docs
+## 📚 Design Docs
 
 Detailed documentation on the project and its components (including the frontend, backend, and deployment) is [available here](https://riskgame.ga/docs).
 
 ![game screen](https://i.imgur.com/GaguGHa.png "Example game screen")
 
-## Setup
+## 🚀 Getting Started
 
 To setup the Risk web application, both the front end, written in Vue, and the back end, written in Scala, need to be built.
 
@@ -37,7 +37,7 @@ sbt run
 
 And open [http://localhost:9000/](http://localhost:9000/)
 
-## Development setup
+## ⚙ Development setup
 
 For development mode, run the following commands instead, which will (in addition to installing dependencies like before) generate source mappings, more verbose modules, and enable the [Vue devtools extension](https://github.com/vuejs/vue-devtools): (again, in the `/vue` directory)
 
@@ -52,7 +52,7 @@ When starting the server, you can enable the file watcher and start the Scala bu
 sbt ~run
 ```
 
-## Dependencies
+## 🔗 Dependencies
 
 ### Frontend
 
@@ -75,7 +75,7 @@ sbt ~run
 - [Nginx proxy](https://github.com/jwilder/nginx-proxy) - Proxy container providing support for https on live
 - [Alpine Linux](https://hub.docker.com/_/alpine) - Container image used to package application
 
-## Contributors
+## 👥 Contributors
 
 Our team for CS 2340 consisted of the following members:
 
